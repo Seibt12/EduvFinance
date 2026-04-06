@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - EduFinance</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <div class="app-layout">
+
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="site-name">EduFinance</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Aluno</div>
+          <div class="user-role">Aluno</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-section="dashboard">Inicio</a>
+        <a href="#" class="nav-item" data-section="lessons">Aulas</a>
+        <a href="#" class="nav-item" data-section="courses">Cursos</a>
+        <a href="#" class="nav-item" data-section="investor">Perfil Investidor</a>
+        <a href="#" class="nav-item" data-section="profile">Meu Perfil</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="logout()">Sair</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <!-- INICIO / DASHBOARD -->
+      <section id="section-dashboard" class="content-section active">
+        <div class="section-header">
+          <div>
+            <h1>Inicio</h1>
+            <p id="motivMessage">Carregando...</p>
+          </div>
+        </div>
+
+        <div class="progress-summary">
+          <h3>Progresso Geral</h3>
+          <div class="progress-info">
+            <div><strong id="dashConcluidas">0</strong> <span>aulas concluidas</span></div>
+            <div><span>de</span> <strong id="dashTotal">0</strong> <span>no total</span></div>
+            <div><strong id="dashPercent">0%</strong></div>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="dashProgressBar" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:20px">
+          <div class="stat-card" id="dashInvestorCard" style="cursor:pointer" onclick="showSection('investor')">
+            <div class="stat-value" id="dashInvestorPerfil" style="font-size:16px">-</div>
+            <div class="stat-label">Perfil de Investidor</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Proxima aula</div>
+          <div class="card-body">
+            <div id="nextLesson"><span style="color:#666">Carregando...</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Trilha de aprendizado</div>
+          <div class="card-body">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nivel</th>
+                  <th>Descricao</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="badge badge-basico">Basico</span></td>
+                  <td style="color:#888">Disponivel para todos</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-intermediario">Intermediario</span></td>
+                  <td style="color:#888">Disponivel apos concluir todas as aulas basicas</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-avancado">Avancado</span></td>
+                  <td style="color:#888">Disponivel apos concluir basico e intermediario</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- AULAS -->
+      <section id="section-lessons" class="content-section">
+        <div class="section-header">
+          <div>
+            <h1>Aulas</h1>
+            <p>Complete a trilha para desbloquear todos os niveis</p>
+          </div>
+        </div>
+        <div id="lessonsContainer">
+          <p style="color:#666">Carregando...</p>
+        </div>
+      </section>
+
+      <!-- CURSOS -->
+      <section id="section-courses" class="content-section">
+        <div class="section-header">
+          <div>
+            <h1>Cursos</h1>
+            <p>Explore e se matricule nos cursos disponíveis</p>
+          </div>
+        </div>
+        <div id="coursesContainer">
+          <p style="color:#666">Carregando...</p>
+        </div>
+      </section>
+
+      <!-- DETALHE DO CURSO (sub-view) -->
+      <section id="section-course-detail" class="content-section">
+        <div class="section-header">
+          <div>
+            <button class="btn btn-secondary btn-sm" onclick="showSection('courses')" style="margin-bottom:8px">&#8592; Voltar</button>
+            <h1 id="courseDetailNome">Curso</h1>
+            <p id="courseDetailDesc" style="color:#888"></p>
+          </div>
+          <div id="courseDetailActions"></div>
+        </div>
+        <div id="courseDetailProgress" style="margin-bottom:16px"></div>
+        <div id="courseDetailLessons">
+          <p style="color:#666">Carregando...</p>
+        </div>
+      </section>
+
+      <!-- PERFIL DE INVESTIDOR -->
+      <section id="section-investor" class="content-section">
+        <div class="section-header">
+          <div>
+            <h1>Perfil de Investidor</h1>
+            <p>Descubra qual tipo de investidor voce e</p>
+          </div>
+        </div>
+        <div id="investorContainer">
+          <p style="color:#666">Carregando...</p>
+        </div>
+      </section>
+
+      <!-- MEU PERFIL -->
+      <section id="section-profile" class="content-section">
+        <div class="section-header">
+          <div>
+            <h1>Meu Perfil</h1>
+            <p>Editar informacoes da conta</p>
+          </div>
+        </div>
+
+        <div class="card" style="max-width:480px">
+          <div class="card-header">Editar dados</div>
+          <div class="card-body">
+            <form id="profileForm">
+              <div class="form-group">
+                <label>Nome</label>
+                <input type="text" id="profileNome" required>
+              </div>
+              <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" id="profileEmail" required>
+              </div>
+              <div class="form-group">
+                <label>Nova senha (deixe em branco para nao alterar)</label>
+                <input type="password" id="profileSenha">
+              </div>
+              <div class="form-group">
+                <label>Confirmar nova senha</label>
+                <input type="password" id="profileConfirm">
+              </div>
+              <button type="submit" class="btn btn-primary">Salvar</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/student.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => { initProfileForm(); });
+  </script>
+</body>
+</html>
