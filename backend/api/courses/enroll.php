@@ -3,7 +3,7 @@
 // MATRÍCULA — POST /backend/api/courses/enroll.php
 //
 // Recebe: { course_id, action: 'enroll' | 'unenroll' }
-// Apenas alunos podem se matricular.
+// Apenas alunos podem se matricular em cursos.
 // ============================================================
 
 require_once __DIR__ . '/../../config/database.php';
@@ -20,36 +20,36 @@ if (($_SESSION['user_tipo'] ?? '') !== 'aluno') {
     jsonResponse(['success' => false, 'message' => 'Apenas alunos podem se matricular em cursos.'], 403);
 }
 
-$body     = getJsonBody();
-$courseId = isset($body['course_id']) ? (int) $body['course_id'] : 0;
-$action   = trim($body['action'] ?? '');
+$corpo   = getJsonBody();
+$cursoId = isset($corpo['course_id']) ? (int) $corpo['course_id'] : 0;
+$acao    = trim($corpo['action'] ?? '');
 
-if ($courseId <= 0 || !in_array($action, ['enroll', 'unenroll'], true)) {
+if ($cursoId <= 0 || !in_array($acao, ['enroll', 'unenroll'], true)) {
     jsonResponse(['success' => false, 'message' => 'Dados inválidos.'], 400);
 }
 
 try {
-    $conn   = getConnection();
-    $userId = (int) $_SESSION['user_id'];
+    $conn      = getConnection();
+    $idUsuario = (int) $_SESSION['user_id'];
 
     // Verifica se o curso existe
-    $check = $conn->prepare("SELECT id FROM courses WHERE id = ?");
-    $check->execute([$courseId]);
-    if (!$check->fetch()) {
+    $verificacao = $conn->prepare("SELECT id FROM courses WHERE id = ?");
+    $verificacao->execute([$cursoId]);
+    if (!$verificacao->fetch()) {
         jsonResponse(['success' => false, 'message' => 'Curso não encontrado.'], 404);
     }
 
-    if ($action === 'enroll') {
+    if ($acao === 'enroll') {
         $stmt = $conn->prepare(
             "INSERT INTO course_enrollments (user_id, course_id) VALUES (?, ?) ON CONFLICT DO NOTHING"
         );
-        $stmt->execute([$userId, $courseId]);
+        $stmt->execute([$idUsuario, $cursoId]);
         jsonResponse(['success' => true, 'message' => 'Matrícula realizada com sucesso!']);
     } else {
         $stmt = $conn->prepare(
             "DELETE FROM course_enrollments WHERE user_id = ? AND course_id = ?"
         );
-        $stmt->execute([$userId, $courseId]);
+        $stmt->execute([$idUsuario, $cursoId]);
         jsonResponse(['success' => true, 'message' => 'Matrícula cancelada.']);
     }
 

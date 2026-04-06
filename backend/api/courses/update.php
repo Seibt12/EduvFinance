@@ -16,12 +16,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(['success' => false, 'message' => 'Método não permitido.'], 405);
 }
 
-$body      = getJsonBody();
-$id        = isset($body['id']) ? (int) $body['id'] : 0;
-$nome      = trim($body['nome']      ?? '');
-$descricao = trim($body['descricao'] ?? '');
-$nivel     = trim($body['nivel']     ?? '');
-$lessonIds = array_map('intval', (array) ($body['lesson_ids'] ?? []));
+$corpo     = getJsonBody();
+$id        = isset($corpo['id'])       ? (int) $corpo['id']        : 0;
+$nome      = trim($corpo['nome']      ?? '');
+$descricao = trim($corpo['descricao'] ?? '');
+$nivel     = trim($corpo['nivel']     ?? '');
+$idsAulas  = array_map('intval', (array) ($corpo['lesson_ids'] ?? []));
 
 if ($id <= 0 || !$nome || !$descricao || !$nivel) {
     jsonResponse(['success' => false, 'message' => 'Dados inválidos ou incompletos.'], 400);
@@ -35,27 +35,27 @@ try {
     $conn = getConnection();
 
     // Verifica se o curso existe
-    $check = $conn->prepare("SELECT id FROM courses WHERE id = ?");
-    $check->execute([$id]);
-    if (!$check->fetch()) {
+    $verificacao = $conn->prepare("SELECT id FROM courses WHERE id = ?");
+    $verificacao->execute([$id]);
+    if (!$verificacao->fetch()) {
         jsonResponse(['success' => false, 'message' => 'Curso não encontrado.'], 404);
     }
 
     $conn->beginTransaction();
 
     // Atualiza os dados do curso
-    $conn->prepare("UPDATE courses SET nome = ?, descricao = ?, nivel = ? WHERE id = ?")
+    $conn->prepare("UPDATE courses SET nome = ?, descricao = ?, nivel = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
          ->execute([$nome, $descricao, $nivel, $id]);
 
     // Remove as aulas antigas e insere as novas
     $conn->prepare("DELETE FROM course_lessons WHERE course_id = ?")->execute([$id]);
 
-    if (!empty($lessonIds)) {
-        $stmtLink = $conn->prepare(
+    if (!empty($idsAulas)) {
+        $stmtVinculo = $conn->prepare(
             "INSERT INTO course_lessons (course_id, lesson_id) VALUES (?, ?) ON CONFLICT DO NOTHING"
         );
-        foreach ($lessonIds as $lid) {
-            if ($lid > 0) $stmtLink->execute([$id, $lid]);
+        foreach ($idsAulas as $aulaId) {
+            if ($aulaId > 0) $stmtVinculo->execute([$id, $aulaId]);
         }
     }
 

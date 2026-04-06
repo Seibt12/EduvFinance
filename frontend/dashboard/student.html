@@ -56,7 +56,7 @@
         </div>
 
         <div class="stats-grid" style="margin-bottom:20px">
-          <div class="stat-card" id="dashInvestorCard" style="cursor:pointer" onclick="showSection('investor')">
+          <div class="stat-card" id="dashInvestorCard" style="cursor:pointer" onclick="exibirSecao('investor')">
             <div class="stat-value" id="dashInvestorPerfil" style="font-size:16px">-</div>
             <div class="stat-label">Perfil de Investidor</div>
           </div>
@@ -128,7 +128,7 @@
       <section id="section-course-detail" class="content-section">
         <div class="section-header">
           <div>
-            <button class="btn btn-secondary btn-sm" onclick="showSection('courses')" style="margin-bottom:8px">&#8592; Voltar</button>
+            <button class="btn btn-secondary btn-sm" onclick="exibirSecao('courses')" style="margin-bottom:8px">&#8592; Voltar</button>
             <h1 id="courseDetailNome">Curso</h1>
             <p id="courseDetailDesc" style="color:#888"></p>
           </div>
@@ -181,7 +181,7 @@
                 <div class="form-group" style="padding:0;margin-bottom:14px">
                   <label>Tipo de Investimento</label>
                   <!--
-                    Hidden input keeps simType.value working in runSimulation() unchanged.
+                    Hidden input keeps simType.value working in executarSimulacao() unchanged.
                     Visual selection is handled by .sim-type-card buttons rendered by JS.
                   -->
                   <!-- value="" is intentional: JS uses the empty string as a
@@ -321,7 +321,7 @@
   <script src="../assets/js/auth.js"></script>
   <script src="../assets/js/student.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => { initProfileForm(); });
+    document.addEventListener('DOMContentLoaded', () => { inicializarFormularioPerfil(); });
   </script>
 </body>
 </html>

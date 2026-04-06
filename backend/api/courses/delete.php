@@ -17,8 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(['success' => false, 'message' => 'Método não permitido.'], 405);
 }
 
-$body = getJsonBody();
-$id   = isset($body['id']) ? (int) $body['id'] : 0;
+$corpo = getJsonBody();
+$id    = isset($corpo['id']) ? (int) $corpo['id'] : 0;
 
 if ($id <= 0) {
     jsonResponse(['success' => false, 'message' => 'ID inválido.'], 400);
@@ -27,9 +27,9 @@ if ($id <= 0) {
 try {
     $conn = getConnection();
 
-    $check = $conn->prepare("SELECT id FROM courses WHERE id = ?");
-    $check->execute([$id]);
-    if (!$check->fetch()) {
+    $verificacao = $conn->prepare("SELECT id FROM courses WHERE id = ?");
+    $verificacao->execute([$id]);
+    if (!$verificacao->fetch()) {
         jsonResponse(['success' => false, 'message' => 'Curso não encontrado.'], 404);
     }
 

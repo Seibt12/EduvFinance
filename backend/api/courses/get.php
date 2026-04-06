@@ -15,37 +15,37 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     jsonResponse(['success' => false, 'message' => 'Método não permitido.'], 405);
 }
 
-$courseId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-if ($courseId <= 0) {
+$cursoId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+if ($cursoId <= 0) {
     jsonResponse(['success' => false, 'message' => 'ID do curso inválido.'], 400);
 }
 
 try {
-    $conn    = getConnection();
-    $userId  = (int) $_SESSION['user_id'];
-    $isAdmin = ($_SESSION['user_tipo'] ?? '') === 'admin';
+    $conn      = getConnection();
+    $idUsuario = (int) $_SESSION['user_id'];
+    $ehAdmin   = ($_SESSION['user_tipo'] ?? '') === 'admin';
 
     // Busca os dados do curso
     $stmt = $conn->prepare("SELECT id, nome, descricao, nivel, created_at FROM courses WHERE id = ?");
-    $stmt->execute([$courseId]);
-    $course = $stmt->fetch();
+    $stmt->execute([$cursoId]);
+    $curso = $stmt->fetch();
 
-    if (!$course) {
+    if (!$curso) {
         jsonResponse(['success' => false, 'message' => 'Curso não encontrado.'], 404);
     }
 
     // Busca as aulas do curso (com progresso para aluno, sem para admin)
-    if ($isAdmin) {
-        $stmtLessons = $conn->prepare("
+    if ($ehAdmin) {
+        $stmtAulas = $conn->prepare("
             SELECT l.id, l.titulo, l.descricao, l.nivel
             FROM lessons l
             JOIN course_lessons cl ON cl.lesson_id = l.id
             WHERE cl.course_id = ?
             ORDER BY l.nivel ASC, l.titulo ASC
         ");
-        $stmtLessons->execute([$courseId]);
+        $stmtAulas->execute([$cursoId]);
     } else {
-        $stmtLessons = $conn->prepare("
+        $stmtAulas = $conn->prepare("
             SELECT
                 l.id, l.titulo, l.descricao, l.nivel,
                 COALESCE(p.concluido, 0) AS concluido
@@ -55,53 +55,53 @@ try {
             WHERE cl.course_id = ?
             ORDER BY l.nivel ASC, l.titulo ASC
         ");
-        $stmtLessons->execute([$userId, $courseId]);
+        $stmtAulas->execute([$idUsuario, $cursoId]);
     }
 
-    $lessons = [];
-    while ($row = $stmtLessons->fetch()) {
-        $lesson = [
-            'id'       => (int) $row['id'],
-            'titulo'   => $row['titulo'],
+    $aulas = [];
+    while ($row = $stmtAulas->fetch()) {
+        $aula = [
+            'id'        => (int) $row['id'],
+            'titulo'    => $row['titulo'],
             'descricao' => $row['descricao'],
-            'nivel'    => $row['nivel'],
+            'nivel'     => $row['nivel'],
         ];
-        if (!$isAdmin) {
-            $lesson['concluido'] = (bool) $row['concluido'];
+        if (!$ehAdmin) {
+            $aula['concluido'] = (bool) $row['concluido'];
         }
-        $lessons[] = $lesson;
+        $aulas[] = $aula;
     }
 
     // Verifica matrícula do aluno neste curso
     $matriculado = false;
-    if (!$isAdmin) {
-        $stmtEnroll = $conn->prepare(
+    if (!$ehAdmin) {
+        $stmtMatricula = $conn->prepare(
             "SELECT id FROM course_enrollments WHERE user_id = ? AND course_id = ?"
         );
-        $stmtEnroll->execute([$userId, $courseId]);
-        $matriculado = (bool) $stmtEnroll->fetch();
+        $stmtMatricula->execute([$idUsuario, $cursoId]);
+        $matriculado = (bool) $stmtMatricula->fetch();
     }
 
-    $total      = count($lessons);
-    $concluidas = !$isAdmin
-        ? count(array_filter($lessons, fn($l) => $l['concluido']))
+    $totalAulas = count($aulas);
+    $concluidas = !$ehAdmin
+        ? count(array_filter($aulas, fn($a) => $a['concluido']))
         : 0;
 
     jsonResponse([
         'success' => true,
         'course'  => [
-            'id'          => (int) $course['id'],
-            'nome'        => $course['nome'],
-            'descricao'   => $course['descricao'],
-            'nivel'       => $course['nivel'],
-            'created_at'  => $course['created_at'],
-            'lesson_ids'  => array_column($lessons, 'id'),
-            'total_aulas' => $total,
+            'id'          => (int) $curso['id'],
+            'nome'        => $curso['nome'],
+            'descricao'   => $curso['descricao'],
+            'nivel'       => $curso['nivel'],
+            'created_at'  => $curso['created_at'],
+            'lesson_ids'  => array_column($aulas, 'id'),
+            'total_aulas' => $totalAulas,
             'matriculado' => $matriculado,
             'concluidas'  => $concluidas,
-            'percentual'  => $total > 0 ? round(($concluidas / $total) * 100) : 0,
+            'percentual'  => $totalAulas > 0 ? round(($concluidas / $totalAulas) * 100) : 0,
         ],
-        'lessons' => $lessons,
+        'lessons' => $aulas,
     ]);
 
 } catch (PDOException $e) {

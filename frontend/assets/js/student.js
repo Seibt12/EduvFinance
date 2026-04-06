@@ -1,43 +1,43 @@
-let currentUser = null;
+let usuarioAtual = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-  requireRole('aluno', user => {
-    currentUser = user;
-    document.getElementById('userName').textContent = user.nome;
-    initNavigation();
-    loadDashboard();
+  verificarPapel('aluno', usuario => {
+    usuarioAtual = usuario;
+    document.getElementById('userName').textContent = usuario.nome;
+    inicializarNavegacao();
+    carregarDashboard();
   });
 });
 
-function initNavigation() {
+function inicializarNavegacao() {
   document.querySelectorAll('.nav-item[data-section]').forEach(link => {
     link.addEventListener('click', e => {
       e.preventDefault();
-      showSection(link.dataset.section);
+      exibirSecao(link.dataset.section);
     });
   });
 }
 
-function showSection(name) {
+function exibirSecao(nome) {
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const section = document.getElementById(`section-${name}`);
-  const navItem = document.querySelector(`.nav-item[data-section="${name}"]`);
-  if (section) section.classList.add('active');
+  const secao   = document.getElementById(`section-${nome}`);
+  const navItem = document.querySelector(`.nav-item[data-section="${nome}"]`);
+  if (secao)   secao.classList.add('active');
   if (navItem) navItem.classList.add('active');
-  if (name === 'dashboard') loadDashboard();
-  if (name === 'lessons')   loadLessons();
-  if (name === 'courses')   loadCourses();
-  if (name === 'investor')  loadInvestorSection();
-  if (name === 'simulator') loadSimulator();
-  if (name === 'profile')   loadProfile();
+  if (nome === 'dashboard') carregarDashboard();
+  if (nome === 'lessons')   carregarAulas();
+  if (nome === 'courses')   carregarCursos();
+  if (nome === 'investor')  carregarSecaoInvestidor();
+  if (nome === 'simulator') carregarSimulador();
+  if (nome === 'profile')   carregarPerfil();
 }
 
 // ============================================================
 // DASHBOARD
 // ============================================================
 
-async function loadDashboard() {
+async function carregarDashboard() {
   try {
     const { ok, data } = await apiFetch('/progress/list.php');
     if (!ok || !data.success) return;
@@ -47,8 +47,8 @@ async function loadDashboard() {
     document.getElementById('dashConcluidas').textContent = r.concluidas;
     document.getElementById('dashTotal').textContent      = r.total;
 
-    const bar = document.getElementById('dashProgressBar');
-    if (bar) bar.style.width = r.percentual + '%';
+    const barra = document.getElementById('dashProgressBar');
+    if (barra) barra.style.width = r.percentual + '%';
 
     const msg = document.getElementById('motivMessage');
     if (msg) {
@@ -58,40 +58,40 @@ async function loadDashboard() {
       else                         msg.textContent = 'Comece pelas aulas basicas e evolua!';
     }
 
-    const nextLesson = data.lessons.find(l => !l.concluido && !l.bloqueado);
-    const nextEl = document.getElementById('nextLesson');
-    if (nextEl) {
-      if (nextLesson) {
-        nextEl.innerHTML = `
-          <span class="badge badge-${nextLesson.nivel}">${nivelLabel(nextLesson.nivel)}</span>
-          <strong style="display:block;margin:6px 0">${esc(nextLesson.titulo)}</strong>
-          <button class="btn btn-primary btn-sm" onclick="showSection('lessons')">Ver aulas</button>
+    const proximaAula = data.lessons.find(l => !l.concluido && !l.bloqueado);
+    const elProxima   = document.getElementById('nextLesson');
+    if (elProxima) {
+      if (proximaAula) {
+        elProxima.innerHTML = `
+          <span class="badge badge-${proximaAula.nivel}">${labelDoNivel(proximaAula.nivel)}</span>
+          <strong style="display:block;margin:6px 0">${esc(proximaAula.titulo)}</strong>
+          <button class="btn btn-primary btn-sm" onclick="exibirSecao('lessons')">Ver aulas</button>
         `;
       } else if (r.percentual === 100) {
-        nextEl.innerHTML = '<span style="color:#27ae60">Todas as aulas concluidas!</span>';
+        elProxima.innerHTML = '<span style="color:#27ae60">Todas as aulas concluidas!</span>';
       } else {
-        nextEl.innerHTML = '<span style="color:#666">Complete as aulas basicas para desbloquear os proximos niveis.</span>';
+        elProxima.innerHTML = '<span style="color:#666">Complete as aulas basicas para desbloquear os proximos niveis.</span>';
       }
     }
 
-    // Mostra perfil de investidor no card do dashboard
-    loadInvestorCardDashboard();
+    // Mostra o perfil de investidor no card do dashboard
+    carregarPerfilNoDashboard();
   } catch {
-    showToast('Erro ao carregar dashboard.', 'error');
+    exibirToast('Erro ao carregar dashboard.', 'error');
   }
 }
 
-async function loadInvestorCardDashboard() {
+async function carregarPerfilNoDashboard() {
   const el = document.getElementById('dashInvestorPerfil');
   if (!el) return;
   try {
     const { ok, data } = await apiFetch('/investor/get.php');
     if (ok && data.success && data.profile) {
-      const labels = { conservador: 'Conservador', moderado: 'Moderado', agressivo: 'Agressivo' };
-      const colors = { conservador: '#6fcf6f', moderado: '#e0b84a', agressivo: '#e06f6f' };
+      const rotulos = { conservador: 'Conservador', moderado: 'Moderado', agressivo: 'Agressivo' };
+      const cores   = { conservador: '#6fcf6f', moderado: '#e0b84a', agressivo: '#e06f6f' };
       const p = data.profile.perfil;
-      el.textContent = labels[p] || p;
-      el.style.color = colors[p] || '#7b9cff';
+      el.textContent = rotulos[p] || p;
+      el.style.color = cores[p] || '#7b9cff';
     } else {
       el.textContent = 'Nao definido';
       el.style.color = '#666';
@@ -105,7 +105,7 @@ async function loadInvestorCardDashboard() {
 // AULAS
 // ============================================================
 
-async function loadLessons() {
+async function carregarAulas() {
   const container = document.getElementById('lessonsContainer');
   container.innerHTML = '<p style="color:#666">Carregando...</p>';
   try {
@@ -114,18 +114,18 @@ async function loadLessons() {
       container.innerHTML = '<p style="color:#c0392b">Erro ao carregar aulas.</p>';
       return;
     }
-    const byLevel = {
+    const porNivel = {
       basico:        data.lessons.filter(l => l.nivel === 'basico'),
       intermediario: data.lessons.filter(l => l.nivel === 'intermediario'),
       avancado:      data.lessons.filter(l => l.nivel === 'avancado'),
     };
-    container.innerHTML = Object.entries(byLevel).map(([nivel, lessons]) => {
-      if (!lessons.length) return '';
+    container.innerHTML = Object.entries(porNivel).map(([nivel, aulas]) => {
+      if (!aulas.length) return '';
       return `
         <div class="level-section">
-          <div class="level-title">${nivelLabel(nivel)}</div>
+          <div class="level-title">${labelDoNivel(nivel)}</div>
           <div class="lessons-grid">
-            ${lessons.map(l => renderLessonCard(l)).join('')}
+            ${aulas.map(a => renderizarCardAula(a)).join('')}
           </div>
         </div>
       `;
@@ -135,40 +135,40 @@ async function loadLessons() {
   }
 }
 
-function renderLessonCard(lesson) {
-  const cardClass = lesson.bloqueado ? 'lesson-card locked' : lesson.concluido ? 'lesson-card completed' : 'lesson-card';
-  let footer;
-  if (lesson.bloqueado) {
-    footer = `<span style="font-size:12px;color:#666">Bloqueado</span>`;
-  } else if (lesson.concluido) {
-    footer = `
+function renderizarCardAula(aula) {
+  const classeCard = aula.bloqueado ? 'lesson-card locked' : aula.concluido ? 'lesson-card completed' : 'lesson-card';
+  let rodape;
+  if (aula.bloqueado) {
+    rodape = `<span style="font-size:12px;color:#666">Bloqueado</span>`;
+  } else if (aula.concluido) {
+    rodape = `
       <span style="color:#27ae60;font-size:13px">Concluida</span>
-      <button class="btn btn-secondary btn-sm" onclick="toggleLesson(${lesson.id}, false)">Desfazer</button>
+      <button class="btn btn-secondary btn-sm" onclick="alternarAula(${aula.id}, false)">Desfazer</button>
     `;
   } else {
-    footer = `<button class="btn btn-primary btn-sm" onclick="toggleLesson(${lesson.id}, true)">Marcar como concluida</button>`;
+    rodape = `<button class="btn btn-primary btn-sm" onclick="alternarAula(${aula.id}, true)">Marcar como concluida</button>`;
   }
   return `
-    <div class="${cardClass}">
-      <h4>${esc(lesson.titulo)}</h4>
-      <p>${esc(lesson.descricao)}</p>
-      <div class="lesson-card-footer">${footer}</div>
+    <div class="${classeCard}">
+      <h4>${esc(aula.titulo)}</h4>
+      <p>${esc(aula.descricao)}</p>
+      <div class="lesson-card-footer">${rodape}</div>
     </div>
   `;
 }
 
-async function toggleLesson(lessonId, concluido) {
+async function alternarAula(aulaId, concluido) {
   try {
     const { ok, data } = await apiFetch('/progress/mark.php', {
       method: 'POST',
-      body: JSON.stringify({ lesson_id: lessonId, concluido }),
+      body: JSON.stringify({ lesson_id: aulaId, concluido }),
     });
-    if (!ok || !data.success) { showToast(data.message || 'Erro.', 'error'); return; }
-    showToast(data.message, 'success');
-    await loadLessons();
-    loadDashboard();
+    if (!ok || !data.success) { exibirToast(data.message || 'Erro.', 'error'); return; }
+    exibirToast(data.message, 'success');
+    await carregarAulas();
+    carregarDashboard();
   } catch {
-    showToast('Erro de conexao.', 'error');
+    exibirToast('Erro de conexao.', 'error');
   }
 }
 
@@ -176,7 +176,7 @@ async function toggleLesson(lessonId, concluido) {
 // CURSOS
 // ============================================================
 
-async function loadCourses() {
+async function carregarCursos() {
   const container = document.getElementById('coursesContainer');
   container.innerHTML = '<p style="color:#666">Carregando...</p>';
   try {
@@ -190,22 +190,22 @@ async function loadCourses() {
       return;
     }
 
-    const enrolled   = data.courses.filter(c => c.matriculado);
-    const available  = data.courses.filter(c => !c.matriculado);
+    const matriculados = data.courses.filter(c => c.matriculado);
+    const disponiveis  = data.courses.filter(c => !c.matriculado);
 
     let html = '';
 
-    if (enrolled.length > 0) {
+    if (matriculados.length > 0) {
       html += `<div class="level-title" style="margin-bottom:12px">Meus cursos</div>`;
       html += `<div class="courses-grid">`;
-      html += enrolled.map(c => renderCourseCard(c)).join('');
+      html += matriculados.map(c => renderizarCardCurso(c)).join('');
       html += `</div>`;
     }
 
-    if (available.length > 0) {
+    if (disponiveis.length > 0) {
       html += `<div class="level-title" style="margin:24px 0 12px">Disponiveis para matricula</div>`;
       html += `<div class="courses-grid">`;
-      html += available.map(c => renderCourseCard(c)).join('');
+      html += disponiveis.map(c => renderizarCardCurso(c)).join('');
       html += `</div>`;
     }
 
@@ -215,52 +215,52 @@ async function loadCourses() {
   }
 }
 
-function renderCourseCard(course) {
-  const nivelBadge = `<span class="badge badge-${course.nivel}">${nivelLabel(course.nivel)}</span>`;
-  const progressHtml = course.matriculado ? `
+function renderizarCardCurso(curso) {
+  const badgeNivel    = `<span class="badge badge-${curso.nivel}">${labelDoNivel(curso.nivel)}</span>`;
+  const progressoHtml = curso.matriculado ? `
     <div class="course-progress">
       <div class="course-progress-bar">
-        <div class="course-progress-fill" style="width:${course.percentual}%"></div>
+        <div class="course-progress-fill" style="width:${curso.percentual}%"></div>
       </div>
-      <span class="course-progress-text">${course.concluidas}/${course.total_aulas} aulas &mdash; ${course.percentual}%</span>
+      <span class="course-progress-text">${curso.concluidas}/${curso.total_aulas} aulas &mdash; ${curso.percentual}%</span>
     </div>
-  ` : `<div style="font-size:12px;color:#666">${course.total_aulas} aulas</div>`;
+  ` : `<div style="font-size:12px;color:#666">${curso.total_aulas} aulas</div>`;
 
-  const actionBtn = course.matriculado
-    ? `<button class="btn btn-primary btn-sm" onclick="openCourseDetail(${course.id})">Acessar</button>
-       <button class="btn btn-secondary btn-sm" onclick="enrollCourse(${course.id}, 'unenroll')">Cancelar</button>`
-    : `<button class="btn btn-primary btn-sm" onclick="enrollCourse(${course.id}, 'enroll')">Matricular-se</button>`;
+  const botaoAcao = curso.matriculado
+    ? `<button class="btn btn-primary btn-sm" onclick="abrirDetalhesCurso(${curso.id})">Acessar</button>
+       <button class="btn btn-secondary btn-sm" onclick="matricularCurso(${curso.id}, 'unenroll')">Cancelar</button>`
+    : `<button class="btn btn-primary btn-sm" onclick="matricularCurso(${curso.id}, 'enroll')">Matricular-se</button>`;
 
   return `
-    <div class="course-card ${course.matriculado ? 'enrolled' : ''}">
+    <div class="course-card ${curso.matriculado ? 'enrolled' : ''}">
       <div class="course-card-header">
-        ${nivelBadge}
-        <h4>${esc(course.nome)}</h4>
-        <p>${esc(course.descricao.substring(0, 100))}${course.descricao.length > 100 ? '...' : ''}</p>
+        ${badgeNivel}
+        <h4>${esc(curso.nome)}</h4>
+        <p>${esc(curso.descricao.substring(0, 100))}${curso.descricao.length > 100 ? '...' : ''}</p>
       </div>
       <div class="course-card-footer">
-        ${progressHtml}
-        <div class="actions" style="margin-top:10px">${actionBtn}</div>
+        ${progressoHtml}
+        <div class="actions" style="margin-top:10px">${botaoAcao}</div>
       </div>
     </div>
   `;
 }
 
-async function enrollCourse(courseId, action) {
+async function matricularCurso(cursoId, acao) {
   try {
     const { ok, data } = await apiFetch('/courses/enroll.php', {
       method: 'POST',
-      body: JSON.stringify({ course_id: courseId, action }),
+      body: JSON.stringify({ course_id: cursoId, action: acao }),
     });
-    if (!ok || !data.success) { showToast(data.message || 'Erro.', 'error'); return; }
-    showToast(data.message, 'success');
-    loadCourses();
+    if (!ok || !data.success) { exibirToast(data.message || 'Erro.', 'error'); return; }
+    exibirToast(data.message, 'success');
+    carregarCursos();
   } catch {
-    showToast('Erro de conexao.', 'error');
+    exibirToast('Erro de conexao.', 'error');
   }
 }
 
-async function openCourseDetail(courseId) {
+async function abrirDetalhesCurso(cursoId) {
   // Ativa a sub-view de detalhe sem mostrar na nav
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
   document.getElementById('section-course-detail').classList.add('active');
@@ -272,15 +272,15 @@ async function openCourseDetail(courseId) {
   document.getElementById('courseDetailLessons').innerHTML = '<p style="color:#666">Carregando...</p>';
 
   try {
-    const { ok, data } = await apiFetch(`/courses/get.php?id=${courseId}`);
-    if (!ok || !data.success) { showToast('Erro ao carregar curso.', 'error'); return; }
+    const { ok, data } = await apiFetch(`/courses/get.php?id=${cursoId}`);
+    if (!ok || !data.success) { exibirToast('Erro ao carregar curso.', 'error'); return; }
 
     const c = data.course;
     document.getElementById('courseDetailNome').textContent = c.nome;
     document.getElementById('courseDetailDesc').textContent = c.descricao;
 
     document.getElementById('courseDetailActions').innerHTML = `
-      <button class="btn btn-secondary btn-sm" onclick="enrollCourse(${c.id}, 'unenroll'); showSection('courses')">Cancelar Matricula</button>
+      <button class="btn btn-secondary btn-sm" onclick="matricularCurso(${c.id}, 'unenroll'); exibirSecao('courses')">Cancelar Matricula</button>
     `;
 
     document.getElementById('courseDetailProgress').innerHTML = `
@@ -301,24 +301,24 @@ async function openCourseDetail(courseId) {
       return;
     }
 
-    const byLevel = {
+    const porNivel = {
       basico:        data.lessons.filter(l => l.nivel === 'basico'),
       intermediario: data.lessons.filter(l => l.nivel === 'intermediario'),
       avancado:      data.lessons.filter(l => l.nivel === 'avancado'),
     };
 
-    document.getElementById('courseDetailLessons').innerHTML = Object.entries(byLevel).map(([nivel, lessons]) => {
-      if (!lessons.length) return '';
+    document.getElementById('courseDetailLessons').innerHTML = Object.entries(porNivel).map(([nivel, aulas]) => {
+      if (!aulas.length) return '';
       return `
         <div class="level-section">
-          <div class="level-title">${nivelLabel(nivel)}</div>
+          <div class="level-title">${labelDoNivel(nivel)}</div>
           <div class="lessons-grid">
-            ${lessons.map(l => `
-              <div class="lesson-card ${l.concluido ? 'completed' : ''}">
-                <h4>${esc(l.titulo)}</h4>
-                <p>${esc(l.descricao)}</p>
+            ${aulas.map(a => `
+              <div class="lesson-card ${a.concluido ? 'completed' : ''}">
+                <h4>${esc(a.titulo)}</h4>
+                <p>${esc(a.descricao)}</p>
                 <div class="lesson-card-footer">
-                  ${l.concluido
+                  ${a.concluido
                     ? `<span style="color:#27ae60;font-size:13px">Concluida</span>`
                     : `<span style="color:#666;font-size:12px">Pendente</span>`}
                 </div>
@@ -329,7 +329,7 @@ async function openCourseDetail(courseId) {
       `;
     }).join('');
   } catch {
-    showToast('Erro de conexao.', 'error');
+    exibirToast('Erro de conexao.', 'error');
   }
 }
 
@@ -337,7 +337,7 @@ async function openCourseDetail(courseId) {
 // PERFIL DE INVESTIDOR
 // ============================================================
 
-const INVESTOR_QUESTIONS = [
+const PERGUNTAS_INVESTIDOR = [
   {
     id: 'q1',
     texto: 'Qual e o seu principal objetivo financeiro?',
@@ -385,7 +385,7 @@ const INVESTOR_QUESTIONS = [
   }
 ];
 
-const INVESTOR_RECOMMENDATIONS = {
+const RECOMENDACOES_PERFIL = {
   conservador: {
     cor: '#6fcf6f',
     descricao: 'Voce prioriza seguranca e estabilidade. Prefere nao correr riscos e valoriza a previsibilidade dos retornos.',
@@ -418,133 +418,133 @@ const INVESTOR_RECOMMENDATIONS = {
   }
 };
 
-let investorAnswers = {};
-let currentQuestion = 0;
+let respostasQuiz = {};
+let perguntaAtual = 0;
 
-async function loadInvestorSection() {
+async function carregarSecaoInvestidor() {
   const container = document.getElementById('investorContainer');
   container.innerHTML = '<p style="color:#666">Carregando...</p>';
   try {
     const { ok, data } = await apiFetch('/investor/get.php');
     if (ok && data.success && data.profile) {
-      renderInvestorResult(data.profile);
+      exibirResultadoInvestidor(data.profile);
     } else {
-      renderInvestorQuiz();
+      iniciarQuizInvestidor();
     }
   } catch {
     container.innerHTML = '<p style="color:#c0392b">Erro ao carregar perfil.</p>';
   }
 }
 
-function renderInvestorQuiz() {
-  investorAnswers = {};
-  currentQuestion = 0;
-  renderQuestion(0);
+function iniciarQuizInvestidor() {
+  respostasQuiz = {};
+  perguntaAtual = 0;
+  exibirPergunta(0);
 }
 
-function renderQuestion(index) {
+function exibirPergunta(indice) {
   const container = document.getElementById('investorContainer');
-  const q         = INVESTOR_QUESTIONS[index];
-  const total     = INVESTOR_QUESTIONS.length;
+  const q         = PERGUNTAS_INVESTIDOR[indice];
+  const total     = PERGUNTAS_INVESTIDOR.length;
 
   container.innerHTML = `
     <div class="investor-quiz">
       <div class="quiz-progress">
-        <span class="quiz-step">Pergunta ${index + 1} de ${total}</span>
+        <span class="quiz-step">Pergunta ${indice + 1} de ${total}</span>
         <div class="quiz-progress-bar">
-          <div class="quiz-progress-fill" style="width:${((index) / total) * 100}%"></div>
+          <div class="quiz-progress-fill" style="width:${((indice) / total) * 100}%"></div>
         </div>
       </div>
       <div class="quiz-card">
         <h3 class="quiz-question">${esc(q.texto)}</h3>
         <div class="quiz-options">
           ${q.opcoes.map(o => `
-            <button class="quiz-option" onclick="selectAnswer('${q.id}', '${o.valor}', this)">
+            <button class="quiz-option" onclick="selecionarResposta('${q.id}', '${o.valor}', this)">
               <span class="option-letter">${o.valor.toUpperCase()}</span>
               ${esc(o.texto)}
             </button>
           `).join('')}
         </div>
         <div class="quiz-nav">
-          ${index > 0 ? `<button class="btn btn-secondary" onclick="goToPrevQuestion(${index})">Anterior</button>` : '<span></span>'}
-          <button class="btn btn-primary" id="nextBtn" disabled onclick="goToNextQuestion(${index})">
-            ${index === total - 1 ? 'Ver meu perfil' : 'Proxima'}
+          ${indice > 0 ? `<button class="btn btn-secondary" onclick="voltarPergunta(${indice})">Anterior</button>` : '<span></span>'}
+          <button class="btn btn-primary" id="nextBtn" disabled onclick="avancarPergunta(${indice})">
+            ${indice === total - 1 ? 'Ver meu perfil' : 'Proxima'}
           </button>
         </div>
       </div>
     </div>
   `;
 
-  // Se ja respondeu esta pergunta antes, re-seleciona
-  if (investorAnswers[q.id]) {
-    const alreadySelected = container.querySelector(`.quiz-option[onclick*="'${investorAnswers[q.id]}'"]`);
-    if (alreadySelected) {
-      alreadySelected.classList.add('selected');
+  // Se já respondeu esta pergunta antes, re-seleciona a opção escolhida
+  if (respostasQuiz[q.id]) {
+    const jaSelecionado = container.querySelector(`.quiz-option[onclick*="'${respostasQuiz[q.id]}'"]`);
+    if (jaSelecionado) {
+      jaSelecionado.classList.add('selected');
       document.getElementById('nextBtn').disabled = false;
     }
   }
 }
 
-function selectAnswer(questionId, valor, btn) {
-  // Remove seleção de outros botões da mesma pergunta
+function selecionarResposta(idPergunta, valor, btn) {
+  // Remove seleção dos outros botões da mesma pergunta
   btn.closest('.quiz-options').querySelectorAll('.quiz-option').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
-  investorAnswers[questionId] = valor;
+  respostasQuiz[idPergunta] = valor;
   document.getElementById('nextBtn').disabled = false;
 }
 
-function goToPrevQuestion(currentIndex) {
-  renderQuestion(currentIndex - 1);
+function voltarPergunta(indiceAtual) {
+  exibirPergunta(indiceAtual - 1);
 }
 
-function goToNextQuestion(currentIndex) {
-  const q = INVESTOR_QUESTIONS[currentIndex];
-  if (!investorAnswers[q.id]) return;
+function avancarPergunta(indiceAtual) {
+  const q = PERGUNTAS_INVESTIDOR[indiceAtual];
+  if (!respostasQuiz[q.id]) return;
 
-  if (currentIndex < INVESTOR_QUESTIONS.length - 1) {
-    renderQuestion(currentIndex + 1);
+  if (indiceAtual < PERGUNTAS_INVESTIDOR.length - 1) {
+    exibirPergunta(indiceAtual + 1);
   } else {
-    submitInvestorQuiz();
+    enviarQuiz();
   }
 }
 
-async function submitInvestorQuiz() {
+async function enviarQuiz() {
   const container = document.getElementById('investorContainer');
   container.innerHTML = '<p style="color:#666">Calculando seu perfil...</p>';
   try {
     const { ok, data } = await apiFetch('/investor/save.php', {
       method: 'POST',
-      body: JSON.stringify({ respostas: investorAnswers }),
+      body: JSON.stringify({ respostas: respostasQuiz }),
     });
     if (!ok || !data.success) {
-      showToast(data.message || 'Erro ao salvar.', 'error');
-      renderInvestorQuiz();
+      exibirToast(data.message || 'Erro ao salvar.', 'error');
+      iniciarQuizInvestidor();
       return;
     }
     // Recarrega para exibir o resultado salvo
     const { ok: ok2, data: data2 } = await apiFetch('/investor/get.php');
     if (ok2 && data2.success && data2.profile) {
-      renderInvestorResult(data2.profile);
+      exibirResultadoInvestidor(data2.profile);
     }
-    loadInvestorCardDashboard();
-    showToast('Perfil salvo com sucesso!', 'success');
+    carregarPerfilNoDashboard();
+    exibirToast('Perfil salvo com sucesso!', 'success');
   } catch {
-    showToast('Erro de conexao.', 'error');
-    renderInvestorQuiz();
+    exibirToast('Erro de conexao.', 'error');
+    iniciarQuizInvestidor();
   }
 }
 
-function renderInvestorResult(profile) {
+function exibirResultadoInvestidor(perfil) {
   const container = document.getElementById('investorContainer');
-  const rec       = INVESTOR_RECOMMENDATIONS[profile.perfil];
-  const labels    = { conservador: 'Conservador', moderado: 'Moderado', agressivo: 'Agressivo' };
+  const rec       = RECOMENDACOES_PERFIL[perfil.perfil];
+  const rotulos   = { conservador: 'Conservador', moderado: 'Moderado', agressivo: 'Agressivo' };
 
   container.innerHTML = `
     <div class="investor-result">
       <div class="investor-perfil-badge" style="border-color:${rec.cor}">
-        <span class="investor-perfil-label" style="color:${rec.cor}">${labels[profile.perfil]}</span>
+        <span class="investor-perfil-label" style="color:${rec.cor}">${rotulos[perfil.perfil]}</span>
         <span class="investor-perfil-sub">Seu perfil de investidor</span>
-        <span class="investor-perfil-score">Pontuacao: ${profile.pontuacao}/15</span>
+        <span class="investor-perfil-score">Pontuacao: ${perfil.pontuacao}/15</span>
       </div>
 
       <div class="card" style="margin-top:16px">
@@ -569,7 +569,7 @@ function renderInvestorResult(profile) {
       </div>
 
       <div style="margin-top:16px;text-align:right">
-        <button class="btn btn-secondary" onclick="renderInvestorQuiz()">Refazer o teste</button>
+        <button class="btn btn-secondary" onclick="iniciarQuizInvestidor()">Refazer o teste</button>
       </div>
     </div>
   `;
@@ -579,43 +579,43 @@ function renderInvestorResult(profile) {
 // PERFIL DO USUÁRIO
 // ============================================================
 
-function loadProfile() {
-  const user = getCurrentUser();
-  if (!user) return;
-  document.getElementById('profileNome').value  = user.nome;
-  document.getElementById('profileEmail').value = user.email;
+function carregarPerfil() {
+  const usuario = obterUsuarioAtual();
+  if (!usuario) return;
+  document.getElementById('profileNome').value  = usuario.nome;
+  document.getElementById('profileEmail').value = usuario.email;
 }
 
-function initProfileForm() {
+function inicializarFormularioPerfil() {
   const form = document.getElementById('profileForm');
   if (!form) return;
   form.addEventListener('submit', async e => {
     e.preventDefault();
-    const nome   = document.getElementById('profileNome').value.trim();
-    const email  = document.getElementById('profileEmail').value.trim();
-    const senha  = document.getElementById('profileSenha').value.trim();
-    const conf   = document.getElementById('profileConfirm').value.trim();
-    const btn    = form.querySelector('[type=submit]');
-    if (senha && senha !== conf) { showToast('As senhas nao coincidem.', 'error'); return; }
+    const nome  = document.getElementById('profileNome').value.trim();
+    const email = document.getElementById('profileEmail').value.trim();
+    const senha = document.getElementById('profileSenha').value.trim();
+    const conf  = document.getElementById('profileConfirm').value.trim();
+    const btn   = form.querySelector('[type=submit]');
+    if (senha && senha !== conf) { exibirToast('As senhas nao coincidem.', 'error'); return; }
     btn.disabled = true;
     btn.textContent = 'Salvando...';
-    const body = { id: currentUser.id, nome, email };
-    if (senha) body.senha = senha;
+    const corpo = { id: usuarioAtual.id, nome, email };
+    if (senha) corpo.senha = senha;
     try {
       const { ok, data } = await apiFetch('/users/update.php', {
         method: 'POST',
-        body: JSON.stringify(body),
+        body: JSON.stringify(corpo),
       });
-      if (!ok || !data.success) { showToast(data.message, 'error'); return; }
-      currentUser.nome  = nome;
-      currentUser.email = email;
-      setCurrentUser(currentUser);
+      if (!ok || !data.success) { exibirToast(data.message, 'error'); return; }
+      usuarioAtual.nome  = nome;
+      usuarioAtual.email = email;
+      definirUsuarioAtual(usuarioAtual);
       document.getElementById('userName').textContent = nome;
       document.getElementById('profileSenha').value   = '';
       document.getElementById('profileConfirm').value = '';
-      showToast('Perfil atualizado.', 'success');
+      exibirToast('Perfil atualizado.', 'success');
     } catch {
-      showToast('Erro de conexao.', 'error');
+      exibirToast('Erro de conexao.', 'error');
     } finally {
       btn.disabled = false;
       btn.textContent = 'Salvar';
@@ -627,7 +627,7 @@ function initProfileForm() {
 // UTILITÁRIOS
 // ============================================================
 
-function nivelLabel(nivel) {
+function labelDoNivel(nivel) {
   return { basico: 'Basico', intermediario: 'Intermediario', avancado: 'Avancado' }[nivel] || nivel;
 }
 
@@ -638,121 +638,101 @@ function esc(str) {
 }
 
 // ============================================================
-// SIMULADOR DE INVESTIMENTOS — com integração ao Perfil Investidor
+// SIMULADOR DE INVESTIMENTOS
 // ============================================================
 
-// ------------------------------------------------------------------
-// Data tables — single source of truth for labels, rates, and
-// profile→investment recommendations.
-// ------------------------------------------------------------------
-
-const INVESTMENT_TYPES_META = [
+// Tipos disponíveis — label e taxa de referência para exibição
+const TIPOS_INVESTIMENTO = [
   { id: 'savings', label: 'Poupança',    rate: '0,5% a.m.' },
   { id: 'cdb',     label: 'CDB',         rate: '0,8% a.m.' },
   { id: 'stocks',  label: 'Ações',       rate: '1,2% a.m.' },
   { id: 'crypto',  label: 'Criptomoeda', rate: '2,0% a.m.' },
 ];
 
-// Maps each investor profile to its recommended investment types.
-// Extend this object whenever new profiles or types are added.
-const PROFILE_INVESTMENT_MAP = {
+// Tipos recomendados por perfil de investidor
+const MAPA_PERFIL = {
   conservador: ['savings', 'cdb'],
   moderado:    ['cdb', 'stocks'],
   agressivo:   ['stocks', 'crypto'],
 };
 
-// Display metadata for each profile (label + accent colour)
-const PROFILE_META = {
+// Nome e cor de destaque de cada perfil
+const META_PERFIL = {
   conservador: { label: 'Conservador', color: '#6fcf6f' },
   moderado:    { label: 'Moderado',    color: '#e0b84a' },
   agressivo:   { label: 'Agressivo',   color: '#e06f6f' },
 };
 
-// FIX #3 — pre-built set for O(1) type validation in runSimulation()
-const VALID_INVESTMENT_IDS = new Set(INVESTMENT_TYPES_META.map(t => t.id));
+// IDs válidos — usados na validação antes de enviar para a API
+const IDS_VALIDOS = new Set(TIPOS_INVESTIMENTO.map(t => t.id));
 
-// Kept for backward compatibility (history table labels)
-const SIMULATOR_TYPE_LABELS = Object.fromEntries(
-  INVESTMENT_TYPES_META.map(t => [t.id, t.label])
+// Mapa de labels usado na tabela de histórico
+const ROTULOS_TIPO = Object.fromEntries(
+  TIPOS_INVESTIMENTO.map(t => [t.id, t.label])
 );
 
-let _simulatorChart       = null;  // Chart.js instance — destroyed/rebuilt each simulation
-let _simulatorReady       = false; // ensures initSimulatorForm runs only once
-let _simulatorProfile     = null;  // FIX #5 — cached profile, avoids needless re-renders
-let _simUserHasSelected   = false; // FIX #2 — true once the user explicitly picks a card
+let graficoSimulador    = null;   // instância do gráfico — destruída e recriada a cada simulação
+let simuladorPronto     = false;  // garante que o submit é registrado só uma vez
+let perfilEmCache       = null;   // último perfil buscado da API
+let usuarioEscolheuTipo = false;  // true quando o usuário clica manualmente num card
 
-// ------------------------------------------------------------------
-// Entry point — called by showSection('simulator')
-// ------------------------------------------------------------------
-async function loadSimulator() {
-  initSimulatorForm();
+// Ponto de entrada — chamado por exibirSecao('simulator')
+async function carregarSimulador() {
+  inicializarFormularioSimulador();
 
-  // FIX #1 — render cards immediately so the form is never blank.
-  // Use the cached profile from the last visit (or no recommendations on
-  // first load). Either way the user can start filling the form at once.
-  const cachedRec = _simulatorProfile
-    ? (PROFILE_INVESTMENT_MAP[_simulatorProfile.perfil] ?? [])
+  // Renderiza os cards imediatamente com o perfil em cache (se existir),
+  // assim o formulário já fica funcional enquanto a API responde
+  const recomendadosCache = perfilEmCache
+    ? (MAPA_PERFIL[perfilEmCache.perfil] ?? [])
     : [];
-  renderSimTypeCards(cachedRec);
+  renderizarCardsTipoInvestimento(recomendadosCache);
 
-  // Fetch fresh investor profile in the background
-  let profile = null;
+  // Busca o perfil atualizado do servidor
+  let perfil = null;
   try {
     const { ok, data } = await apiFetch('/investor/get.php');
-    if (ok && data.success) profile = data.profile ?? null;
-  } catch { /* network failure — profile stays null, UI stays functional */ }
-
-  // FIX #5 — only re-apply when the profile actually changed.
-  // This prevents unnecessary card rebuilds (which would reset the user's
-  // card selection) on every re-visit to the simulator section.
-  const newPerfil = profile?.perfil ?? null;
-  const oldPerfil = _simulatorProfile?.perfil ?? null;
-
-  _simulatorProfile = profile;
-
-  if (newPerfil !== oldPerfil) {
-    // Profile changed (or first load with a real profile): full personalisation
-    applyProfileToSimulator(profile);
-  } else {
-    // Profile unchanged: only refresh the banner text (cheap, no card rebuild)
-    const recommended = PROFILE_INVESTMENT_MAP[newPerfil] ?? [];
-    renderSimProfileBanner(newPerfil, recommended);
+    if (ok && data.success) perfil = data.profile ?? null;
+  } catch {
+    // Se a rede falhar, o simulador continua funcionando sem personalização
   }
 
-  loadSimulatorHistory();
+  const novoPerfil   = perfil?.perfil ?? null;
+  const perfilAntigo = perfilEmCache?.perfil ?? null;
+
+  perfilEmCache = perfil;
+
+  if (novoPerfil !== perfilAntigo) {
+    // Perfil mudou (ou é a primeira carga): aplica tudo
+    aplicarPerfilSimulador(perfil);
+  } else {
+    // Perfil igual: só atualiza o banner, sem reconstruir os cards
+    // (reconstruir os cards resetaria a escolha manual do usuário)
+    const recomendados = MAPA_PERFIL[novoPerfil] ?? [];
+    renderizarBannerPerfil(novoPerfil, recomendados);
+  }
+
+  carregarHistoricoSimulacoes();
 }
 
-// ------------------------------------------------------------------
-// Profile integration — banner + investment type card order/labels
-// ------------------------------------------------------------------
+// Atualiza o banner e a ordem dos cards com base no perfil do usuário
+function aplicarPerfilSimulador(perfil) {
+  const nomePerfil   = perfil?.perfil ?? null;
+  const recomendados = MAPA_PERFIL[nomePerfil] ?? [];
 
-/**
- * Orchestrates all personalisation based on the fetched profile.
- * @param {Object|null} profile — profile object from investor/get.php
- */
-function applyProfileToSimulator(profile) {
-  const perfil      = profile?.perfil ?? null;
-  const recommended = PROFILE_INVESTMENT_MAP[perfil] ?? [];
-
-  renderSimProfileBanner(perfil, recommended);
-  renderSimTypeCards(recommended);
+  renderizarBannerPerfil(nomePerfil, recomendados);
+  renderizarCardsTipoInvestimento(recomendados);
 }
 
-/**
- * Renders the recommendation banner.
- * - No profile  → CTA to complete the quiz
- * - Has profile → show profile name + recommended types
- *
- * Uses only DOM property assignments for colour values (no raw style
- * strings injected into innerHTML) to avoid future XSS surface.
- */
-function renderSimProfileBanner(perfil, recommended) {
+// Renderiza o banner de recomendação acima do simulador
+// Sem perfil: mostra aviso + botão para fazer o quiz
+// Com perfil: mostra nome do perfil e investimentos recomendados
+function renderizarBannerPerfil(nomePerfil, recomendados) {
   const banner = document.getElementById('simProfileBanner');
   if (!banner) return;
 
   banner.style.display = '';
 
-  if (!perfil) {
+  if (!nomePerfil) {
     banner.className = 'sim-profile-banner sim-profile-banner--empty';
     banner.style.borderLeftColor = '';
     banner.innerHTML = `
@@ -760,42 +740,39 @@ function renderSimProfileBanner(perfil, recommended) {
         Você ainda não definiu seu Perfil de Investidor.
         Complete o quiz para receber recomendações personalizadas.
       </span>
-      <button class="btn btn-secondary btn-sm"
-              onclick="showSection('investor')">
+      <button class="btn btn-secondary btn-sm" onclick="exibirSecao('investor')">
         Fazer quiz agora
       </button>
     `;
     return;
   }
 
-  // FIX #6 — accent colour applied via DOM property, not innerHTML injection
-  const meta = PROFILE_META[perfil] ?? { label: perfil, color: '#7b9cff' };
+  const meta = META_PERFIL[nomePerfil] ?? { label: nomePerfil, color: '#7b9cff' };
 
-  // FIX #4 — build "CDB e Ações" without relying on Array→string coercion
-  const recNames = recommended
-    .map(id => INVESTMENT_TYPES_META.find(t => t.id === id)?.label ?? id)
-    .map(name => `<strong>${esc(name)}</strong>`);
+  // Monta o texto "CDB e Ações" a partir dos IDs recomendados
+  const nomesRec = recomendados
+    .map(id => TIPOS_INVESTIMENTO.find(t => t.id === id)?.label ?? id)
+    .map(nome => `<strong>${esc(nome)}</strong>`);
 
-  let recText;
-  if (recNames.length === 0) {
-    recText = 'nenhum definido';
-  } else if (recNames.length === 1) {
-    recText = recNames[0];
+  let textoRec;
+  if (nomesRec.length === 0) {
+    textoRec = 'nenhum definido';
+  } else if (nomesRec.length === 1) {
+    textoRec = nomesRec[0];
   } else {
-    recText = recNames.slice(0, -1).join(', ') + ' e ' + recNames[recNames.length - 1];
+    textoRec = nomesRec.slice(0, -1).join(', ') + ' e ' + nomesRec[nomesRec.length - 1];
   }
 
   banner.className = 'sim-profile-banner sim-profile-banner--active';
   banner.style.borderLeftColor = meta.color;
 
-  // Profile label element gets its colour via DOM — not via a raw style string
   banner.innerHTML = `
     <div class="sim-profile-banner__body">
       <span class="sim-profile-banner__profile">
         Seu perfil:&nbsp;<strong id="simBannerProfileLabel">${esc(meta.label)}</strong>
       </span>
       <span class="sim-profile-banner__rec">
-        Recomendamos para você: ${recText}
+        Recomendamos para você: ${textoRec}
       </span>
       <span class="sim-profile-banner__hint">
         Os investimentos recomendados aparecem destacados abaixo.
@@ -803,117 +780,98 @@ function renderSimProfileBanner(perfil, recommended) {
       </span>
     </div>
     <button class="btn btn-secondary btn-sm sim-profile-banner__cta"
-            onclick="showSection('investor')">
+            onclick="exibirSecao('investor')">
       Rever perfil
     </button>
   `;
 
-  // Apply colour via DOM property after innerHTML is set (safe, no injection risk)
+  // Aplica a cor via DOM — evita injetar style direto no innerHTML
   const labelEl = document.getElementById('simBannerProfileLabel');
   if (labelEl) labelEl.style.color = meta.color;
 }
 
-/**
- * Builds the investment type card grid.
- * Recommended types appear first with a badge; all types remain available.
- *
- * FIX #2 — preserves the user's current card selection across re-renders:
- *   • If the user explicitly clicked a card (_simUserHasSelected = true)
- *     that type stays active even after a profile-driven re-render.
- *   • If the user has not yet interacted, defaults to the first recommended
- *     type (or first overall when there are no recommendations).
- *
- * @param {string[]} recommended — type IDs for this profile (may be empty)
- */
-function renderSimTypeCards(recommended) {
+// Renderiza os cards de tipo de investimento
+// Os recomendados aparecem primeiro, com badge "Recomendado"
+function renderizarCardsTipoInvestimento(recomendados) {
   const container   = document.getElementById('simTypeCards');
-  const hiddenInput = document.getElementById('simType');
-  if (!container || !hiddenInput) return;
+  const inputHidden = document.getElementById('simType');
+  if (!container || !inputHidden) return;
 
-  // Recommended types first, then the rest — stable relative order in each group
-  const ordered = [
-    ...INVESTMENT_TYPES_META.filter(t =>  recommended.includes(t.id)),
-    ...INVESTMENT_TYPES_META.filter(t => !recommended.includes(t.id)),
+  // Recomendados primeiro, depois o restante (ordem estável dentro de cada grupo)
+  const ordenados = [
+    ...TIPOS_INVESTIMENTO.filter(t =>  recomendados.includes(t.id)),
+    ...TIPOS_INVESTIMENTO.filter(t => !recomendados.includes(t.id)),
   ];
 
-  // Determine which card should be active:
-  //   1. User's explicit pick (if still valid)  ← highest priority
-  //   2. First recommended type                 ← profile personalisation
-  //   3. First type overall                     ← safe fallback
-  const prevId  = hiddenInput.value;
-  const activeId = (_simUserHasSelected && VALID_INVESTMENT_IDS.has(prevId))
-    ? prevId
-    : (ordered[0]?.id ?? 'savings');
+  // Se o usuário já escolheu um tipo manualmente, mantemos a escolha dele.
+  // Caso contrário, selecionamos o primeiro recomendado (ou o primeiro da lista).
+  const idAnterior = inputHidden.value;
+  const idAtivo    = (usuarioEscolheuTipo && IDS_VALIDOS.has(idAnterior))
+    ? idAnterior
+    : (ordenados[0]?.id ?? 'savings');
 
-  hiddenInput.value = activeId;
+  inputHidden.value = idAtivo;
 
-  container.innerHTML = ordered.map(t => {
-    const isRec    = recommended.includes(t.id);
-    const isActive = t.id === activeId;
+  container.innerHTML = ordenados.map(t => {
+    const ehRec   = recomendados.includes(t.id);
+    const ehAtivo = t.id === idAtivo;
     return `
       <button type="button"
-              class="sim-type-card${isRec ? ' sim-type-card--rec' : ''}${isActive ? ' sim-type-card--active' : ''}"
+              class="sim-type-card${ehRec ? ' sim-type-card--rec' : ''}${ehAtivo ? ' sim-type-card--active' : ''}"
               data-type="${t.id}"
-              title="${isRec ? 'Recomendado para o seu perfil' : ''}"
-              onclick="selectSimType(this, '${t.id}')">
+              title="${ehRec ? 'Recomendado para o seu perfil' : ''}"
+              onclick="selecionarTipoInvestimento(this, '${t.id}')">
         <span class="sim-type-card__label">${esc(t.label)}</span>
         <span class="sim-type-card__rate">${esc(t.rate)}</span>
-        ${isRec ? '<span class="sim-type-card__badge">Recomendado</span>' : ''}
+        ${ehRec ? '<span class="sim-type-card__badge">Recomendado</span>' : ''}
       </button>
     `;
   }).join('');
 }
 
-/**
- * Handles a card click: flags that the user has made an explicit choice,
- * updates the hidden input, and marks the clicked card as active.
- * Called inline from each card's onclick attribute.
- */
-function selectSimType(btn, typeId) {
-  // FIX #2 — record explicit user intent so re-renders preserve this choice
-  _simUserHasSelected = true;
+// Chamado quando o usuário clica num card de investimento
+function selecionarTipoInvestimento(btn, idTipo) {
+  usuarioEscolheuTipo = true; // respeita a escolha do usuário nos próximos renders
 
-  const hiddenInput = document.getElementById('simType');
-  if (hiddenInput) hiddenInput.value = typeId;
+  const inputHidden = document.getElementById('simType');
+  if (inputHidden) inputHidden.value = idTipo;
 
-  document.querySelectorAll('.sim-type-card')
-    .forEach(c => c.classList.remove('sim-type-card--active'));
+  document.querySelectorAll('.sim-type-card').forEach(c => c.classList.remove('sim-type-card--active'));
   btn.classList.add('sim-type-card--active');
 }
 
-// Attach submit handler once
-function initSimulatorForm() {
-  if (_simulatorReady) return;
+// Registra o evento de submit no formulário — executa apenas uma vez
+function inicializarFormularioSimulador() {
+  if (simuladorPronto) return;
   const form = document.getElementById('simulatorForm');
   if (!form) return;
-  form.addEventListener('submit', runSimulation);
-  _simulatorReady = true;
+  form.addEventListener('submit', executarSimulacao);
+  simuladorPronto = true;
 }
 
-async function runSimulation(e) {
+async function executarSimulacao(e) {
   e.preventDefault();
 
   const capital = parseFloat(document.getElementById('simCapital').value) || 0;
-  const type    = document.getElementById('simType').value;
-  const period  = parseInt(document.getElementById('simPeriod').value, 10) || 0;
-  const contrib = parseFloat(document.getElementById('simContrib').value) || 0;
+  const tipo    = document.getElementById('simType').value;
+  const periodo = parseInt(document.getElementById('simPeriod').value, 10) || 0;
+  const aporte  = parseFloat(document.getElementById('simContrib').value) || 0;
 
-  // Client-side validation (mirrors server-side)
-  // FIX #3 — guard against an empty or tampered hidden input value
-  if (!VALID_INVESTMENT_IDS.has(type)) {
-    showToast('Selecione um tipo de investimento.', 'error');
+  // Validações no frontend — o servidor valida novamente por segurança
+  if (!IDS_VALIDOS.has(tipo)) {
+    exibirToast('Selecione um tipo de investimento.', 'error');
     return;
   }
-  if (capital < 0 || contrib < 0) {
-    showToast('Valores não podem ser negativos.', 'error');
+  if (capital < 0 || aporte < 0) {
+    exibirToast('Valores não podem ser negativos.', 'error');
     return;
   }
-  if (capital === 0 && contrib === 0) {
-    showToast('Informe um capital inicial ou aporte mensal.', 'error');
+  if (capital === 0 && aporte === 0) {
+    exibirToast('Informe um capital inicial ou aporte mensal.', 'error');
     return;
   }
-  if (!period || period < 1 || period > 600) {
-    showToast('Período inválido (1–600 meses).', 'error');
+  if (!periodo || periodo < 1 || periodo > 600) {
+    exibirToast('Período inválido (1–600 meses).', 'error');
     return;
   }
 
@@ -926,68 +884,68 @@ async function runSimulation(e) {
       method: 'POST',
       body: JSON.stringify({
         initial_capital:      capital,
-        investment_type:      type,
-        period_months:        period,
-        monthly_contribution: contrib,
+        investment_type:      tipo,
+        period_months:        periodo,
+        monthly_contribution: aporte,
       }),
     });
 
     if (!ok || !data.success) {
-      showToast(data.message || 'Erro ao simular.', 'error');
+      exibirToast(data.message || 'Erro ao simular.', 'error');
       return;
     }
 
-    renderSimulatorResults(data, period);
-    loadSimulatorHistory();
+    exibirResultados(data, periodo);
+    carregarHistoricoSimulacoes();
   } catch {
-    showToast('Erro de conexão.', 'error');
+    exibirToast('Erro de conexão.', 'error');
   } finally {
     btn.disabled    = false;
     btn.textContent = 'Simular';
   }
 }
 
-function renderSimulatorResults(data, period) {
+function exibirResultados(data, periodo) {
   document.getElementById('simulatorResults').style.display = 'block';
 
-  document.getElementById('simResInvested').textContent = formatCurrency(data.totalInvested);
-  document.getElementById('simResProfit').textContent   = formatCurrency(data.totalProfit);
-  document.getElementById('simResFinal').textContent    = formatCurrency(data.finalAmount);
+  document.getElementById('simResInvested').textContent = formatarMoeda(data.totalInvested);
+  document.getElementById('simResProfit').textContent   = formatarMoeda(data.totalProfit);
+  document.getElementById('simResFinal').textContent    = formatarMoeda(data.finalAmount);
 
-  renderSimulatorChart(data.evolution, data.investedEvol, period);
+  renderizarGrafico(data.evolution, data.investedEvol, periodo);
 }
 
-function renderSimulatorChart(evolution, investedEvol, period) {
+function renderizarGrafico(evolucao, evolucaoInvestido, periodo) {
   const canvas = document.getElementById('simulatorChart');
   if (!canvas) return;
 
-  // Build X-axis labels — show "Mês N" but limit density for long periods
-  const labels = Array.from({ length: period }, (_, i) => `Mês ${i + 1}`);
+  const rotulos = Array.from({ length: periodo }, (_, i) => `Mês ${i + 1}`);
 
-  if (_simulatorChart) {
-    _simulatorChart.destroy();
-    _simulatorChart = null;
+  // Destrói o gráfico anterior antes de criar um novo — o Chart.js empilharia instâncias
+  if (graficoSimulador) {
+    graficoSimulador.destroy();
+    graficoSimulador = null;
   }
 
-  _simulatorChart = new Chart(canvas, {
+  graficoSimulador = new Chart(canvas, {
     type: 'line',
     data: {
-      labels,
+      labels: rotulos,
       datasets: [
         {
           label: 'Patrimônio Total',
-          data: evolution,
+          data: evolucao,
           borderColor: '#4a6cf7',
           backgroundColor: 'rgba(74, 108, 247, 0.12)',
           fill: true,
           tension: 0.4,
-          pointRadius: period <= 60 ? 3 : 0,
+          pointRadius: periodo <= 60 ? 3 : 0,
           pointHoverRadius: 5,
           borderWidth: 2,
         },
         {
           label: 'Total Investido',
-          data: investedEvol,
+          data: evolucaoInvestido,
           borderColor: '#27ae60',
           backgroundColor: 'rgba(39, 174, 96, 0.05)',
           fill: true,
@@ -1014,7 +972,7 @@ function renderSimulatorChart(evolution, investedEvol, period) {
           titleColor: '#e0e0e0',
           bodyColor: '#aaa',
           callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${formatCurrency(ctx.parsed.y)}`,
+            label: ctx => ` ${ctx.dataset.label}: ${formatarMoeda(ctx.parsed.y)}`,
           },
         },
       },
@@ -1031,7 +989,7 @@ function renderSimulatorChart(evolution, investedEvol, period) {
           ticks: {
             color: '#555',
             font: { size: 11 },
-            callback: val => formatCurrencyShort(val),
+            callback: val => formatarMoedaAbreviada(val),
           },
           grid: { color: '#1e1e1e' },
         },
@@ -1040,7 +998,7 @@ function renderSimulatorChart(evolution, investedEvol, period) {
   });
 }
 
-async function loadSimulatorHistory() {
+async function carregarHistoricoSimulacoes() {
   const card  = document.getElementById('simulatorHistoryCard');
   const tbody = document.getElementById('simulatorHistoryBody');
   if (!card || !tbody) return;
@@ -1056,13 +1014,13 @@ async function loadSimulatorHistory() {
     card.style.display = 'block';
     tbody.innerHTML = data.simulations.map(s => `
       <tr>
-        <td>${esc(SIMULATOR_TYPE_LABELS[s.investment_type] || s.investment_type)}</td>
-        <td>${formatCurrency(s.initial_capital)}</td>
-        <td>${formatCurrency(s.monthly_contribution)}</td>
+        <td>${esc(ROTULOS_TIPO[s.investment_type] || s.investment_type)}</td>
+        <td>${formatarMoeda(s.initial_capital)}</td>
+        <td>${formatarMoeda(s.monthly_contribution)}</td>
         <td>${s.period_months} meses</td>
-        <td style="color:#7b9cff">${formatCurrency(s.final_amount)}</td>
-        <td style="color:#27ae60">+${formatCurrency(s.total_profit)}</td>
-        <td style="color:#666">${formatDate(s.created_at)}</td>
+        <td style="color:#7b9cff">${formatarMoeda(s.final_amount)}</td>
+        <td style="color:#27ae60">+${formatarMoeda(s.total_profit)}</td>
+        <td style="color:#666">${formatarData(s.created_at)}</td>
       </tr>
     `).join('');
   } catch {
@@ -1070,18 +1028,16 @@ async function loadSimulatorHistory() {
   }
 }
 
-// ------ Currency helpers ------
-
-function formatCurrency(value) {
-  return Number(value).toLocaleString('pt-BR', {
+function formatarMoeda(valor) {
+  return Number(valor).toLocaleString('pt-BR', {
     style:    'currency',
     currency: 'BRL',
     minimumFractionDigits: 2,
   });
 }
 
-function formatCurrencyShort(value) {
-  if (value >= 1_000_000) return 'R$ ' + (value / 1_000_000).toFixed(1) + 'M';
-  if (value >= 1_000)     return 'R$ ' + (value / 1_000).toFixed(1) + 'k';
-  return 'R$ ' + Number(value).toFixed(0);
+function formatarMoedaAbreviada(valor) {
+  if (valor >= 1_000_000) return 'R$ ' + (valor / 1_000_000).toFixed(1) + 'M';
+  if (valor >= 1_000)     return 'R$ ' + (valor / 1_000).toFixed(1) + 'k';
+  return 'R$ ' + Number(valor).toFixed(0);
 }

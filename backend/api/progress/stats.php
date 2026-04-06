@@ -1,4 +1,7 @@
 <?php
+// Retorna estatísticas gerais para o dashboard do admin:
+// total de alunos, aulas, cursos e taxa de conclusão média.
+
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../middleware/auth.php';
 
@@ -7,10 +10,10 @@ requireAdmin();
 
 $conn = getConnection();
 
-// Totais
-$totalStudents = (int)$conn->query("SELECT COUNT(*) FROM users WHERE tipo = 'aluno'")->fetchColumn();
-$totalLessons  = (int)$conn->query("SELECT COUNT(*) FROM lessons")->fetchColumn();
-$totalCourses  = (int)$conn->query("SELECT COUNT(*) FROM courses")->fetchColumn();
+// Totais gerais
+$totalAlunos  = (int)$conn->query("SELECT COUNT(*) FROM users WHERE tipo = 'aluno'")->fetchColumn();
+$totalAulas   = (int)$conn->query("SELECT COUNT(*) FROM lessons")->fetchColumn();
+$totalCursos  = (int)$conn->query("SELECT COUNT(*) FROM courses")->fetchColumn();
 
 // Progresso por aluno (para o gráfico)
 $stmt = $conn->query("
@@ -25,21 +28,21 @@ $stmt = $conn->query("
     ORDER BY u.nome ASC
 ");
 
-$studentsChart = [];
+$progressoAlunos = [];
 while ($row = $stmt->fetch()) {
-    $done    = (int)$row['concluidas'];
-    $percent = $totalLessons > 0 ? round(($done / $totalLessons) * 100) : 0;
+    $concluidas = (int)$row['concluidas'];
+    $percentual = $totalAulas > 0 ? round(($concluidas / $totalAulas) * 100) : 0;
 
-    $studentsChart[] = [
+    $progressoAlunos[] = [
         'nome'       => $row['nome'],
-        'concluidas' => $done,
-        'percentual' => $percent,
+        'concluidas' => $concluidas,
+        'percentual' => $percentual,
     ];
 }
 
 // Progresso por nível
-$niveis  = ['basico', 'intermediario', 'avancado'];
-$byLevel = [];
+$niveis   = ['basico', 'intermediario', 'avancado'];
+$porNivel = [];
 
 foreach ($niveis as $nivel) {
     $stmtTotal = $conn->prepare("SELECT COUNT(*) FROM lessons WHERE nivel = ?");
@@ -55,25 +58,25 @@ foreach ($niveis as $nivel) {
     $stmtAtivos->execute([$nivel]);
     $alunosAtivos = (int)$stmtAtivos->fetchColumn();
 
-    $byLevel[$nivel] = [
+    $porNivel[$nivel] = [
         'total_aulas'   => $totalNivel,
         'alunos_ativos' => $alunosAtivos,
     ];
 }
 
-// Média geral
-$avgPercent = 0;
-if (count($studentsChart) > 0) {
-    $sum        = array_sum(array_column($studentsChart, 'percentual'));
-    $avgPercent = round($sum / count($studentsChart));
+// Média geral de conclusão
+$percentualMedio = 0;
+if (count($progressoAlunos) > 0) {
+    $soma            = array_sum(array_column($progressoAlunos, 'percentual'));
+    $percentualMedio = round($soma / count($progressoAlunos));
 }
 
 echo json_encode([
     'success'       => true,
-    'totalStudents' => $totalStudents,
-    'totalLessons'  => $totalLessons,
-    'totalCourses'  => $totalCourses,
-    'avgCompletion' => $avgPercent,
-    'studentsChart' => $studentsChart,
-    'byLevel'       => $byLevel,
+    'totalStudents' => $totalAlunos,
+    'totalLessons'  => $totalAulas,
+    'totalCourses'  => $totalCursos,
+    'avgCompletion' => $percentualMedio,
+    'studentsChart' => $progressoAlunos,
+    'byLevel'       => $porNivel,
 ]);

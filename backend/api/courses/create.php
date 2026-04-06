@@ -16,11 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(['success' => false, 'message' => 'Método não permitido.'], 405);
 }
 
-$body      = getJsonBody();
-$nome      = trim($body['nome']      ?? '');
-$descricao = trim($body['descricao'] ?? '');
-$nivel     = trim($body['nivel']     ?? '');
-$lessonIds = array_map('intval', (array) ($body['lesson_ids'] ?? []));
+$corpo     = getJsonBody();
+$nome      = trim($corpo['nome']      ?? '');
+$descricao = trim($corpo['descricao'] ?? '');
+$nivel     = trim($corpo['nivel']     ?? '');
+$idsAulas  = array_map('intval', (array) ($corpo['lesson_ids'] ?? []));
 
 if (!$nome || !$descricao || !$nivel) {
     jsonResponse(['success' => false, 'message' => 'Preencha todos os campos obrigatórios.'], 400);
@@ -39,20 +39,20 @@ try {
         "INSERT INTO courses (nome, descricao, nivel) VALUES (?, ?, ?) RETURNING id"
     );
     $stmt->execute([$nome, $descricao, $nivel]);
-    $courseId = (int) $stmt->fetchColumn();
+    $cursoId = (int) $stmt->fetchColumn();
 
     // Vincula as aulas ao curso (se houver)
-    if (!empty($lessonIds)) {
-        $stmtLink = $conn->prepare(
+    if (!empty($idsAulas)) {
+        $stmtVinculo = $conn->prepare(
             "INSERT INTO course_lessons (course_id, lesson_id) VALUES (?, ?) ON CONFLICT DO NOTHING"
         );
-        foreach ($lessonIds as $lid) {
-            if ($lid > 0) $stmtLink->execute([$courseId, $lid]);
+        foreach ($idsAulas as $aulaId) {
+            if ($aulaId > 0) $stmtVinculo->execute([$cursoId, $aulaId]);
         }
     }
 
     $conn->commit();
-    jsonResponse(['success' => true, 'message' => 'Curso criado com sucesso.', 'id' => $courseId]);
+    jsonResponse(['success' => true, 'message' => 'Curso criado com sucesso.', 'id' => $cursoId]);
 
 } catch (PDOException $e) {
     if ($conn->inTransaction()) $conn->rollBack();

@@ -1,4 +1,7 @@
 <?php
+// Retorna os dados de um único usuário.
+// Admin pode ver qualquer usuário; aluno só pode ver a si mesmo.
+
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../middleware/auth.php';
 
@@ -22,9 +25,9 @@ if ($id <= 0) {
 $conn = getConnection();
 $stmt = $conn->prepare("SELECT id, nome, email, tipo, created_at FROM users WHERE id = ? LIMIT 1");
 $stmt->execute([$id]);
-$user = $stmt->fetch();
+$usuario = $stmt->fetch();
 
-if (!$user) {
+if (!$usuario) {
     http_response_code(404);
     echo json_encode(['success' => false, 'message' => 'Usuário não encontrado.']);
     exit;
@@ -33,10 +36,10 @@ if (!$user) {
 echo json_encode([
     'success' => true,
     'user'    => [
-        'id'         => (int)$user['id'],
-        'nome'       => $user['nome'],
-        'email'      => $user['email'],
-        'tipo'       => $user['tipo'],
-        'created_at' => $user['created_at'],
+        'id'         => (int)$usuario['id'],
+        'nome'       => $usuario['nome'],
+        'email'      => $usuario['email'],
+        'tipo'       => $usuario['tipo'],
+        'created_at' => $usuario['created_at'],
     ],
 ]);

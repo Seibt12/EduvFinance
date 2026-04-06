@@ -17,13 +17,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 try {
-    $userId = (int) $_SESSION['user_id'];
-    $conn   = getConnection();
+    $idUsuario = (int) $_SESSION['user_id'];
+    $conn      = getConnection();
 
     $stmt = $conn->prepare(
         "SELECT perfil, respostas, pontuacao, updated_at FROM investor_profile WHERE user_id = ?"
     );
-    $stmt->execute([$userId]);
+    $stmt->execute([$idUsuario]);
     $row = $stmt->fetch();
 
     if (!$row) {

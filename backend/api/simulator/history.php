@@ -1,15 +1,5 @@
 <?php
-// ============================================================
-// GET /backend/api/simulator/history.php
-//
-// Returns the 10 most recent simulations for the logged-in user.
-//
-// Response:
-//   { success, simulations: [ { id, investment_type,
-//     initial_capital, monthly_contribution, period_months,
-//     monthly_rate, final_amount, total_invested, total_profit,
-//     created_at }, ... ] }
-// ============================================================
+// Retorna as últimas 10 simulações do aluno logado, para exibir no histórico.
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../middleware/auth.php';
@@ -21,33 +11,26 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     jsonResponse(['success' => false, 'message' => 'Método não permitido.'], 405);
 }
 
-$userId = (int) $_SESSION['user_id'];
+$idUsuario = (int) $_SESSION['user_id'];
 
 try {
     $conn = getConnection();
 
     $stmt = $conn->prepare("
-        SELECT  id,
-                investment_type,
-                initial_capital,
-                monthly_contribution,
-                period_months,
-                monthly_rate,
-                final_amount,
-                total_invested,
-                total_profit,
-                created_at
-        FROM    investment_simulations
-        WHERE   user_id = ?
+        SELECT id, investment_type, initial_capital, monthly_contribution,
+               period_months, monthly_rate, final_amount, total_invested,
+               total_profit, created_at
+        FROM investment_simulations
+        WHERE user_id = ?
         ORDER BY created_at DESC
-        LIMIT   10
+        LIMIT 10
     ");
 
-    $stmt->execute([$userId]);
-    $simulations = $stmt->fetchAll();
+    $stmt->execute([$idUsuario]);
+    $simulacoes = $stmt->fetchAll();
 
-    // Cast numeric strings to floats for clean JSON output
-    foreach ($simulations as &$sim) {
+    // PostgreSQL retorna campos NUMERIC como string — convertemos para número
+    foreach ($simulacoes as &$sim) {
         $sim['initial_capital']      = (float) $sim['initial_capital'];
         $sim['monthly_contribution'] = (float) $sim['monthly_contribution'];
         $sim['monthly_rate']         = (float) $sim['monthly_rate'];
@@ -58,9 +41,9 @@ try {
     }
     unset($sim);
 
-    jsonResponse(['success' => true, 'simulations' => $simulations]);
+    jsonResponse(['success' => true, 'simulations' => $simulacoes]);
 
 } catch (PDOException $e) {
-    error_log('[EduFinance][Simulator] Erro ao buscar histórico: ' . $e->getMessage());
+    error_log('[Simulator] Erro ao buscar histórico: ' . $e->getMessage());
     jsonResponse(['success' => false, 'message' => 'Erro ao carregar histórico.'], 500);
 }

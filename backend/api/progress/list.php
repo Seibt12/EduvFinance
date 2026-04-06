@@ -1,14 +1,19 @@
 <?php
+// Retorna todas as aulas com o status de conclusão e bloqueio para o aluno logado.
+// Regra de progressão:
+//   - Intermediário bloqueado até concluir todas as aulas básicas
+//   - Avançado bloqueado até concluir básico E intermediário
+
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../middleware/auth.php';
 
 setCORSHeaders();
 requireAuth();
 
-$userId = (int)$_SESSION['user_id'];
-$conn   = getConnection();
+$idUsuario = (int)$_SESSION['user_id'];
+$conn      = getConnection();
 
-// Todas as aulas + status do aluno (CASE WHEN no lugar de FIELD())
+// Busca todas as aulas com o status de conclusão do aluno (CASE WHEN no lugar de FIELD())
 $stmt = $conn->prepare("
     SELECT
         l.id,
@@ -26,35 +31,35 @@ $stmt = $conn->prepare("
         END,
         l.id ASC
 ");
-$stmt->execute([$userId]);
+$stmt->execute([$idUsuario]);
 $rows = $stmt->fetchAll();
 
 // Conta totais e concluídas por nível
-$totals    = ['basico' => 0, 'intermediario' => 0, 'avancado' => 0];
-$completed = ['basico' => 0, 'intermediario' => 0, 'avancado' => 0];
+$totaisPorNivel    = ['basico' => 0, 'intermediario' => 0, 'avancado' => 0];
+$concluidasPorNivel = ['basico' => 0, 'intermediario' => 0, 'avancado' => 0];
 
 foreach ($rows as $row) {
     $nivel = $row['nivel'];
-    $totals[$nivel]++;
+    $totaisPorNivel[$nivel]++;
     if ((int)$row['concluido'] === 1) {
-        $completed[$nivel]++;
+        $concluidasPorNivel[$nivel]++;
     }
 }
 
-$basicoDone        = $totals['basico'] > 0        && $completed['basico']        === $totals['basico'];
-$intermediarioDone = $totals['intermediario'] > 0  && $completed['intermediario'] === $totals['intermediario'];
+$basicoConcluido        = $totaisPorNivel['basico'] > 0        && $concluidasPorNivel['basico']        === $totaisPorNivel['basico'];
+$intermediarioConcluido = $totaisPorNivel['intermediario'] > 0  && $concluidasPorNivel['intermediario'] === $totaisPorNivel['intermediario'];
 
-$lessons = [];
+$aulas = [];
 foreach ($rows as $row) {
     $bloqueado = false;
-    if ($row['nivel'] === 'intermediario' && !$basicoDone) {
+    if ($row['nivel'] === 'intermediario' && !$basicoConcluido) {
         $bloqueado = true;
     }
-    if ($row['nivel'] === 'avancado' && (!$basicoDone || !$intermediarioDone)) {
+    if ($row['nivel'] === 'avancado' && (!$basicoConcluido || !$intermediarioConcluido)) {
         $bloqueado = true;
     }
 
-    $lessons[] = [
+    $aulas[] = [
         'id'        => (int)$row['id'],
         'titulo'    => $row['titulo'],
         'descricao' => $row['descricao'],
@@ -70,15 +75,15 @@ $percentual      = $totalAulas > 0 ? round(($totalConcluidas / $totalAulas) * 10
 
 echo json_encode([
     'success' => true,
-    'lessons' => $lessons,
+    'lessons' => $aulas,
     'resumo'  => [
         'total'      => $totalAulas,
         'concluidas' => (int)$totalConcluidas,
         'percentual' => $percentual,
         'por_nivel'  => [
-            'basico'        => ['total' => $totals['basico'],        'concluidas' => $completed['basico']],
-            'intermediario' => ['total' => $totals['intermediario'], 'concluidas' => $completed['intermediario']],
-            'avancado'      => ['total' => $totals['avancado'],      'concluidas' => $completed['avancado']],
+            'basico'        => ['total' => $totaisPorNivel['basico'],        'concluidas' => $concluidasPorNivel['basico']],
+            'intermediario' => ['total' => $totaisPorNivel['intermediario'], 'concluidas' => $concluidasPorNivel['intermediario']],
+            'avancado'      => ['total' => $totaisPorNivel['avancado'],      'concluidas' => $concluidasPorNivel['avancado']],
         ],
     ],
 ]);

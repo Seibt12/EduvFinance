@@ -18,10 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 try {
     $conn    = getConnection();
-    $userId  = (int) $_SESSION['user_id'];
-    $isAdmin = ($_SESSION['user_tipo'] ?? '') === 'admin';
+    $idUsuario = (int) $_SESSION['user_id'];
+    $ehAdmin   = ($_SESSION['user_tipo'] ?? '') === 'admin';
 
-    if ($isAdmin) {
+    if ($ehAdmin) {
         // Admin vê todos os cursos com contagem de aulas e matrículas
         $stmt = $conn->query("
             SELECT
@@ -39,9 +39,9 @@ try {
             ORDER BY c.nivel ASC, c.nome ASC
         ");
 
-        $courses = [];
+        $cursos = [];
         while ($row = $stmt->fetch()) {
-            $courses[] = [
+            $cursos[] = [
                 'id'               => (int) $row['id'],
                 'nome'             => $row['nome'],
                 'descricao'        => $row['descricao'],
@@ -69,29 +69,28 @@ try {
             GROUP BY c.id, ce.id
             ORDER BY c.nivel ASC, c.nome ASC
         ");
-        $stmt->execute([$userId, $userId]);
+        $stmt->execute([$idUsuario, $idUsuario]);
 
-        $courses = [];
+        $cursos = [];
         while ($row = $stmt->fetch()) {
-            $total     = (int) $row['total_aulas'];
+            $totalAulas = (int) $row['total_aulas'];
             $concluidas = (int) $row['concluidas'];
-            $courses[] = [
+            $cursos[] = [
                 'id'          => (int) $row['id'],
                 'nome'        => $row['nome'],
                 'descricao'   => $row['descricao'],
                 'nivel'       => $row['nivel'],
-                'total_aulas' => $total,
+                'total_aulas' => $totalAulas,
                 'matriculado' => (bool) $row['matriculado'],
                 'concluidas'  => $concluidas,
-                'percentual'  => $total > 0 ? round(($concluidas / $total) * 100) : 0,
+                'percentual'  => $totalAulas > 0 ? round(($concluidas / $totalAulas) * 100) : 0,
             ];
         }
     }
 
-    jsonResponse(['success' => true, 'courses' => $courses]);
+    jsonResponse(['success' => true, 'courses' => $cursos]);
 
 } catch (PDOException $e) {
-    // Erro de banco de dados — retorna JSON em vez de HTML de erro
     error_log('[EduFinance][courses/list] DB error: ' . $e->getMessage());
     jsonResponse(['success' => false, 'message' => 'Erro ao consultar cursos: ' . $e->getMessage()], 500);
 }

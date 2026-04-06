@@ -1,21 +1,6 @@
 <?php
-// ============================================================
-// POST /backend/api/simulator/calculate.php
-//
-// Receives investment parameters, validates them, runs the
-// compound-interest formula month-by-month, saves the result
-// to investment_simulations, and returns the evolution data.
-//
-// Body (JSON):
-//   initial_capital      float   >= 0
-//   investment_type      string  savings|cdb|stocks|crypto
-//   period_months        int     1–600
-//   monthly_contribution float   >= 0 (optional, default 0)
-//
-// Response:
-//   { success, totalInvested, totalProfit, finalAmount,
-//     monthlyRate, evolution[], investedEvol[] }
-// ============================================================
+// Calcula uma simulação de investimento com juros compostos mês a mês.
+// Salva o resultado no banco e devolve os dados necessários para o gráfico.
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../middleware/auth.php';
@@ -27,115 +12,97 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(['success' => false, 'message' => 'Método não permitido.'], 405);
 }
 
-$data = getJsonBody();
+$dados = getJsonBody();
 
-// ----------------------------------------------------------
-// Rates — monthly compound rates per investment type
-// ----------------------------------------------------------
-const INVESTMENT_RATES = [
-    'savings' => 0.005,  // Poupança  0.5%
-    'cdb'     => 0.008,  // CDB       0.8%
-    'stocks'  => 0.012,  // Ações     1.2%
-    'crypto'  => 0.020,  // Cripto    2.0%
+// Taxa mensal de cada tipo de investimento
+$taxas = [
+    'savings' => 0.005,  // Poupança  0,5%
+    'cdb'     => 0.008,  // CDB       0,8%
+    'stocks'  => 0.012,  // Ações     1,2%
+    'crypto'  => 0.020,  // Cripto    2,0%
 ];
 
-// ----------------------------------------------------------
-// Input parsing
-// ----------------------------------------------------------
-$initialCapital      = isset($data['initial_capital'])      ? (float) $data['initial_capital']      : null;
-$monthlyContribution = isset($data['monthly_contribution']) ? (float) $data['monthly_contribution'] : 0.0;
-$periodMonths        = isset($data['period_months'])        ? (int)   $data['period_months']        : null;
-$investmentType      = trim($data['investment_type'] ?? '');
+// Lê e converte os campos do body
+$capitalInicial   = isset($dados['initial_capital'])      ? (float) $dados['initial_capital']      : null;
+$aporteMensal     = isset($dados['monthly_contribution']) ? (float) $dados['monthly_contribution'] : 0.0;
+$meses            = isset($dados['period_months'])        ? (int)   $dados['period_months']        : null;
+$tipoInvestimento = trim($dados['investment_type'] ?? '');
 
-// ----------------------------------------------------------
-// Server-side validation
-// ----------------------------------------------------------
-if ($initialCapital === null || $initialCapital < 0) {
+// Validações — qualquer erro para a execução e devolve a mensagem
+if ($capitalInicial === null || $capitalInicial < 0) {
     jsonResponse(['success' => false, 'message' => 'Capital inicial inválido (deve ser >= 0).'], 422);
 }
 
-if ($monthlyContribution < 0) {
+if ($aporteMensal < 0) {
     jsonResponse(['success' => false, 'message' => 'Aporte mensal não pode ser negativo.'], 422);
 }
 
-if ($initialCapital === 0.0 && $monthlyContribution === 0.0) {
+if ($capitalInicial === 0.0 && $aporteMensal === 0.0) {
     jsonResponse(['success' => false, 'message' => 'Informe um capital inicial ou aporte mensal maior que zero.'], 422);
 }
 
-if ($periodMonths === null || $periodMonths < 1 || $periodMonths > 600) {
+if ($meses === null || $meses < 1 || $meses > 600) {
     jsonResponse(['success' => false, 'message' => 'Período inválido. Informe entre 1 e 600 meses.'], 422);
 }
 
-if (!array_key_exists($investmentType, INVESTMENT_RATES)) {
+if (!array_key_exists($tipoInvestimento, $taxas)) {
     jsonResponse(['success' => false, 'message' => 'Tipo de investimento inválido.'], 422);
 }
 
-$rate = INVESTMENT_RATES[$investmentType];
+$taxa = $taxas[$tipoInvestimento];
 
-// ----------------------------------------------------------
-// Compound interest calculation — month by month
-//
-// Formula: M = P*(1+i)^n + PMT * ((1+i)^n - 1) / i
-// We iterate so we can store each month's value for the chart.
-// ----------------------------------------------------------
-$evolution    = [];   // total balance per month
-$investedEvol = [];   // cumulative invested amount per month
+// Cálculo mês a mês — guarda os valores para o gráfico
+// Fórmula: saldo = saldo * (1 + taxa) + aporte
+$evolucaoPatrimonio = [];  // saldo total a cada mês
+$evolucaoInvestido  = [];  // quanto foi investido (sem juros) a cada mês
 
-$balance = (float) $initialCapital;
+$saldo = (float) $capitalInicial;
 
-for ($month = 1; $month <= $periodMonths; $month++) {
-    $balance       = $balance * (1 + $rate) + $monthlyContribution;
-    $totalInvested = $initialCapital + ($monthlyContribution * $month);
+for ($mes = 1; $mes <= $meses; $mes++) {
+    $saldo          = $saldo * (1 + $taxa) + $aporteMensal;
+    $totalInvestido = $capitalInicial + ($aporteMensal * $mes);
 
-    $evolution[]    = round($balance, 2);
-    $investedEvol[] = round($totalInvested, 2);
+    $evolucaoPatrimonio[] = round($saldo, 2);
+    $evolucaoInvestido[]  = round($totalInvestido, 2);
 }
 
-$finalAmount        = round($balance, 2);
-$totalInvestedFinal = round($initialCapital + ($monthlyContribution * $periodMonths), 2);
-$totalProfit        = round($finalAmount - $totalInvestedFinal, 2);
+$valorFinal     = round($saldo, 2);
+$totalInvestido = round($capitalInicial + ($aporteMensal * $meses), 2);
+$rendimento     = round($valorFinal - $totalInvestido, 2);
 
-// ----------------------------------------------------------
-// Persist simulation — failures here are logged but do NOT
-// break the API response (calculation is still returned).
-// ----------------------------------------------------------
-$userId = (int) $_SESSION['user_id'];
+// Salva no banco para o histórico do aluno.
+// Se der erro aqui, não interrompemos — o resultado já foi calculado.
+$idUsuario = (int) $_SESSION['user_id'];
 
 try {
     $conn = getConnection();
-
     $stmt = $conn->prepare("
         INSERT INTO investment_simulations
             (user_id, investment_type, initial_capital, monthly_contribution,
              period_months, monthly_rate, final_amount, total_invested, total_profit)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
-
     $stmt->execute([
-        $userId,
-        $investmentType,
-        $initialCapital,
-        $monthlyContribution,
-        $periodMonths,
-        $rate,
-        $finalAmount,
-        $totalInvestedFinal,
-        $totalProfit,
+        $idUsuario,
+        $tipoInvestimento,
+        $capitalInicial,
+        $aporteMensal,
+        $meses,
+        $taxa,
+        $valorFinal,
+        $totalInvestido,
+        $rendimento,
     ]);
 } catch (PDOException $e) {
-    // Non-fatal: log and continue
-    error_log('[EduFinance][Simulator] Erro ao salvar simulação: ' . $e->getMessage());
+    error_log('[Simulator] Erro ao salvar simulação: ' . $e->getMessage());
 }
 
-// ----------------------------------------------------------
-// Response
-// ----------------------------------------------------------
 jsonResponse([
     'success'       => true,
-    'totalInvested' => $totalInvestedFinal,
-    'totalProfit'   => $totalProfit,
-    'finalAmount'   => $finalAmount,
-    'monthlyRate'   => $rate,
-    'evolution'     => $evolution,
-    'investedEvol'  => $investedEvol,
+    'totalInvested' => $totalInvestido,
+    'totalProfit'   => $rendimento,
+    'finalAmount'   => $valorFinal,
+    'monthlyRate'   => $taxa,
+    'evolution'     => $evolucaoPatrimonio,
+    'investedEvol'  => $evolucaoInvestido,
 ]);

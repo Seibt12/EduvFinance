@@ -1,4 +1,7 @@
 <?php
+// Remove um aluno do sistema. Apenas admins podem excluir usuários.
+// ON DELETE CASCADE remove progresso e matrículas automaticamente.
+
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../middleware/auth.php';
 
@@ -11,8 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$data = getJsonBody();
-$id   = isset($data['id']) ? (int)$data['id'] : 0;
+$dados = getJsonBody();
+$id    = isset($dados['id']) ? (int)$dados['id'] : 0;
 
 if ($id <= 0) {
     http_response_code(400);
@@ -24,20 +27,22 @@ $conn = getConnection();
 
 $stmt = $conn->prepare("SELECT id, email, tipo FROM users WHERE id = ? LIMIT 1");
 $stmt->execute([$id]);
-$user = $stmt->fetch();
+$usuario = $stmt->fetch();
 
-if (!$user) {
+if (!$usuario) {
     http_response_code(404);
     echo json_encode(['success' => false, 'message' => 'Usuário não encontrado.']);
     exit;
 }
 
-if ($user['tipo'] === 'admin' && $user['email'] === 'admin@email.com') {
+// Protege o administrador padrão contra exclusão
+if ($usuario['tipo'] === 'admin' && $usuario['email'] === 'admin@email.com') {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'O administrador padrão não pode ser excluído.']);
     exit;
 }
 
+// Impede que o admin exclua a própria conta
 if ($id === (int)$_SESSION['user_id']) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Você não pode excluir a própria conta.']);

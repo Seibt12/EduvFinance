@@ -1,4 +1,7 @@
 <?php
+// Marca ou desmarca uma aula como concluída.
+// Valida a regra de progressão no backend antes de salvar.
+
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../middleware/auth.php';
 
@@ -11,12 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$data      = getJsonBody();
-$lessonId  = isset($data['lesson_id']) ? (int)$data['lesson_id'] : 0;
-$concluido = isset($data['concluido']) ? (bool)$data['concluido'] : true;
-$userId    = (int)$_SESSION['user_id'];
+$dados     = getJsonBody();
+$aulaId    = isset($dados['lesson_id']) ? (int)$dados['lesson_id'] : 0;
+$concluido = isset($dados['concluido']) ? (bool)$dados['concluido'] : true;
+$idUsuario = (int)$_SESSION['user_id'];
 
-if ($lessonId <= 0) {
+if ($aulaId <= 0) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'ID da aula inválido.']);
     exit;
@@ -24,12 +27,12 @@ if ($lessonId <= 0) {
 
 $conn = getConnection();
 
-// Busca a aula
+// Busca a aula para verificar o nível
 $stmt = $conn->prepare("SELECT id, nivel FROM lessons WHERE id = ? LIMIT 1");
-$stmt->execute([$lessonId]);
-$lesson = $stmt->fetch();
+$stmt->execute([$aulaId]);
+$aula = $stmt->fetch();
 
-if (!$lesson) {
+if (!$aula) {
     http_response_code(404);
     echo json_encode(['success' => false, 'message' => 'Aula não encontrada.']);
     exit;
@@ -38,7 +41,7 @@ if (!$lesson) {
 // ============================================================
 // REGRA DE PROGRESSÃO — verificada no BACKEND
 // ============================================================
-if ($concluido && $lesson['nivel'] !== 'basico') {
+if ($concluido && $aula['nivel'] !== 'basico') {
 
     $stmt = $conn->query("SELECT COUNT(*) FROM lessons WHERE nivel = 'basico'");
     $totalBasico = (int)$stmt->fetchColumn();
@@ -48,7 +51,7 @@ if ($concluido && $lesson['nivel'] !== 'basico') {
         JOIN lessons l ON l.id = p.lesson_id
         WHERE p.user_id = ? AND l.nivel = 'basico' AND p.concluido = 1
     ");
-    $stmt->execute([$userId]);
+    $stmt->execute([$idUsuario]);
     $doneBasico = (int)$stmt->fetchColumn();
 
     if ($totalBasico === 0 || $doneBasico < $totalBasico) {
@@ -60,7 +63,7 @@ if ($concluido && $lesson['nivel'] !== 'basico') {
         exit;
     }
 
-    if ($lesson['nivel'] === 'avancado') {
+    if ($aula['nivel'] === 'avancado') {
         $stmt = $conn->query("SELECT COUNT(*) FROM lessons WHERE nivel = 'intermediario'");
         $totalInter = (int)$stmt->fetchColumn();
 
@@ -69,7 +72,7 @@ if ($concluido && $lesson['nivel'] !== 'basico') {
             JOIN lessons l ON l.id = p.lesson_id
             WHERE p.user_id = ? AND l.nivel = 'intermediario' AND p.concluido = 1
         ");
-        $stmt->execute([$userId]);
+        $stmt->execute([$idUsuario]);
         $doneInter = (int)$stmt->fetchColumn();
 
         if ($totalInter === 0 || $doneInter < $totalInter) {
@@ -84,15 +87,15 @@ if ($concluido && $lesson['nivel'] !== 'basico') {
 }
 
 // INSERT ... ON CONFLICT — equivalente PostgreSQL de "ON DUPLICATE KEY UPDATE"
-$val  = $concluido ? 1 : 0;
-$stmt = $conn->prepare("
+$valor = $concluido ? 1 : 0;
+$stmt  = $conn->prepare("
     INSERT INTO progress (user_id, lesson_id, concluido)
     VALUES (?, ?, ?)
     ON CONFLICT (user_id, lesson_id)
     DO UPDATE SET concluido = EXCLUDED.concluido,
                   updated_at = CURRENT_TIMESTAMP
 ");
-$stmt->execute([$userId, $lessonId, $val]);
+$stmt->execute([$idUsuario, $aulaId, $valor]);
 
 $msg = $concluido ? 'Aula marcada como concluída!' : 'Aula desmarcada.';
 echo json_encode(['success' => true, 'message' => $msg]);

@@ -1,4 +1,6 @@
 <?php
+// Cria uma nova aula. Apenas admins podem criar aulas.
+
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../middleware/auth.php';
 
@@ -11,10 +13,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$data      = getJsonBody();
-$titulo    = trim($data['titulo']    ?? '');
-$descricao = trim($data['descricao'] ?? '');
-$nivel     = trim($data['nivel']     ?? '');
+$dados     = getJsonBody();
+$titulo    = trim($dados['titulo']    ?? '');
+$descricao = trim($dados['descricao'] ?? '');
+$nivel     = trim($dados['nivel']     ?? '');
 
 $niveisValidos = ['basico', 'intermediario', 'avancado'];
 
@@ -32,13 +34,13 @@ if (!in_array($nivel, $niveisValidos, true)) {
 
 $conn = getConnection();
 
-// RETURNING id — forma idiomática de recuperar o ID no PostgreSQL
+// RETURNING id — forma idiomática de recuperar o ID gerado no PostgreSQL
 $stmt = $conn->prepare("INSERT INTO lessons (titulo, descricao, nivel) VALUES (?, ?, ?) RETURNING id");
 $stmt->execute([$titulo, $descricao, $nivel]);
-$newId = $stmt->fetchColumn();
+$novoId = $stmt->fetchColumn();
 
 echo json_encode([
     'success' => true,
     'message' => 'Aula criada com sucesso.',
-    'id'      => (int)$newId,
+    'id'      => (int)$novoId,
 ]);

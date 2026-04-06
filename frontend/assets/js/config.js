@@ -1,14 +1,3 @@
-// ============================================================
-// CONFIG.JS — funções globais usadas em TODAS as páginas
-//
-// Ordem de carregamento no HTML:
-//   1. config.js   ← este arquivo (base)
-//   2. auth.js     ← login/sessão
-//   3. student.js  ← dashboard do aluno
-//      ou admin.js ← dashboard do admin
-// ============================================================
-
-
 // URL base da API — detecta automaticamente onde o app está rodando
 const BASE_URL = window.location.origin || 'http://localhost:8080';
 const API_BASE = `${BASE_URL}/backend/api`;
@@ -34,7 +23,6 @@ const ROUTES = {
 // ------------------------------------------------------------
 async function apiFetch(endpoint, options = {}) {
   // Monta a configuração da requisição com defaults seguros
-  // options pode sobrescrever method, body, etc. — mas headers são sempre mesclados
   const config = {
     credentials: 'include',  // envia o cookie de sessão automaticamente
     ...options,
@@ -46,13 +34,13 @@ async function apiFetch(endpoint, options = {}) {
   };
 
   const response = await fetch(`${API_BASE}${endpoint}`, config);
-  const text = await response.text();
+  const texto = await response.text();
 
-  if (!text) throw new Error(`Resposta vazia do servidor (HTTP ${response.status}).`);
+  if (!texto) throw new Error(`Resposta vazia do servidor (HTTP ${response.status}).`);
 
   let data;
   try {
-    data = JSON.parse(text);
+    data = JSON.parse(texto);
   } catch {
     throw new Error(`Servidor retornou algo que não é JSON (HTTP ${response.status}).`);
   }
@@ -66,20 +54,20 @@ async function apiFetch(endpoint, options = {}) {
 // ------------------------------------------------------------
 
 // Toast: mensagem flutuante no canto da tela (desaparece sozinha)
-function showToast(message, type = 'info') {
+function exibirToast(mensagem, tipo = 'info') {
   const toast = document.getElementById('toast');
   if (!toast) return;
-  toast.textContent = message;
-  toast.className = `toast ${type} show`;
+  toast.textContent = mensagem;
+  toast.className = `toast ${tipo} show`;
   setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
-// Alert: mensagem vermelha/verde dentro do formulário
-function showAlert(elementId, message, type = 'error') {
+// Alerta: mensagem vermelha/verde dentro do formulário
+function exibirAlerta(elementId, mensagem, tipo = 'error') {
   const el = document.getElementById(elementId);
   if (!el) return;
-  el.textContent = message;
-  el.className = `alert alert-${type} show`;
+  el.textContent = mensagem;
+  el.className = `alert alert-${tipo} show`;
   setTimeout(() => el.className = 'alert', 5000);
 }
 
@@ -89,16 +77,16 @@ function showAlert(elementId, message, type = 'error') {
 // (localStorage persiste entre páginas e recarregamentos)
 // ------------------------------------------------------------
 
-function getCurrentUser() {
+function obterUsuarioAtual() {
   try { return JSON.parse(localStorage.getItem('edufinance_user')) || null; }
   catch { return null; }
 }
 
-function setCurrentUser(user) {
-  localStorage.setItem('edufinance_user', JSON.stringify(user));
+function definirUsuarioAtual(usuario) {
+  localStorage.setItem('edufinance_user', JSON.stringify(usuario));
 }
 
-function clearCurrentUser() {
+function limparUsuarioAtual() {
   localStorage.removeItem('edufinance_user');
 }
 
@@ -107,11 +95,11 @@ function clearCurrentUser() {
 // MODAIS — janelas popup (adicionar, editar, confirmar)
 // ------------------------------------------------------------
 
-function openModal(id) {
+function abrirModal(id) {
   document.getElementById(id)?.classList.add('open');
 }
 
-function closeModal(id) {
+function fecharModal(id) {
   document.getElementById(id)?.classList.remove('open');
 }
 
@@ -127,17 +115,17 @@ document.addEventListener('keydown', e => {
 // ------------------------------------------------------------
 
 // Usa ROUTES para garantir consistência com todas as outras navegações
-function redirectToLogin() {
+function redirecionarLogin() {
   window.location.href = ROUTES.login;
 }
 
 // Redireciona para o dashboard correto com base no tipo do usuário
-function redirectToDashboard(tipo) {
+function redirecionarDashboard(tipo) {
   window.location.href = tipo === 'admin' ? ROUTES.admin : ROUTES.student;
 }
 
 // Formata datas ISO para pt-BR: "2024-01-15" → "15/01/2024"
-function formatDate(isoDate) {
-  if (!isoDate) return '-';
-  return new Date(isoDate).toLocaleDateString('pt-BR');
+function formatarData(dataISO) {
+  if (!dataISO) return '-';
+  return new Date(dataISO).toLocaleDateString('pt-BR');
 }

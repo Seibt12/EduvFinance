@@ -1,4 +1,6 @@
 <?php
+// Lista todas as aulas ordenadas por nível (básico → intermediário → avançado).
+
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../middleware/auth.php';
 
@@ -20,9 +22,9 @@ $stmt = $conn->query("
         id ASC
 ");
 
-$lessons = [];
+$aulas = [];
 while ($row = $stmt->fetch()) {
-    $lessons[] = [
+    $aulas[] = [
         'id'         => (int)$row['id'],
         'titulo'     => $row['titulo'],
         'descricao'  => $row['descricao'],
@@ -31,4 +33,4 @@ while ($row = $stmt->fetch()) {
     ];
 }
 
-echo json_encode(['success' => true, 'lessons' => $lessons]);
+echo json_encode(['success' => true, 'lessons' => $aulas]);

@@ -1,4 +1,6 @@
 <?php
+// Remove uma aula. ON DELETE CASCADE limpa os vínculos com cursos e o progresso dos alunos.
+
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../middleware/auth.php';
 
@@ -11,8 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$data = getJsonBody();
-$id   = isset($data['id']) ? (int)$data['id'] : 0;
+$dados = getJsonBody();
+$id    = isset($dados['id']) ? (int)$dados['id'] : 0;
 
 if ($id <= 0) {
     http_response_code(400);

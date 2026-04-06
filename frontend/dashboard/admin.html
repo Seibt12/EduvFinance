@@ -99,7 +99,7 @@
             <h1>Aulas</h1>
             <p>Gerenciar aulas da plataforma</p>
           </div>
-          <button class="btn btn-primary" onclick="openCreateLessonModal()">+ Nova Aula</button>
+          <button class="btn btn-primary" onclick="abrirModalNovaAula()">+ Nova Aula</button>
         </div>
 
         <div class="card">
@@ -130,7 +130,7 @@
             <h1>Cursos</h1>
             <p>Gerenciar cursos e aulas vinculadas</p>
           </div>
-          <button class="btn btn-primary" onclick="openCreateCourseModal()">+ Novo Curso</button>
+          <button class="btn btn-primary" onclick="abrirModalNovoCurso()">+ Novo Curso</button>
         </div>
 
         <div class="card">
@@ -160,13 +160,13 @@
 
   <!-- MODAL: AULA -->
   <div id="lessonModal" class="modal">
-    <div class="modal-overlay" onclick="closeModal('lessonModal')"></div>
+    <div class="modal-overlay" onclick="fecharModal('lessonModal')"></div>
     <div class="modal-content">
       <div class="modal-header">
         <span id="lessonModalTitle">Nova Aula</span>
-        <button class="modal-close" onclick="closeModal('lessonModal')">x</button>
+        <button class="modal-close" onclick="fecharModal('lessonModal')">x</button>
       </div>
-      <form id="lessonForm" onsubmit="submitLessonForm(event)">
+      <form id="lessonForm" onsubmit="salvarAula(event)">
         <input type="hidden" id="lessonId">
         <div class="form-group">
           <label>Titulo</label>
@@ -185,7 +185,7 @@
           <textarea id="lessonDescricao" rows="4" required></textarea>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeModal('lessonModal')">Cancelar</button>
+          <button type="button" class="btn btn-secondary" onclick="fecharModal('lessonModal')">Cancelar</button>
           <button type="submit" class="btn btn-primary">Salvar</button>
         </div>
       </form>
@@ -194,13 +194,13 @@
 
   <!-- MODAL: ALUNO -->
   <div id="studentModal" class="modal">
-    <div class="modal-overlay" onclick="closeModal('studentModal')"></div>
+    <div class="modal-overlay" onclick="fecharModal('studentModal')"></div>
     <div class="modal-content">
       <div class="modal-header">
         <span>Editar Aluno</span>
-        <button class="modal-close" onclick="closeModal('studentModal')">x</button>
+        <button class="modal-close" onclick="fecharModal('studentModal')">x</button>
       </div>
-      <form id="studentForm" onsubmit="submitStudentForm(event)">
+      <form id="studentForm" onsubmit="salvarAluno(event)">
         <input type="hidden" id="studentId">
         <div class="form-group">
           <label>Nome</label>
@@ -211,7 +211,7 @@
           <input type="email" id="studentEmail" required>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeModal('studentModal')">Cancelar</button>
+          <button type="button" class="btn btn-secondary" onclick="fecharModal('studentModal')">Cancelar</button>
           <button type="submit" class="btn btn-primary">Salvar</button>
         </div>
       </form>
@@ -220,13 +220,13 @@
 
   <!-- MODAL: CURSO -->
   <div id="courseModal" class="modal">
-    <div class="modal-overlay" onclick="closeModal('courseModal')"></div>
+    <div class="modal-overlay" onclick="fecharModal('courseModal')"></div>
     <div class="modal-content modal-lg">
       <div class="modal-header">
         <span id="courseModalTitle">Novo Curso</span>
-        <button class="modal-close" onclick="closeModal('courseModal')">x</button>
+        <button class="modal-close" onclick="fecharModal('courseModal')">x</button>
       </div>
-      <form id="courseForm" onsubmit="submitCourseForm(event)">
+      <form id="courseForm" onsubmit="salvarCurso(event)">
         <input type="hidden" id="courseId">
         <div class="form-group">
           <label>Nome do Curso</label>
@@ -251,7 +251,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeModal('courseModal')">Cancelar</button>
+          <button type="button" class="btn btn-secondary" onclick="fecharModal('courseModal')">Cancelar</button>
           <button type="submit" class="btn btn-primary">Salvar</button>
         </div>
       </form>
@@ -260,17 +260,17 @@
 
   <!-- MODAL: CONFIRMAR EXCLUSÃO -->
   <div id="confirmModal" class="modal">
-    <div class="modal-overlay" onclick="closeModal('confirmModal')"></div>
+    <div class="modal-overlay" onclick="fecharModal('confirmModal')"></div>
     <div class="modal-content modal-sm">
       <div class="modal-header">
         <span>Confirmar exclusao</span>
-        <button class="modal-close" onclick="closeModal('confirmModal')">x</button>
+        <button class="modal-close" onclick="fecharModal('confirmModal')">x</button>
       </div>
       <div class="modal-body">
         <p id="confirmMessage">Tem certeza que deseja excluir?</p>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Cancelar</button>
+        <button class="btn btn-secondary" onclick="fecharModal('confirmModal')">Cancelar</button>
         <button class="btn btn-danger" id="confirmBtn">Excluir</button>
       </div>
     </div>

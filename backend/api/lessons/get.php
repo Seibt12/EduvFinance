@@ -1,4 +1,6 @@
 <?php
+// Retorna os dados de uma única aula pelo ID.
+
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../middleware/auth.php';
 
@@ -16,9 +18,9 @@ if ($id <= 0) {
 $conn = getConnection();
 $stmt = $conn->prepare("SELECT id, titulo, descricao, nivel, created_at FROM lessons WHERE id = ? LIMIT 1");
 $stmt->execute([$id]);
-$lesson = $stmt->fetch();
+$aula = $stmt->fetch();
 
-if (!$lesson) {
+if (!$aula) {
     http_response_code(404);
     echo json_encode(['success' => false, 'message' => 'Aula não encontrada.']);
     exit;
@@ -27,10 +29,10 @@ if (!$lesson) {
 echo json_encode([
     'success' => true,
     'lesson'  => [
-        'id'         => (int)$lesson['id'],
-        'titulo'     => $lesson['titulo'],
-        'descricao'  => $lesson['descricao'],
-        'nivel'      => $lesson['nivel'],
-        'created_at' => $lesson['created_at'],
+        'id'         => (int)$aula['id'],
+        'titulo'     => $aula['titulo'],
+        'descricao'  => $aula['descricao'],
+        'nivel'      => $aula['nivel'],
+        'created_at' => $aula['created_at'],
     ],
 ]);

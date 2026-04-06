@@ -4,11 +4,6 @@
 //
 // Recebe: { nome, email, senha }
 // Retorna: { success, message }
-//
-// Para adicionar um campo novo (ex: idade):
-//   1. Adicione $idade = (int)($data['idade'] ?? 0);
-//   2. Valide: if ($idade < 1) jsonResponse([...], 400);
-//   3. Insira na query: INSERT INTO users (nome, email, senha, tipo, idade)
 // ============================================================
 
 require_once __DIR__ . '/../../config/database.php';
@@ -22,11 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // PASSO 2 — Lê os dados do formulário de cadastro
-$data  = getJsonBody();
-$nome  = trim($data['nome']  ?? '');
-$email = trim($data['email'] ?? '');
-$senha = trim($data['senha'] ?? '');
-$idade = (int)($data['idade'] ?? 0);  // EXEMPLO: campo "idade" — 0 significa "não informado"
+$dados = getJsonBody();
+$nome  = trim($dados['nome']  ?? '');
+$email = trim($dados['email'] ?? '');
+$senha = trim($dados['senha'] ?? '');
+$idade = (int)($dados['idade'] ?? 0);
 
 // PASSO 3 — Validações básicas
 if ($nome === '' || $email === '' || $senha === '') {
@@ -41,7 +36,7 @@ if (strlen($senha) < 3) {
     jsonResponse(['success' => false, 'message' => 'A senha deve ter pelo menos 3 caracteres.'], 400);
 }
 
-// EXEMPLO: validação do campo "idade"
+// Validação da idade (campo opcional)
 if ($idade > 0 && ($idade < 10 || $idade > 120)) {
     jsonResponse(['success' => false, 'message' => 'Idade inválida.'], 400);
 }
@@ -58,7 +53,6 @@ if ($stmt->fetch()) {
 // password_hash() criptografa a senha — nunca salvamos a senha em texto puro!
 $senhaHash = password_hash($senha, PASSWORD_BCRYPT);
 
-// EXEMPLO: inclua o campo "idade" na query (NULL se não informado)
 $stmt = $conn->prepare("INSERT INTO users (nome, email, senha, tipo, idade) VALUES (?, ?, ?, 'aluno', ?)");
 $stmt->execute([$nome, $email, $senhaHash, $idade > 0 ? $idade : null]);
 

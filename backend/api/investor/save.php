@@ -25,11 +25,11 @@ if (($_SESSION['user_tipo'] ?? '') !== 'aluno') {
     jsonResponse(['success' => false, 'message' => 'Apenas alunos podem realizar o teste.'], 403);
 }
 
-$body      = getJsonBody();
-$respostas = $body['respostas'] ?? [];
+$corpo     = getJsonBody();
+$respostas = $corpo['respostas'] ?? [];
 
 // Valida que todas as 5 perguntas foram respondidas com a, b ou c
-$perguntas    = ['q1', 'q2', 'q3', 'q4', 'q5'];
+$perguntas     = ['q1', 'q2', 'q3', 'q4', 'q5'];
 $opcoesValidas = ['a', 'b', 'c'];
 
 foreach ($perguntas as $q) {
@@ -42,23 +42,23 @@ foreach ($perguntas as $q) {
 }
 
 // Calcula a pontuação total (a=1, b=2, c=3)
-$pontos = ['a' => 1, 'b' => 2, 'c' => 3];
-$score  = 0;
+$pontos     = ['a' => 1, 'b' => 2, 'c' => 3];
+$pontuacao  = 0;
 foreach ($perguntas as $q) {
-    $score += $pontos[$respostas[$q]];
+    $pontuacao += $pontos[$respostas[$q]];
 }
 
 // Determina o perfil com base na pontuação
-if ($score <= 8) {
+if ($pontuacao <= 8) {
     $perfil = 'conservador';
-} elseif ($score <= 12) {
+} elseif ($pontuacao <= 12) {
     $perfil = 'moderado';
 } else {
     $perfil = 'agressivo';
 }
 
 try {
-    $userId        = (int) $_SESSION['user_id'];
+    $idUsuario     = (int) $_SESSION['user_id'];
     $respostasJson = json_encode($respostas, JSON_UNESCAPED_UNICODE);
     $conn          = getConnection();
 
@@ -68,17 +68,18 @@ try {
         VALUES (?, ?, ?, ?)
         ON CONFLICT (user_id)
         DO UPDATE SET
-            perfil    = EXCLUDED.perfil,
-            respostas = EXCLUDED.respostas,
-            pontuacao = EXCLUDED.pontuacao
+            perfil     = EXCLUDED.perfil,
+            respostas  = EXCLUDED.respostas,
+            pontuacao  = EXCLUDED.pontuacao,
+            updated_at = CURRENT_TIMESTAMP
     ");
-    $stmt->execute([$userId, $perfil, $respostasJson, $score]);
+    $stmt->execute([$idUsuario, $perfil, $respostasJson, $pontuacao]);
 
     jsonResponse([
         'success'   => true,
         'message'   => 'Perfil de investidor salvo com sucesso.',
         'perfil'    => $perfil,
-        'pontuacao' => $score,
+        'pontuacao' => $pontuacao,
     ]);
 
 } catch (PDOException $e) {

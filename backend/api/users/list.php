@@ -1,4 +1,7 @@
 <?php
+// Lista todos os alunos com o progresso de cada um.
+// Apenas administradores têm acesso a este endpoint.
+
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../middleware/auth.php';
 
@@ -23,22 +26,22 @@ $stmt = $conn->query("
     ORDER BY u.created_at DESC
 ");
 
-$users = [];
+$alunos = [];
 while ($row = $stmt->fetch()) {
-    $total   = (int)$row['total_aulas'];
-    $done    = (int)$row['total_concluidas'];
-    $percent = $total > 0 ? round(($done / $total) * 100) : 0;
+    $totalAulas  = (int)$row['total_aulas'];
+    $concluidas  = (int)$row['total_concluidas'];
+    $percentual  = $totalAulas > 0 ? round(($concluidas / $totalAulas) * 100) : 0;
 
-    $users[] = [
+    $alunos[] = [
         'id'               => (int)$row['id'],
         'nome'             => $row['nome'],
         'email'            => $row['email'],
         'tipo'             => $row['tipo'],
         'created_at'       => $row['created_at'],
-        'total_concluidas' => $done,
-        'total_aulas'      => $total,
-        'progresso'        => $percent,
+        'total_concluidas' => $concluidas,
+        'total_aulas'      => $totalAulas,
+        'progresso'        => $percentual,
     ];
 }
 
-echo json_encode(['success' => true, 'users' => $users]);
+echo json_encode(['success' => true, 'users' => $alunos]);

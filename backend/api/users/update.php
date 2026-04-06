@@ -1,4 +1,7 @@
 <?php
+// Atualiza nome, email e (opcionalmente) senha de um usuário.
+// Admin pode editar qualquer aluno; aluno só pode editar a si mesmo.
+
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../middleware/auth.php';
 
@@ -11,11 +14,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$data  = getJsonBody();
-$id    = isset($data['id']) ? (int)$data['id'] : 0;
-$nome  = trim($data['nome']  ?? '');
-$email = trim($data['email'] ?? '');
-$senha = trim($data['senha'] ?? '');
+$dados = getJsonBody();
+$id    = isset($dados['id'])    ? (int)$dados['id']        : 0;
+$nome  = trim($dados['nome']    ?? '');
+$email = trim($dados['email']   ?? '');
+$senha = trim($dados['senha']   ?? '');
 
 if ($_SESSION['user_tipo'] !== 'admin' && $id !== (int)$_SESSION['user_id']) {
     http_response_code(403);
@@ -39,15 +42,16 @@ $conn = getConnection();
 
 $stmt = $conn->prepare("SELECT id, email, tipo FROM users WHERE id = ? LIMIT 1");
 $stmt->execute([$id]);
-$existing = $stmt->fetch();
+$existente = $stmt->fetch();
 
-if (!$existing) {
+if (!$existente) {
     http_response_code(404);
     echo json_encode(['success' => false, 'message' => 'Usuário não encontrado.']);
     exit;
 }
 
-if ($existing['tipo'] === 'admin' && $existing['email'] === 'admin@email.com') {
+// Protege o administrador padrão contra edições
+if ($existente['tipo'] === 'admin' && $existente['email'] === 'admin@email.com') {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'O administrador padrão não pode ser editado.']);
     exit;
@@ -68,14 +72,15 @@ if ($senha !== '') {
         echo json_encode(['success' => false, 'message' => 'A senha deve ter pelo menos 3 caracteres.']);
         exit;
     }
-    $hash = password_hash($senha, PASSWORD_BCRYPT);
-    $stmt = $conn->prepare("UPDATE users SET nome = ?, email = ?, senha = ? WHERE id = ?");
-    $stmt->execute([$nome, $email, $hash, $id]);
+    $senhaHash = password_hash($senha, PASSWORD_BCRYPT);
+    $stmt = $conn->prepare("UPDATE users SET nome = ?, email = ?, senha = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+    $stmt->execute([$nome, $email, $senhaHash, $id]);
 } else {
-    $stmt = $conn->prepare("UPDATE users SET nome = ?, email = ? WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE users SET nome = ?, email = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
     $stmt->execute([$nome, $email, $id]);
 }
 
+// Atualiza a sessão se o próprio usuário editou seus dados
 if ($id === (int)$_SESSION['user_id']) {
     $_SESSION['user_nome']  = $nome;
     $_SESSION['user_email'] = $email;

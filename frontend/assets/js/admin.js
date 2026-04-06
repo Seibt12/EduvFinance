@@ -1,38 +1,38 @@
 document.addEventListener('DOMContentLoaded', () => {
-  requireRole('admin', user => {
-    document.getElementById('userName').textContent = user.nome;
-    initNavigation();
-    loadDashboard();
+  verificarPapel('admin', usuario => {
+    document.getElementById('userName').textContent = usuario.nome;
+    inicializarNavegacao();
+    carregarDashboard();
   });
 });
 
-function initNavigation() {
+function inicializarNavegacao() {
   document.querySelectorAll('.nav-item[data-section]').forEach(link => {
     link.addEventListener('click', e => {
       e.preventDefault();
-      showSection(link.dataset.section);
+      exibirSecao(link.dataset.section);
     });
   });
 }
 
-function showSection(name) {
+function exibirSecao(nome) {
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const section = document.getElementById(`section-${name}`);
-  const navItem = document.querySelector(`.nav-item[data-section="${name}"]`);
-  if (section) section.classList.add('active');
+  const secao   = document.getElementById(`section-${nome}`);
+  const navItem = document.querySelector(`.nav-item[data-section="${nome}"]`);
+  if (secao)   secao.classList.add('active');
   if (navItem) navItem.classList.add('active');
-  if (name === 'dashboard') loadDashboard();
-  if (name === 'students')  loadStudents();
-  if (name === 'lessons')   loadLessons();
-  if (name === 'courses')   loadCourses();
+  if (nome === 'dashboard') carregarDashboard();
+  if (nome === 'students')  carregarAlunos();
+  if (nome === 'lessons')   carregarAulas();
+  if (nome === 'courses')   carregarCursos();
 }
 
 // ============================================================
 // DASHBOARD
 // ============================================================
 
-async function loadDashboard() {
+async function carregarDashboard() {
   try {
     const { ok, data } = await apiFetch('/progress/stats.php');
     if (!ok || !data.success) return;
@@ -41,7 +41,7 @@ async function loadDashboard() {
     document.getElementById('avgCompletion').textContent = data.avgCompletion + '%';
     document.getElementById('totalCourses').textContent  = data.totalCourses ?? '-';
   } catch {
-    showToast('Erro ao carregar dados.', 'error');
+    exibirToast('Erro ao carregar dados.', 'error');
   }
 }
 
@@ -49,7 +49,7 @@ async function loadDashboard() {
 // ALUNOS
 // ============================================================
 
-async function loadStudents() {
+async function carregarAlunos() {
   const tbody = document.getElementById('studentsTableBody');
   tbody.innerHTML = '<tr><td colspan="6" class="loading">Carregando...</td></tr>';
   try {
@@ -67,12 +67,12 @@ async function loadStudents() {
         <td>${u.id}</td>
         <td>${esc(u.nome)}</td>
         <td>${esc(u.email)}</td>
-        <td>${formatDate(u.created_at)}</td>
+        <td>${formatarData(u.created_at)}</td>
         <td>${u.progresso}%</td>
         <td>
           <div class="actions">
-            <button class="btn btn-warning btn-sm" onclick="openEditStudentModal(${u.id})">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="confirmDeleteStudent(${u.id}, '${esc(u.nome)}')">Excluir</button>
+            <button class="btn btn-warning btn-sm" onclick="abrirModalEditarAluno(${u.id})">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="confirmarExclusaoAluno(${u.id}, '${esc(u.nome)}')">Excluir</button>
           </div>
         </td>
       </tr>
@@ -82,20 +82,20 @@ async function loadStudents() {
   }
 }
 
-async function openEditStudentModal(id) {
+async function abrirModalEditarAluno(id) {
   try {
     const { ok, data } = await apiFetch(`/users/get.php?id=${id}`);
-    if (!ok || !data.success) { showToast('Erro ao carregar dados.', 'error'); return; }
+    if (!ok || !data.success) { exibirToast('Erro ao carregar dados.', 'error'); return; }
     document.getElementById('studentId').value    = data.user.id;
     document.getElementById('studentNome').value  = data.user.nome;
     document.getElementById('studentEmail').value = data.user.email;
-    openModal('studentModal');
+    abrirModal('studentModal');
   } catch {
-    showToast('Erro de conexao.', 'error');
+    exibirToast('Erro de conexao.', 'error');
   }
 }
 
-async function submitStudentForm(e) {
+async function salvarAluno(e) {
   e.preventDefault();
   const id    = parseInt(document.getElementById('studentId').value);
   const nome  = document.getElementById('studentNome').value.trim();
@@ -108,37 +108,37 @@ async function submitStudentForm(e) {
       method: 'POST',
       body: JSON.stringify({ id, nome, email }),
     });
-    if (!ok || !data.success) { showToast(data.message, 'error'); return; }
-    showToast('Aluno atualizado.', 'success');
-    closeModal('studentModal');
-    loadStudents();
+    if (!ok || !data.success) { exibirToast(data.message, 'error'); return; }
+    exibirToast('Aluno atualizado.', 'success');
+    fecharModal('studentModal');
+    carregarAlunos();
   } catch {
-    showToast('Erro de conexao.', 'error');
+    exibirToast('Erro de conexao.', 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Salvar';
   }
 }
 
-function confirmDeleteStudent(id, nome) {
+function confirmarExclusaoAluno(id, nome) {
   document.getElementById('confirmMessage').textContent = `Excluir o aluno "${nome}"?`;
-  document.getElementById('confirmBtn').onclick = () => deleteStudent(id);
-  openModal('confirmModal');
+  document.getElementById('confirmBtn').onclick = () => excluirAluno(id);
+  abrirModal('confirmModal');
 }
 
-async function deleteStudent(id) {
+async function excluirAluno(id) {
   try {
     const { ok, data } = await apiFetch('/users/delete.php', {
       method: 'POST',
       body: JSON.stringify({ id }),
     });
-    if (!ok || !data.success) { showToast(data.message, 'error'); return; }
-    showToast('Aluno excluido.', 'success');
-    closeModal('confirmModal');
-    loadStudents();
-    loadDashboard();
+    if (!ok || !data.success) { exibirToast(data.message, 'error'); return; }
+    exibirToast('Aluno excluido.', 'success');
+    fecharModal('confirmModal');
+    carregarAlunos();
+    carregarDashboard();
   } catch {
-    showToast('Erro de conexao.', 'error');
+    exibirToast('Erro de conexao.', 'error');
   }
 }
 
@@ -146,7 +146,7 @@ async function deleteStudent(id) {
 // AULAS
 // ============================================================
 
-async function loadLessons() {
+async function carregarAulas() {
   const tbody = document.getElementById('lessonsTableBody');
   tbody.innerHTML = '<tr><td colspan="5" class="loading">Carregando...</td></tr>';
   try {
@@ -159,17 +159,17 @@ async function loadLessons() {
       tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhuma aula cadastrada.</td></tr>';
       return;
     }
-    const nivelLabel = { basico: 'Basico', intermediario: 'Intermediario', avancado: 'Avancado' };
+    const rotuloNivel = { basico: 'Basico', intermediario: 'Intermediario', avancado: 'Avancado' };
     tbody.innerHTML = data.lessons.map(l => `
       <tr>
         <td>${l.id}</td>
         <td>${esc(l.titulo)}</td>
-        <td><span class="badge badge-${l.nivel}">${nivelLabel[l.nivel]}</span></td>
+        <td><span class="badge badge-${l.nivel}">${rotuloNivel[l.nivel]}</span></td>
         <td style="color:#888">${esc(l.descricao.substring(0, 80))}${l.descricao.length > 80 ? '...' : ''}</td>
         <td>
           <div class="actions">
-            <button class="btn btn-warning btn-sm" onclick="openEditLessonModal(${l.id})">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="confirmDeleteLesson(${l.id}, '${esc(l.titulo)}')">Excluir</button>
+            <button class="btn btn-warning btn-sm" onclick="abrirModalEditarAula(${l.id})">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="confirmarExclusaoAula(${l.id}, '${esc(l.titulo)}')">Excluir</button>
           </div>
         </td>
       </tr>
@@ -179,80 +179,80 @@ async function loadLessons() {
   }
 }
 
-function openCreateLessonModal() {
+function abrirModalNovaAula() {
   document.getElementById('lessonModalTitle').textContent = 'Nova Aula';
   document.getElementById('lessonId').value        = '';
   document.getElementById('lessonTitulo').value    = '';
   document.getElementById('lessonDescricao').value = '';
   document.getElementById('lessonNivel').value     = 'basico';
-  openModal('lessonModal');
+  abrirModal('lessonModal');
 }
 
-async function openEditLessonModal(id) {
+async function abrirModalEditarAula(id) {
   try {
     const { ok, data } = await apiFetch(`/lessons/get.php?id=${id}`);
-    if (!ok || !data.success) { showToast('Erro ao carregar aula.', 'error'); return; }
+    if (!ok || !data.success) { exibirToast('Erro ao carregar aula.', 'error'); return; }
     document.getElementById('lessonModalTitle').textContent = 'Editar Aula';
     document.getElementById('lessonId').value        = data.lesson.id;
     document.getElementById('lessonTitulo').value    = data.lesson.titulo;
     document.getElementById('lessonDescricao').value = data.lesson.descricao;
     document.getElementById('lessonNivel').value     = data.lesson.nivel;
-    openModal('lessonModal');
+    abrirModal('lessonModal');
   } catch {
-    showToast('Erro de conexao.', 'error');
+    exibirToast('Erro de conexao.', 'error');
   }
 }
 
-async function submitLessonForm(e) {
+async function salvarAula(e) {
   e.preventDefault();
   const id        = document.getElementById('lessonId').value;
   const titulo    = document.getElementById('lessonTitulo').value.trim();
   const descricao = document.getElementById('lessonDescricao').value.trim();
   const nivel     = document.getElementById('lessonNivel').value;
   const btn       = e.target.querySelector('[type=submit]');
-  const isEdit    = id !== '';
+  const ehEdicao  = id !== '';
 
   btn.disabled = true;
   btn.textContent = 'Salvando...';
 
-  const endpoint = isEdit ? '/lessons/update.php' : '/lessons/create.php';
-  const body     = isEdit ? { id: parseInt(id), titulo, descricao, nivel } : { titulo, descricao, nivel };
+  const endpoint = ehEdicao ? '/lessons/update.php' : '/lessons/create.php';
+  const corpo    = ehEdicao ? { id: parseInt(id), titulo, descricao, nivel } : { titulo, descricao, nivel };
 
   try {
     const { ok, data } = await apiFetch(endpoint, {
       method: 'POST',
-      body: JSON.stringify(body),
+      body: JSON.stringify(corpo),
     });
-    if (!ok || !data.success) { showToast(data.message, 'error'); return; }
-    showToast(isEdit ? 'Aula atualizada.' : 'Aula criada.', 'success');
-    closeModal('lessonModal');
-    loadLessons();
+    if (!ok || !data.success) { exibirToast(data.message, 'error'); return; }
+    exibirToast(ehEdicao ? 'Aula atualizada.' : 'Aula criada.', 'success');
+    fecharModal('lessonModal');
+    carregarAulas();
   } catch {
-    showToast('Erro de conexao.', 'error');
+    exibirToast('Erro de conexao.', 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Salvar';
   }
 }
 
-function confirmDeleteLesson(id, titulo) {
+function confirmarExclusaoAula(id, titulo) {
   document.getElementById('confirmMessage').textContent = `Excluir a aula "${titulo}"?`;
-  document.getElementById('confirmBtn').onclick = () => deleteLesson(id);
-  openModal('confirmModal');
+  document.getElementById('confirmBtn').onclick = () => excluirAula(id);
+  abrirModal('confirmModal');
 }
 
-async function deleteLesson(id) {
+async function excluirAula(id) {
   try {
     const { ok, data } = await apiFetch('/lessons/delete.php', {
       method: 'POST',
       body: JSON.stringify({ id }),
     });
-    if (!ok || !data.success) { showToast(data.message, 'error'); return; }
-    showToast('Aula excluida.', 'success');
-    closeModal('confirmModal');
-    loadLessons();
+    if (!ok || !data.success) { exibirToast(data.message, 'error'); return; }
+    exibirToast('Aula excluida.', 'success');
+    fecharModal('confirmModal');
+    carregarAulas();
   } catch {
-    showToast('Erro de conexao.', 'error');
+    exibirToast('Erro de conexao.', 'error');
   }
 }
 
@@ -260,7 +260,7 @@ async function deleteLesson(id) {
 // CURSOS
 // ============================================================
 
-async function loadCourses() {
+async function carregarCursos() {
   const tbody = document.getElementById('coursesTableBody');
   tbody.innerHTML = '<tr><td colspan="6" class="loading">Carregando...</td></tr>';
   try {
@@ -273,18 +273,18 @@ async function loadCourses() {
       tbody.innerHTML = '<tr><td colspan="6" class="empty">Nenhum curso cadastrado.</td></tr>';
       return;
     }
-    const nivelLabel = { basico: 'Basico', intermediario: 'Intermediario', avancado: 'Avancado' };
+    const rotuloNivel = { basico: 'Basico', intermediario: 'Intermediario', avancado: 'Avancado' };
     tbody.innerHTML = data.courses.map(c => `
       <tr>
         <td>${c.id}</td>
         <td>${esc(c.nome)}</td>
-        <td><span class="badge badge-${c.nivel}">${nivelLabel[c.nivel]}</span></td>
+        <td><span class="badge badge-${c.nivel}">${rotuloNivel[c.nivel]}</span></td>
         <td>${c.total_aulas}</td>
         <td>${c.total_matriculas}</td>
         <td>
           <div class="actions">
-            <button class="btn btn-warning btn-sm" onclick="openEditCourseModal(${c.id})">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="confirmDeleteCourse(${c.id}, '${esc(c.nome)}')">Excluir</button>
+            <button class="btn btn-warning btn-sm" onclick="abrirModalEditarCurso(${c.id})">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="confirmarExclusaoCurso(${c.id}, '${esc(c.nome)}')">Excluir</button>
           </div>
         </td>
       </tr>
@@ -294,33 +294,33 @@ async function loadCourses() {
   }
 }
 
-async function openCreateCourseModal() {
+async function abrirModalNovoCurso() {
   document.getElementById('courseModalTitle').textContent = 'Novo Curso';
   document.getElementById('courseId').value        = '';
   document.getElementById('courseNome').value      = '';
   document.getElementById('courseDescricao').value = '';
   document.getElementById('courseNivel').value     = 'basico';
-  await loadCourseLessonsCheckboxes([]);
-  openModal('courseModal');
+  await carregarCheckboxesAulas([]);
+  abrirModal('courseModal');
 }
 
-async function openEditCourseModal(id) {
+async function abrirModalEditarCurso(id) {
   try {
     const { ok, data } = await apiFetch(`/courses/get.php?id=${id}`);
-    if (!ok || !data.success) { showToast('Erro ao carregar curso.', 'error'); return; }
+    if (!ok || !data.success) { exibirToast('Erro ao carregar curso.', 'error'); return; }
     document.getElementById('courseModalTitle').textContent = 'Editar Curso';
     document.getElementById('courseId').value        = data.course.id;
     document.getElementById('courseNome').value      = data.course.nome;
     document.getElementById('courseDescricao').value = data.course.descricao;
     document.getElementById('courseNivel').value     = data.course.nivel;
-    await loadCourseLessonsCheckboxes(data.course.lesson_ids);
-    openModal('courseModal');
+    await carregarCheckboxesAulas(data.course.lesson_ids);
+    abrirModal('courseModal');
   } catch {
-    showToast('Erro de conexao.', 'error');
+    exibirToast('Erro de conexao.', 'error');
   }
 }
 
-async function loadCourseLessonsCheckboxes(selectedIds) {
+async function carregarCheckboxesAulas(idsSelecionados) {
   const container = document.getElementById('courseLessonsCheckboxes');
   container.innerHTML = '<span style="color:#666;font-size:12px">Carregando aulas...</span>';
   try {
@@ -329,11 +329,11 @@ async function loadCourseLessonsCheckboxes(selectedIds) {
       container.innerHTML = '<span style="color:#666;font-size:12px">Nenhuma aula cadastrada ainda.</span>';
       return;
     }
-    const nivelLabel = { basico: 'Basico', intermediario: 'Intermediario', avancado: 'Avancado' };
+    const rotuloNivel = { basico: 'Basico', intermediario: 'Intermediario', avancado: 'Avancado' };
     container.innerHTML = data.lessons.map(l => `
       <label class="checkbox-item">
-        <input type="checkbox" name="course_lesson" value="${l.id}" ${selectedIds.includes(l.id) ? 'checked' : ''}>
-        <span class="badge badge-${l.nivel}" style="margin:0 6px 0 4px">${nivelLabel[l.nivel]}</span>
+        <input type="checkbox" name="course_lesson" value="${l.id}" ${idsSelecionados.includes(l.id) ? 'checked' : ''}>
+        <span class="badge badge-${l.nivel}" style="margin:0 6px 0 4px">${rotuloNivel[l.nivel]}</span>
         ${esc(l.titulo)}
       </label>
     `).join('');
@@ -342,63 +342,63 @@ async function loadCourseLessonsCheckboxes(selectedIds) {
   }
 }
 
-async function submitCourseForm(e) {
+async function salvarCurso(e) {
   e.preventDefault();
   const id        = document.getElementById('courseId').value;
   const nome      = document.getElementById('courseNome').value.trim();
   const descricao = document.getElementById('courseDescricao').value.trim();
   const nivel     = document.getElementById('courseNivel').value;
-  const isEdit    = id !== '';
+  const ehEdicao  = id !== '';
 
-  const checked   = document.querySelectorAll('input[name="course_lesson"]:checked');
-  const lessonIds = Array.from(checked).map(cb => parseInt(cb.value));
+  const marcados = document.querySelectorAll('input[name="course_lesson"]:checked');
+  const idsAulas = Array.from(marcados).map(cb => parseInt(cb.value));
 
   const btn = e.target.querySelector('[type=submit]');
   btn.disabled = true;
   btn.textContent = 'Salvando...';
 
-  const endpoint = isEdit ? '/courses/update.php' : '/courses/create.php';
-  const body     = isEdit
-    ? { id: parseInt(id), nome, descricao, nivel, lesson_ids: lessonIds }
-    : { nome, descricao, nivel, lesson_ids: lessonIds };
+  const endpoint = ehEdicao ? '/courses/update.php' : '/courses/create.php';
+  const corpo    = ehEdicao
+    ? { id: parseInt(id), nome, descricao, nivel, lesson_ids: idsAulas }
+    : { nome, descricao, nivel, lesson_ids: idsAulas };
 
   try {
     const { ok, data } = await apiFetch(endpoint, {
       method: 'POST',
-      body: JSON.stringify(body),
+      body: JSON.stringify(corpo),
     });
-    if (!ok || !data.success) { showToast(data.message, 'error'); return; }
-    showToast(isEdit ? 'Curso atualizado.' : 'Curso criado.', 'success');
-    closeModal('courseModal');
-    loadCourses();
-    loadDashboard();
+    if (!ok || !data.success) { exibirToast(data.message, 'error'); return; }
+    exibirToast(ehEdicao ? 'Curso atualizado.' : 'Curso criado.', 'success');
+    fecharModal('courseModal');
+    carregarCursos();
+    carregarDashboard();
   } catch {
-    showToast('Erro de conexao.', 'error');
+    exibirToast('Erro de conexao.', 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Salvar';
   }
 }
 
-function confirmDeleteCourse(id, nome) {
+function confirmarExclusaoCurso(id, nome) {
   document.getElementById('confirmMessage').textContent = `Excluir o curso "${nome}"? Isso tambem remove todas as matriculas.`;
-  document.getElementById('confirmBtn').onclick = () => deleteCourse(id);
-  openModal('confirmModal');
+  document.getElementById('confirmBtn').onclick = () => excluirCurso(id);
+  abrirModal('confirmModal');
 }
 
-async function deleteCourse(id) {
+async function excluirCurso(id) {
   try {
     const { ok, data } = await apiFetch('/courses/delete.php', {
       method: 'POST',
       body: JSON.stringify({ id }),
     });
-    if (!ok || !data.success) { showToast(data.message, 'error'); return; }
-    showToast('Curso excluido.', 'success');
-    closeModal('confirmModal');
-    loadCourses();
-    loadDashboard();
+    if (!ok || !data.success) { exibirToast(data.message, 'error'); return; }
+    exibirToast('Curso excluido.', 'success');
+    fecharModal('confirmModal');
+    carregarCursos();
+    carregarDashboard();
   } catch {
-    showToast('Erro de conexao.', 'error');
+    exibirToast('Erro de conexao.', 'error');
   }
 }
 
