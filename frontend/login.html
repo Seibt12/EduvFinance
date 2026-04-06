@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - EduFinance</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="site-name">EduFinance</div>
+      <div class="site-sub">Educacao Financeira</div>
+
+      <div class="auth-title">Login</div>
+      <div class="auth-subtitle">Entre com sua conta</div>
+
+      <div id="loginAlert" class="alert"></div>
+
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label for="loginEmail">E-mail</label>
+          <input type="email" id="loginEmail" placeholder="seu@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="loginSenha">Senha</label>
+          <input type="password" id="loginSenha" placeholder="senha" required>
+        </div>
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary btn-full">Entrar</button>
+        </div>
+      </form>
+
+      <p style="text-align:center; font-size:13px; color:#888; margin-top:10px">
+        Nao tem conta? <a href="register.html">Cadastre-se</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script>initLoginPage();</script>
+</body>
+</html>
