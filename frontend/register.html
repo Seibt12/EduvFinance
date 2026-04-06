@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro - EduFinance</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="site-name">EduFinance</div>
+      <div class="site-sub">Educacao Financeira</div>
+
+      <div class="auth-title">Criar conta</div>
+      <div class="auth-subtitle">Preencha os campos abaixo</div>
+
+      <div id="registerAlert" class="alert"></div>
+
+      <form id="registerForm" novalidate>
+        <div class="form-group">
+          <label for="registerNome">Nome completo</label>
+          <input type="text" id="registerNome" placeholder="Seu nome" required>
+        </div>
+        <div class="form-group">
+          <label for="registerEmail">E-mail</label>
+          <input type="email" id="registerEmail" placeholder="seu@email.com" required>
+        </div>
+        <!-- EXEMPLO: campo "idade" adicionado como demonstração -->
+        <!-- Para remover: apague este bloco e o campo $idade no register.php -->
+        <div class="form-group">
+          <label for="registerIdade">Idade (opcional)</label>
+          <input type="number" id="registerIdade" placeholder="Sua idade" min="10" max="120">
+        </div>
+        <div class="form-group">
+          <label for="registerSenha">Senha</label>
+          <input type="password" id="registerSenha" placeholder="minimo 3 caracteres" required>
+        </div>
+        <div class="form-group">
+          <label for="registerConfirm">Confirmar senha</label>
+          <input type="password" id="registerConfirm" placeholder="repita a senha" required>
+        </div>
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary btn-full">Criar Conta</button>
+        </div>
+      </form>
+
+      <p style="text-align:center; font-size:13px; color:#888; margin-top:10px">
+        Ja tem conta? <a href="login.html">Fazer login</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script>initRegisterPage();</script>
+</body>
+</html>

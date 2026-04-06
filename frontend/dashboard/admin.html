@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - EduFinance</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <div class="app-layout">
+
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="site-name">EduFinance</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Admin</div>
+          <div class="user-role">Administrador</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-section="dashboard">Dashboard</a>
+        <a href="#" class="nav-item" data-section="students">Alunos</a>
+        <a href="#" class="nav-item" data-section="lessons">Aulas</a>
+        <a href="#" class="nav-item" data-section="courses">Cursos</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="logout()">Sair</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <!-- DASHBOARD -->
+      <section id="section-dashboard" class="content-section active">
+        <div class="section-header">
+          <div>
+            <h1>Dashboard</h1>
+            <p>Visao geral do sistema</p>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="totalStudents">-</div>
+            <div class="stat-label">Alunos cadastrados</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="totalLessons">-</div>
+            <div class="stat-label">Aulas disponíveis</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="totalCourses">-</div>
+            <div class="stat-label">Cursos criados</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="avgCompletion">-</div>
+            <div class="stat-label">Conclusao media</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ALUNOS -->
+      <section id="section-students" class="content-section">
+        <div class="section-header">
+          <div>
+            <h1>Alunos</h1>
+            <p>Gerenciar alunos cadastrados</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Lista de Alunos</div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>Cadastro</th>
+                  <th>Progresso</th>
+                  <th>Acoes</th>
+                </tr>
+              </thead>
+              <tbody id="studentsTableBody">
+                <tr><td colspan="6" class="loading">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- AULAS -->
+      <section id="section-lessons" class="content-section">
+        <div class="section-header">
+          <div>
+            <h1>Aulas</h1>
+            <p>Gerenciar aulas da plataforma</p>
+          </div>
+          <button class="btn btn-primary" onclick="openCreateLessonModal()">+ Nova Aula</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Lista de Aulas</div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Titulo</th>
+                  <th>Nivel</th>
+                  <th>Descricao</th>
+                  <th>Acoes</th>
+                </tr>
+              </thead>
+              <tbody id="lessonsTableBody">
+                <tr><td colspan="5" class="loading">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- CURSOS -->
+      <section id="section-courses" class="content-section">
+        <div class="section-header">
+          <div>
+            <h1>Cursos</h1>
+            <p>Gerenciar cursos e aulas vinculadas</p>
+          </div>
+          <button class="btn btn-primary" onclick="openCreateCourseModal()">+ Novo Curso</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Lista de Cursos</div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Nome</th>
+                  <th>Nivel</th>
+                  <th>Aulas</th>
+                  <th>Matriculas</th>
+                  <th>Acoes</th>
+                </tr>
+              </thead>
+              <tbody id="coursesTableBody">
+                <tr><td colspan="6" class="loading">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL: AULA -->
+  <div id="lessonModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('lessonModal')"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <span id="lessonModalTitle">Nova Aula</span>
+        <button class="modal-close" onclick="closeModal('lessonModal')">x</button>
+      </div>
+      <form id="lessonForm" onsubmit="submitLessonForm(event)">
+        <input type="hidden" id="lessonId">
+        <div class="form-group">
+          <label>Titulo</label>
+          <input type="text" id="lessonTitulo" required>
+        </div>
+        <div class="form-group">
+          <label>Nivel</label>
+          <select id="lessonNivel" required>
+            <option value="basico">Basico</option>
+            <option value="intermediario">Intermediario</option>
+            <option value="avancado">Avancado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Descricao</label>
+          <textarea id="lessonDescricao" rows="4" required></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('lessonModal')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ALUNO -->
+  <div id="studentModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('studentModal')"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>Editar Aluno</span>
+        <button class="modal-close" onclick="closeModal('studentModal')">x</button>
+      </div>
+      <form id="studentForm" onsubmit="submitStudentForm(event)">
+        <input type="hidden" id="studentId">
+        <div class="form-group">
+          <label>Nome</label>
+          <input type="text" id="studentNome" required>
+        </div>
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" id="studentEmail" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('studentModal')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CURSO -->
+  <div id="courseModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('courseModal')"></div>
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <span id="courseModalTitle">Novo Curso</span>
+        <button class="modal-close" onclick="closeModal('courseModal')">x</button>
+      </div>
+      <form id="courseForm" onsubmit="submitCourseForm(event)">
+        <input type="hidden" id="courseId">
+        <div class="form-group">
+          <label>Nome do Curso</label>
+          <input type="text" id="courseNome" required>
+        </div>
+        <div class="form-group">
+          <label>Nivel</label>
+          <select id="courseNivel" required>
+            <option value="basico">Basico</option>
+            <option value="intermediario">Intermediario</option>
+            <option value="avancado">Avancado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Descricao</label>
+          <textarea id="courseDescricao" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Aulas vinculadas</label>
+          <div id="courseLessonsCheckboxes" class="lessons-checkbox-list">
+            <span style="color:#666;font-size:12px">Carregando aulas...</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('courseModal')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRMAR EXCLUSÃO -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('confirmModal')"></div>
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <span>Confirmar exclusao</span>
+        <button class="modal-close" onclick="closeModal('confirmModal')">x</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmMessage">Tem certeza que deseja excluir?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Cancelar</button>
+        <button class="btn btn-danger" id="confirmBtn">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/admin.js"></script>
+</body>
+</html>
