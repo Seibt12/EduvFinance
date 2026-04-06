@@ -102,6 +102,28 @@ CREATE TABLE IF NOT EXISTS investor_profile (
 );
 
 
+-- ------------------------------------------------------------
+-- SIMULAÇÕES DE INVESTIMENTO — histórico de simulações por aluno
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS investment_simulations (
+    id                   SERIAL         PRIMARY KEY,
+    user_id              INTEGER        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    investment_type      VARCHAR(20)    NOT NULL
+                                        CHECK (investment_type IN ('savings', 'cdb', 'stocks', 'crypto')),
+    initial_capital      NUMERIC(15, 2) NOT NULL,
+    monthly_contribution NUMERIC(15, 2) NOT NULL DEFAULT 0,
+    period_months        SMALLINT       NOT NULL CHECK (period_months BETWEEN 1 AND 600),
+    monthly_rate         NUMERIC(8, 6)  NOT NULL,
+    final_amount         NUMERIC(15, 2) NOT NULL,
+    total_invested       NUMERIC(15, 2) NOT NULL,
+    total_profit         NUMERIC(15, 2) NOT NULL,
+    created_at           TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_investment_simulations_user_id
+    ON investment_simulations (user_id);
+
+
 -- ============================================================
 -- TRIGGER — atualiza updated_at automaticamente em todo UPDATE
 --

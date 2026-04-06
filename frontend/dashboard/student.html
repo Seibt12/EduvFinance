@@ -23,6 +23,7 @@
         <a href="#" class="nav-item" data-section="lessons">Aulas</a>
         <a href="#" class="nav-item" data-section="courses">Cursos</a>
         <a href="#" class="nav-item" data-section="investor">Perfil Investidor</a>
+        <a href="#" class="nav-item" data-section="simulator">Simulador</a>
         <a href="#" class="nav-item" data-section="profile">Meu Perfil</a>
       </nav>
 
@@ -152,6 +153,122 @@
         </div>
       </section>
 
+      <!-- SIMULADOR DE INVESTIMENTOS -->
+      <section id="section-simulator" class="content-section">
+        <div class="section-header">
+          <div>
+            <h1>Simulador de Investimentos</h1>
+            <p>Projete o crescimento do seu patrimônio com juros compostos</p>
+          </div>
+        </div>
+
+        <div class="simulator-layout">
+
+          <!-- ── Formulário ── -->
+          <div class="card simulator-form-card">
+            <div class="card-header">Parâmetros da Simulação</div>
+            <div class="card-body">
+              <form id="simulatorForm">
+
+                <div class="form-group" style="padding:0;margin-bottom:14px">
+                  <label>Capital Inicial (R$)</label>
+                  <input type="number" id="simCapital" min="0" step="0.01" placeholder="Ex: 1000.00">
+                </div>
+
+                <div class="form-group" style="padding:0;margin-bottom:14px">
+                  <label>Tipo de Investimento</label>
+                  <select id="simType">
+                    <option value="savings">Poupança — 0,5% a.m.</option>
+                    <option value="cdb">CDB — 0,8% a.m.</option>
+                    <option value="stocks">Ações — 1,2% a.m.</option>
+                    <option value="crypto">Criptomoeda — 2,0% a.m.</option>
+                  </select>
+                </div>
+
+                <div class="form-group" style="padding:0;margin-bottom:14px">
+                  <label>Período (meses)</label>
+                  <input type="number" id="simPeriod" min="1" max="600" placeholder="Ex: 24">
+                </div>
+
+                <div class="form-group" style="padding:0;margin-bottom:20px">
+                  <label>Aporte Mensal (R$) <span style="color:#555;font-size:11px">opcional</span></label>
+                  <input type="number" id="simContrib" min="0" step="0.01" placeholder="Ex: 200.00">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full">Simular</button>
+              </form>
+
+              <!-- Tabela de taxas de referência -->
+              <div style="margin-top:20px;padding-top:16px;border-top:1px solid #2a2a2a">
+                <div class="level-title" style="margin-bottom:8px">Taxas de referência (a.m.)</div>
+                <table class="data-table" style="font-size:12px">
+                  <thead>
+                    <tr><th>Tipo</th><th>Taxa mensal</th><th>Taxa anual aprox.</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Poupança</td><td>0,50%</td><td>6,17%</td></tr>
+                    <tr><td>CDB</td><td>0,80%</td><td>10,03%</td></tr>
+                    <tr><td>Ações</td><td>1,20%</td><td>15,39%</td></tr>
+                    <tr><td>Criptomoeda</td><td>2,00%</td><td>26,82%</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Resultados ── -->
+          <div id="simulatorResults" class="simulator-results-col" style="display:none">
+
+            <div class="stats-grid" style="margin-bottom:16px">
+              <div class="stat-card">
+                <div class="stat-value" id="simResInvested" style="font-size:18px;color:#aaa">—</div>
+                <div class="stat-label">Total Investido</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value" id="simResProfit" style="font-size:18px;color:#27ae60">—</div>
+                <div class="stat-label">Rendimento</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value" id="simResFinal" style="font-size:18px;color:#7b9cff">—</div>
+                <div class="stat-label">Valor Final</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">Evolução do Patrimônio</div>
+              <div class="card-body" style="padding:16px 12px">
+                <canvas id="simulatorChart"></canvas>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── Histórico ── -->
+        <div class="card" id="simulatorHistoryCard" style="margin-top:20px;display:none">
+          <div class="card-header">Últimas Simulações</div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Capital Inicial</th>
+                  <th>Aporte Mensal</th>
+                  <th>Período</th>
+                  <th>Valor Final</th>
+                  <th>Rendimento</th>
+                  <th>Data</th>
+                </tr>
+              </thead>
+              <tbody id="simulatorHistoryBody">
+                <tr><td colspan="7" class="loading">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
       <!-- MEU PERFIL -->
       <section id="section-profile" class="content-section">
         <div class="section-header">
@@ -192,6 +309,7 @@
 
   <div id="toast" class="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="../assets/js/config.js"></script>
   <script src="../assets/js/auth.js"></script>
   <script src="../assets/js/student.js"></script>

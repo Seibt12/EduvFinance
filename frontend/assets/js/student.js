@@ -29,6 +29,7 @@ function showSection(name) {
   if (name === 'lessons')   loadLessons();
   if (name === 'courses')   loadCourses();
   if (name === 'investor')  loadInvestorSection();
+  if (name === 'simulator') loadSimulator();
   if (name === 'profile')   loadProfile();
 }
 
@@ -634,4 +635,223 @@ function esc(str) {
   return String(str)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ============================================================
+// SIMULADOR DE INVESTIMENTOS
+// ============================================================
+
+const SIMULATOR_TYPE_LABELS = {
+  savings: 'Poupança',
+  cdb:     'CDB',
+  stocks:  'Ações',
+  crypto:  'Criptomoeda',
+};
+
+let _simulatorChart    = null;  // Chart.js instance — destroyed/rebuilt each simulation
+let _simulatorReady    = false; // flag so initSimulatorForm runs only once
+
+function loadSimulator() {
+  initSimulatorForm();
+  loadSimulatorHistory();
+}
+
+// Attach submit handler once
+function initSimulatorForm() {
+  if (_simulatorReady) return;
+  const form = document.getElementById('simulatorForm');
+  if (!form) return;
+  form.addEventListener('submit', runSimulation);
+  _simulatorReady = true;
+}
+
+async function runSimulation(e) {
+  e.preventDefault();
+
+  const capital = parseFloat(document.getElementById('simCapital').value) || 0;
+  const type    = document.getElementById('simType').value;
+  const period  = parseInt(document.getElementById('simPeriod').value, 10) || 0;
+  const contrib = parseFloat(document.getElementById('simContrib').value) || 0;
+
+  // Client-side validation (mirrors server-side)
+  if (capital < 0 || contrib < 0) {
+    showToast('Valores não podem ser negativos.', 'error');
+    return;
+  }
+  if (capital === 0 && contrib === 0) {
+    showToast('Informe um capital inicial ou aporte mensal.', 'error');
+    return;
+  }
+  if (!period || period < 1 || period > 600) {
+    showToast('Período inválido (1–600 meses).', 'error');
+    return;
+  }
+
+  const btn = e.target.querySelector('[type=submit]');
+  btn.disabled    = true;
+  btn.textContent = 'Calculando...';
+
+  try {
+    const { ok, data } = await apiFetch('/simulator/calculate.php', {
+      method: 'POST',
+      body: JSON.stringify({
+        initial_capital:      capital,
+        investment_type:      type,
+        period_months:        period,
+        monthly_contribution: contrib,
+      }),
+    });
+
+    if (!ok || !data.success) {
+      showToast(data.message || 'Erro ao simular.', 'error');
+      return;
+    }
+
+    renderSimulatorResults(data, period);
+    loadSimulatorHistory();
+  } catch {
+    showToast('Erro de conexão.', 'error');
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Simular';
+  }
+}
+
+function renderSimulatorResults(data, period) {
+  document.getElementById('simulatorResults').style.display = 'block';
+
+  document.getElementById('simResInvested').textContent = formatCurrency(data.totalInvested);
+  document.getElementById('simResProfit').textContent   = formatCurrency(data.totalProfit);
+  document.getElementById('simResFinal').textContent    = formatCurrency(data.finalAmount);
+
+  renderSimulatorChart(data.evolution, data.investedEvol, period);
+}
+
+function renderSimulatorChart(evolution, investedEvol, period) {
+  const canvas = document.getElementById('simulatorChart');
+  if (!canvas) return;
+
+  // Build X-axis labels — show "Mês N" but limit density for long periods
+  const labels = Array.from({ length: period }, (_, i) => `Mês ${i + 1}`);
+
+  if (_simulatorChart) {
+    _simulatorChart.destroy();
+    _simulatorChart = null;
+  }
+
+  _simulatorChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Patrimônio Total',
+          data: evolution,
+          borderColor: '#4a6cf7',
+          backgroundColor: 'rgba(74, 108, 247, 0.12)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: period <= 60 ? 3 : 0,
+          pointHoverRadius: 5,
+          borderWidth: 2,
+        },
+        {
+          label: 'Total Investido',
+          data: investedEvol,
+          borderColor: '#27ae60',
+          backgroundColor: 'rgba(39, 174, 96, 0.05)',
+          fill: true,
+          tension: 0,
+          borderDash: [5, 5],
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          borderWidth: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: { color: '#aaa', font: { size: 12 }, boxWidth: 20 },
+        },
+        tooltip: {
+          backgroundColor: '#1c1c1c',
+          borderColor: '#333',
+          borderWidth: 1,
+          titleColor: '#e0e0e0',
+          bodyColor: '#aaa',
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${formatCurrency(ctx.parsed.y)}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#555',
+            maxTicksLimit: 12,
+            font: { size: 11 },
+          },
+          grid: { color: '#1e1e1e' },
+        },
+        y: {
+          ticks: {
+            color: '#555',
+            font: { size: 11 },
+            callback: val => formatCurrencyShort(val),
+          },
+          grid: { color: '#1e1e1e' },
+        },
+      },
+    },
+  });
+}
+
+async function loadSimulatorHistory() {
+  const card  = document.getElementById('simulatorHistoryCard');
+  const tbody = document.getElementById('simulatorHistoryBody');
+  if (!card || !tbody) return;
+
+  try {
+    const { ok, data } = await apiFetch('/simulator/history.php');
+
+    if (!ok || !data.success || !data.simulations.length) {
+      card.style.display = 'none';
+      return;
+    }
+
+    card.style.display = 'block';
+    tbody.innerHTML = data.simulations.map(s => `
+      <tr>
+        <td>${esc(SIMULATOR_TYPE_LABELS[s.investment_type] || s.investment_type)}</td>
+        <td>${formatCurrency(s.initial_capital)}</td>
+        <td>${formatCurrency(s.monthly_contribution)}</td>
+        <td>${s.period_months} meses</td>
+        <td style="color:#7b9cff">${formatCurrency(s.final_amount)}</td>
+        <td style="color:#27ae60">+${formatCurrency(s.total_profit)}</td>
+        <td style="color:#666">${formatDate(s.created_at)}</td>
+      </tr>
+    `).join('');
+  } catch {
+    card.style.display = 'none';
+  }
+}
+
+// ------ Currency helpers ------
+
+function formatCurrency(value) {
+  return Number(value).toLocaleString('pt-BR', {
+    style:    'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+  });
+}
+
+function formatCurrencyShort(value) {
+  if (value >= 1_000_000) return 'R$ ' + (value / 1_000_000).toFixed(1) + 'M';
+  if (value >= 1_000)     return 'R$ ' + (value / 1_000).toFixed(1) + 'k';
+  return 'R$ ' + Number(value).toFixed(0);
 }

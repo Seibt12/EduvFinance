@@ -867,6 +867,40 @@ form .form-group:first-of-type {
 }
 
 /* ============================================================
+   SIMULADOR DE INVESTIMENTOS
+   ============================================================ */
+
+/*
+ * Two-column layout: form on the left, results on the right.
+ * On small screens it stacks vertically (see responsive block).
+ */
+.simulator-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.simulator-form-card {
+  position: sticky;
+  top: 24px;   /* stays visible while scrolling results */
+}
+
+.simulator-results-col {
+  min-width: 0; /* prevents grid blowout with wide canvas */
+}
+
+/* Animated highlight when results first appear */
+@keyframes simFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+#simulatorResults {
+  animation: simFadeIn 0.3s ease;
+}
+
+/* ============================================================
    RESPONSIVO
    ============================================================ */
 
@@ -883,5 +917,11 @@ form .form-group:first-of-type {
   }
   .lessons-grid, .courses-grid, .recommendations-grid {
     grid-template-columns: 1fr;
+  }
+  .simulator-layout {
+    grid-template-columns: 1fr;
+  }
+  .simulator-form-card {
+    position: static;
   }
 }
