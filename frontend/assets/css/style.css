@@ -870,6 +870,138 @@ form .form-group:first-of-type {
    SIMULADOR DE INVESTIMENTOS
    ============================================================ */
 
+/* ── Profile recommendation banner ──────────────────────── */
+
+.sim-profile-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-left: 3px solid #4a6cf7;
+  background: #181818;
+  border-top: 1px solid #2a2a2a;
+  border-right: 1px solid #2a2a2a;
+  border-bottom: 1px solid #2a2a2a;
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+
+/* No-profile variant — softer, neutral styling */
+.sim-profile-banner--empty {
+  border-left-color: #444;
+  color: #888;
+}
+
+.sim-profile-banner--empty .sim-profile-banner__msg {
+  flex: 1;
+}
+
+/* Active-profile variant — left border colour set via inline style (JS) */
+.sim-profile-banner__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.sim-profile-banner__profile {
+  font-size: 13px;
+  color: #ccc;
+}
+
+.sim-profile-banner__rec {
+  font-size: 13px;
+  color: #e0e0e0;
+}
+
+.sim-profile-banner__hint {
+  font-size: 11px;
+  color: #555;
+  margin-top: 2px;
+}
+
+.sim-profile-banner__cta {
+  flex-shrink: 0;
+}
+
+/* ── Investment type cards (replaces <select>) ───────────── */
+
+.sim-type-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+  /* Prevents layout jump in the brief window before JS renders cards */
+  min-height: 76px;
+}
+
+.sim-type-card {
+  position: relative;
+  background: #151515;
+  border: 1px solid #2a2a2a;
+  color: #aaa;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: border-color 0.15s, background 0.15s;
+  width: 100%;
+}
+
+.sim-type-card:hover {
+  border-color: #555;
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+/* Active / selected card */
+.sim-type-card--active {
+  border-color: #4a6cf7;
+  background: #1a2040;
+  color: #fff;
+}
+
+/* Recommended card — subtle accent border at top */
+.sim-type-card--rec {
+  border-color: #2a3a2a;
+}
+
+.sim-type-card--rec.sim-type-card--active {
+  border-color: #4a6cf7;
+}
+
+.sim-type-card__label {
+  font-size: 13px;
+  font-weight: bold;
+  color: inherit;
+}
+
+.sim-type-card__rate {
+  font-size: 11px;
+  color: #666;
+}
+
+.sim-type-card--active .sim-type-card__rate {
+  color: #7b9cff;
+}
+
+/* "Recomendado" badge inside the card */
+.sim-type-card__badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 6px;
+  font-size: 10px;
+  background: #1b2e1b;
+  color: #6fcf6f;
+  border-radius: 2px;
+  border: 1px solid #2a4a2a;
+  width: fit-content;
+}
+
 /*
  * Two-column layout: form on the left, results on the right.
  * On small screens it stacks vertically (see responsive block).
@@ -923,5 +1055,12 @@ form .form-group:first-of-type {
   }
   .simulator-form-card {
     position: static;
+  }
+  .sim-type-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sim-profile-banner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

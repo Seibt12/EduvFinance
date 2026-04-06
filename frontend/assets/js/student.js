@@ -638,22 +638,247 @@ function esc(str) {
 }
 
 // ============================================================
-// SIMULADOR DE INVESTIMENTOS
+// SIMULADOR DE INVESTIMENTOS — com integração ao Perfil Investidor
 // ============================================================
 
-const SIMULATOR_TYPE_LABELS = {
-  savings: 'Poupança',
-  cdb:     'CDB',
-  stocks:  'Ações',
-  crypto:  'Criptomoeda',
+// ------------------------------------------------------------------
+// Data tables — single source of truth for labels, rates, and
+// profile→investment recommendations.
+// ------------------------------------------------------------------
+
+const INVESTMENT_TYPES_META = [
+  { id: 'savings', label: 'Poupança',    rate: '0,5% a.m.' },
+  { id: 'cdb',     label: 'CDB',         rate: '0,8% a.m.' },
+  { id: 'stocks',  label: 'Ações',       rate: '1,2% a.m.' },
+  { id: 'crypto',  label: 'Criptomoeda', rate: '2,0% a.m.' },
+];
+
+// Maps each investor profile to its recommended investment types.
+// Extend this object whenever new profiles or types are added.
+const PROFILE_INVESTMENT_MAP = {
+  conservador: ['savings', 'cdb'],
+  moderado:    ['cdb', 'stocks'],
+  agressivo:   ['stocks', 'crypto'],
 };
 
-let _simulatorChart    = null;  // Chart.js instance — destroyed/rebuilt each simulation
-let _simulatorReady    = false; // flag so initSimulatorForm runs only once
+// Display metadata for each profile (label + accent colour)
+const PROFILE_META = {
+  conservador: { label: 'Conservador', color: '#6fcf6f' },
+  moderado:    { label: 'Moderado',    color: '#e0b84a' },
+  agressivo:   { label: 'Agressivo',   color: '#e06f6f' },
+};
 
-function loadSimulator() {
+// FIX #3 — pre-built set for O(1) type validation in runSimulation()
+const VALID_INVESTMENT_IDS = new Set(INVESTMENT_TYPES_META.map(t => t.id));
+
+// Kept for backward compatibility (history table labels)
+const SIMULATOR_TYPE_LABELS = Object.fromEntries(
+  INVESTMENT_TYPES_META.map(t => [t.id, t.label])
+);
+
+let _simulatorChart       = null;  // Chart.js instance — destroyed/rebuilt each simulation
+let _simulatorReady       = false; // ensures initSimulatorForm runs only once
+let _simulatorProfile     = null;  // FIX #5 — cached profile, avoids needless re-renders
+let _simUserHasSelected   = false; // FIX #2 — true once the user explicitly picks a card
+
+// ------------------------------------------------------------------
+// Entry point — called by showSection('simulator')
+// ------------------------------------------------------------------
+async function loadSimulator() {
   initSimulatorForm();
+
+  // FIX #1 — render cards immediately so the form is never blank.
+  // Use the cached profile from the last visit (or no recommendations on
+  // first load). Either way the user can start filling the form at once.
+  const cachedRec = _simulatorProfile
+    ? (PROFILE_INVESTMENT_MAP[_simulatorProfile.perfil] ?? [])
+    : [];
+  renderSimTypeCards(cachedRec);
+
+  // Fetch fresh investor profile in the background
+  let profile = null;
+  try {
+    const { ok, data } = await apiFetch('/investor/get.php');
+    if (ok && data.success) profile = data.profile ?? null;
+  } catch { /* network failure — profile stays null, UI stays functional */ }
+
+  // FIX #5 — only re-apply when the profile actually changed.
+  // This prevents unnecessary card rebuilds (which would reset the user's
+  // card selection) on every re-visit to the simulator section.
+  const newPerfil = profile?.perfil ?? null;
+  const oldPerfil = _simulatorProfile?.perfil ?? null;
+
+  _simulatorProfile = profile;
+
+  if (newPerfil !== oldPerfil) {
+    // Profile changed (or first load with a real profile): full personalisation
+    applyProfileToSimulator(profile);
+  } else {
+    // Profile unchanged: only refresh the banner text (cheap, no card rebuild)
+    const recommended = PROFILE_INVESTMENT_MAP[newPerfil] ?? [];
+    renderSimProfileBanner(newPerfil, recommended);
+  }
+
   loadSimulatorHistory();
+}
+
+// ------------------------------------------------------------------
+// Profile integration — banner + investment type card order/labels
+// ------------------------------------------------------------------
+
+/**
+ * Orchestrates all personalisation based on the fetched profile.
+ * @param {Object|null} profile — profile object from investor/get.php
+ */
+function applyProfileToSimulator(profile) {
+  const perfil      = profile?.perfil ?? null;
+  const recommended = PROFILE_INVESTMENT_MAP[perfil] ?? [];
+
+  renderSimProfileBanner(perfil, recommended);
+  renderSimTypeCards(recommended);
+}
+
+/**
+ * Renders the recommendation banner.
+ * - No profile  → CTA to complete the quiz
+ * - Has profile → show profile name + recommended types
+ *
+ * Uses only DOM property assignments for colour values (no raw style
+ * strings injected into innerHTML) to avoid future XSS surface.
+ */
+function renderSimProfileBanner(perfil, recommended) {
+  const banner = document.getElementById('simProfileBanner');
+  if (!banner) return;
+
+  banner.style.display = '';
+
+  if (!perfil) {
+    banner.className = 'sim-profile-banner sim-profile-banner--empty';
+    banner.style.borderLeftColor = '';
+    banner.innerHTML = `
+      <span class="sim-profile-banner__msg">
+        Você ainda não definiu seu Perfil de Investidor.
+        Complete o quiz para receber recomendações personalizadas.
+      </span>
+      <button class="btn btn-secondary btn-sm"
+              onclick="showSection('investor')">
+        Fazer quiz agora
+      </button>
+    `;
+    return;
+  }
+
+  // FIX #6 — accent colour applied via DOM property, not innerHTML injection
+  const meta = PROFILE_META[perfil] ?? { label: perfil, color: '#7b9cff' };
+
+  // FIX #4 — build "CDB e Ações" without relying on Array→string coercion
+  const recNames = recommended
+    .map(id => INVESTMENT_TYPES_META.find(t => t.id === id)?.label ?? id)
+    .map(name => `<strong>${esc(name)}</strong>`);
+
+  let recText;
+  if (recNames.length === 0) {
+    recText = 'nenhum definido';
+  } else if (recNames.length === 1) {
+    recText = recNames[0];
+  } else {
+    recText = recNames.slice(0, -1).join(', ') + ' e ' + recNames[recNames.length - 1];
+  }
+
+  banner.className = 'sim-profile-banner sim-profile-banner--active';
+  banner.style.borderLeftColor = meta.color;
+
+  // Profile label element gets its colour via DOM — not via a raw style string
+  banner.innerHTML = `
+    <div class="sim-profile-banner__body">
+      <span class="sim-profile-banner__profile">
+        Seu perfil:&nbsp;<strong id="simBannerProfileLabel">${esc(meta.label)}</strong>
+      </span>
+      <span class="sim-profile-banner__rec">
+        Recomendamos para você: ${recText}
+      </span>
+      <span class="sim-profile-banner__hint">
+        Os investimentos recomendados aparecem destacados abaixo.
+        Fique à vontade para simular qualquer opção.
+      </span>
+    </div>
+    <button class="btn btn-secondary btn-sm sim-profile-banner__cta"
+            onclick="showSection('investor')">
+      Rever perfil
+    </button>
+  `;
+
+  // Apply colour via DOM property after innerHTML is set (safe, no injection risk)
+  const labelEl = document.getElementById('simBannerProfileLabel');
+  if (labelEl) labelEl.style.color = meta.color;
+}
+
+/**
+ * Builds the investment type card grid.
+ * Recommended types appear first with a badge; all types remain available.
+ *
+ * FIX #2 — preserves the user's current card selection across re-renders:
+ *   • If the user explicitly clicked a card (_simUserHasSelected = true)
+ *     that type stays active even after a profile-driven re-render.
+ *   • If the user has not yet interacted, defaults to the first recommended
+ *     type (or first overall when there are no recommendations).
+ *
+ * @param {string[]} recommended — type IDs for this profile (may be empty)
+ */
+function renderSimTypeCards(recommended) {
+  const container   = document.getElementById('simTypeCards');
+  const hiddenInput = document.getElementById('simType');
+  if (!container || !hiddenInput) return;
+
+  // Recommended types first, then the rest — stable relative order in each group
+  const ordered = [
+    ...INVESTMENT_TYPES_META.filter(t =>  recommended.includes(t.id)),
+    ...INVESTMENT_TYPES_META.filter(t => !recommended.includes(t.id)),
+  ];
+
+  // Determine which card should be active:
+  //   1. User's explicit pick (if still valid)  ← highest priority
+  //   2. First recommended type                 ← profile personalisation
+  //   3. First type overall                     ← safe fallback
+  const prevId  = hiddenInput.value;
+  const activeId = (_simUserHasSelected && VALID_INVESTMENT_IDS.has(prevId))
+    ? prevId
+    : (ordered[0]?.id ?? 'savings');
+
+  hiddenInput.value = activeId;
+
+  container.innerHTML = ordered.map(t => {
+    const isRec    = recommended.includes(t.id);
+    const isActive = t.id === activeId;
+    return `
+      <button type="button"
+              class="sim-type-card${isRec ? ' sim-type-card--rec' : ''}${isActive ? ' sim-type-card--active' : ''}"
+              data-type="${t.id}"
+              title="${isRec ? 'Recomendado para o seu perfil' : ''}"
+              onclick="selectSimType(this, '${t.id}')">
+        <span class="sim-type-card__label">${esc(t.label)}</span>
+        <span class="sim-type-card__rate">${esc(t.rate)}</span>
+        ${isRec ? '<span class="sim-type-card__badge">Recomendado</span>' : ''}
+      </button>
+    `;
+  }).join('');
+}
+
+/**
+ * Handles a card click: flags that the user has made an explicit choice,
+ * updates the hidden input, and marks the clicked card as active.
+ * Called inline from each card's onclick attribute.
+ */
+function selectSimType(btn, typeId) {
+  // FIX #2 — record explicit user intent so re-renders preserve this choice
+  _simUserHasSelected = true;
+
+  const hiddenInput = document.getElementById('simType');
+  if (hiddenInput) hiddenInput.value = typeId;
+
+  document.querySelectorAll('.sim-type-card')
+    .forEach(c => c.classList.remove('sim-type-card--active'));
+  btn.classList.add('sim-type-card--active');
 }
 
 // Attach submit handler once
@@ -674,6 +899,11 @@ async function runSimulation(e) {
   const contrib = parseFloat(document.getElementById('simContrib').value) || 0;
 
   // Client-side validation (mirrors server-side)
+  // FIX #3 — guard against an empty or tampered hidden input value
+  if (!VALID_INVESTMENT_IDS.has(type)) {
+    showToast('Selecione um tipo de investimento.', 'error');
+    return;
+  }
   if (capital < 0 || contrib < 0) {
     showToast('Valores não podem ser negativos.', 'error');
     return;
