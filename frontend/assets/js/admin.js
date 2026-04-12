@@ -403,6 +403,26 @@ async function excluirCurso(id) {
 }
 
 // ============================================================
+// TESTE DE AUDITORIA - VALIDAÇÃO DE E-MAIL
+// ============================================================
+
+// ANOTAÇÃO: Aqui adicionamos a função validarEmail conforme solicitado no teste de auditoria.
+// Esta função valida a presença do "@" no e-mail sem usar regex, loga no console e exibe erro se necessário.
+// function validarEmail() {
+ // const email = document.getElementById('testEmail').value;
+ // const erroParagrafo = document.getElementById('erro');
+  
+  // ANOTAÇÃO: Validação sem regex - verificamos se o email contém "@" usando includes()
+ // if (email.includes('@')) {
+  //  console.log('E-mail válido: contém "@"');
+   // erroParagrafo.textContent = ''; // Limpa mensagem de erro
+ // } else {
+  //  console.log('E-mail inválido: não contém "@"');
+  //  erroParagrafo.textContent = 'Erro na validação do E-Mail';
+ // }
+//}
+
+// ============================================================
 // UTILITÁRIOS
 // ============================================================
 
