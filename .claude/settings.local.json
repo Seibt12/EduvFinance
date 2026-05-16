@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\git_faculdade\\\\EduvFinance\" -Recurse -Exclude node_modules,.git)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(Get-ChildItem -Recurse \"c:\\\\git_faculdade\\\\EduvFinance\\\\frontend\", \"c:\\\\git_faculdade\\\\EduvFinance\\\\backend\", \"c:\\\\git_faculdade\\\\EduvFinance\\\\features\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object FullName)",
+      "Bash(git checkout *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\git_faculdade\\\\EduvFinance\" -Recurse -File)",
+      "Bash(Sort-Object FullName)",
+      "Bash(Remove-Item \"c:\\\\git_faculdade\\\\EduvFinance\\\\home\\\\index.php\", \"c:\\\\git_faculdade\\\\EduvFinance\\\\home\\\\admin_alunos.php\", \"c:\\\\git_faculdade\\\\EduvFinance\\\\home\\\\admin_aulas.php\", \"c:\\\\git_faculdade\\\\EduvFinance\\\\home\\\\admin_cursos.php\", \"c:\\\\git_faculdade\\\\EduvFinance\\\\home\\\\student.php\", \"c:\\\\git_faculdade\\\\EduvFinance\\\\home\\\\aluno_cursos.php\", \"c:\\\\git_faculdade\\\\EduvFinance\\\\home\\\\aluno_simulador.php\", \"c:\\\\git_faculdade\\\\EduvFinance\\\\login\\\\index.php\", \"c:\\\\git_faculdade\\\\EduvFinance\\\\login\\\\cadastro.php\" -Force)"
+    ]
+  }
+}

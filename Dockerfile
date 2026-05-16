@@ -10,8 +10,8 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Habilita mod_rewrite (necessário para .htaccess)
-RUN a2enmod rewrite
+# Habilita mod_rewrite (necessário para .htaccess) e headers (Cache-Control)
+RUN a2enmod rewrite headers
 
 # Copia a configuração customizada do Apache
 COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf

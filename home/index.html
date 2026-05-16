@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Admin — EduvFinance</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><h2>EduvFinance</h2></div>
+    <ul class="sidebar-menu">
+      <li class="active"><a href="index.html">Dashboard</a></li>
+      <li><a href="admin_alunos.html">Alunos</a></li>
+      <li><a href="admin_aulas.html">Aulas</a></li>
+      <li><a href="admin_cursos.html">Cursos</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <span id="userName"></span>
+      <button onclick="logout()" class="btn btn-sm">Sair</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+    </div>
+
+    <div id="alertArea"></div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="statAlunos">—</div>
+        <div class="stat-label">Alunos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statAulas">—</div>
+        <div class="stat-label">Aulas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statCursos">—</div>
+        <div class="stat-label">Cursos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statMedia">—</div>
+        <div class="stat-label">Conclusão Média</div>
+      </div>
+    </div>
+
+    <div class="card" id="cardProgresso" style="display:none">
+      <div class="card-header"><h2>Progresso dos Alunos</h2></div>
+      <div class="card-body">
+        <table class="table">
+          <thead>
+            <tr><th>Aluno</th><th>Aulas concluídas</th><th>Progresso</th></tr>
+          </thead>
+          <tbody id="progressoBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+verificarSessao('admin', usuario => {
+  document.getElementById('userName').textContent = usuario.nome;
+
+  const params  = new URLSearchParams(window.location.search);
+  const sucesso = params.get('sucesso');
+  const erro    = params.get('erro');
+  if (sucesso) exibirToast(sucesso, 'success');
+  if (erro)    exibirToast(erro, 'error');
+
+  carregarDashboard().then(() => {
+    const card = document.getElementById('cardProgresso');
+    if (card && document.getElementById('progressoBody').children.length > 0) {
+      card.style.display = 'block';
+    }
+  });
+});
+</script>
+</body>
+</html>

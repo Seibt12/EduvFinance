@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>EduvFinance</title></head>
+<body>
+<script>
+(async () => {
+  try {
+    const resp = await fetch('php/sessao_check.php', { credentials: 'include' });
+    const data = await resp.json();
+    if (data.autenticado) {
+      window.location.replace(data.tipo === 'admin' ? 'home/index.html' : 'home/student.html');
+    } else {
+      window.location.replace('login/index.html');
+    }
+  } catch {
+    window.location.replace('login/index.html');
+  }
+})();
+</script>
+</body>
+</html>

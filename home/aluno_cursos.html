@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cursos — EduvFinance</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><h2>EduvFinance</h2></div>
+    <ul class="sidebar-menu">
+      <li><a href="student.html">Dashboard</a></li>
+      <li class="active"><a href="aluno_cursos.html">Cursos</a></li>
+      <li><a href="aluno_simulador.html">Simulador</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <span id="userName"></span>
+      <button onclick="logout()" class="btn btn-sm">Sair</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="page-header">
+      <h1>Cursos</h1>
+    </div>
+
+    <!-- Vista de aulas do curso selecionado -->
+    <div id="viewAulas" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <h2 id="cursoTitulo"></h2>
+          <a href="aluno_cursos.html" class="btn btn-sm">← Voltar</a>
+        </div>
+        <div class="card-body">
+          <p id="cursoDescricao"></p>
+          <br>
+          <table class="table">
+            <thead>
+              <tr><th>Aula</th><th>Nível</th><th>Status</th><th>Ação</th></tr>
+            </thead>
+            <tbody id="aulasBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de cursos -->
+    <div id="viewCursos">
+      <div class="card">
+        <div class="card-body">
+          <div class="course-grid" id="cursosGrid">
+            <p class="empty-state">Carregando...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/aluno.js"></script>
+<script>
+verificarSessao('aluno', usuario => {
+  document.getElementById('userName').textContent = usuario.nome;
+
+  const params  = new URLSearchParams(window.location.search);
+  const sucesso = params.get('sucesso');
+  const erro    = params.get('erro');
+  const cursoId = params.get('curso');
+
+  if (sucesso) exibirToast(sucesso, 'success');
+  if (erro)    exibirToast(erro, 'error');
+
+  if (cursoId) {
+    document.getElementById('viewCursos').style.display = 'none';
+    document.getElementById('viewAulas').style.display  = 'block';
+    carregarAulasDoCurso(parseInt(cursoId));
+  } else {
+    carregarCursos();
+  }
+});
+</script>
+</body>
+</html>

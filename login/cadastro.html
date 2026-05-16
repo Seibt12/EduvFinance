@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastro — EduvFinance</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="auth-container">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <h1>EduvFinance</h1>
+      <p>Criar nova conta</p>
+    </div>
+
+    <div id="cadastroErro"   class="alert alert-error"   style="display:none"></div>
+    <div id="cadastroSucesso" class="alert alert-success" style="display:none"></div>
+
+    <form method="POST" action="../php/cadastro.php">
+      <div class="form-group">
+        <label for="nome">Nome completo</label>
+        <input type="text" id="nome" name="nome" required placeholder="Seu nome">
+      </div>
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" required placeholder="seu@email.com">
+      </div>
+      <div class="form-group">
+        <label for="idade">Idade (opcional)</label>
+        <input type="number" id="idade" name="idade" min="10" max="120" placeholder="Ex: 25">
+      </div>
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" name="senha" required placeholder="Mínimo 3 caracteres">
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Criar conta</button>
+    </form>
+
+    <p class="auth-link">Já tem conta? <a href="index.html">Fazer login</a></p>
+  </div>
+</div>
+<script>
+const params = new URLSearchParams(window.location.search);
+const erro   = params.get('erro');
+const sucesso = params.get('sucesso');
+if (erro)   { const el = document.getElementById('cadastroErro');   el.textContent = erro;   el.style.display = 'block'; }
+if (sucesso) { const el = document.getElementById('cadastroSucesso'); el.textContent = sucesso; el.style.display = 'block'; }
+</script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerenciar Alunos — EduvFinance</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><h2>EduvFinance</h2></div>
+    <ul class="sidebar-menu">
+      <li><a href="index.html">Dashboard</a></li>
+      <li class="active"><a href="admin_alunos.html">Alunos</a></li>
+      <li><a href="admin_aulas.html">Aulas</a></li>
+      <li><a href="admin_cursos.html">Cursos</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <span id="userName"></span>
+      <button onclick="logout()" class="btn btn-sm">Sair</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="page-header">
+      <h1>Gerenciar Alunos</h1>
+    </div>
+
+    <!-- Formulário de edição (oculto até clicar em Editar) -->
+    <div class="card" id="formEdicaoAluno" style="display:none">
+      <div class="card-header"><h2>Editar Aluno</h2></div>
+      <div class="card-body">
+        <form method="POST" action="../php/users_atualizar.php">
+          <input type="hidden" name="id" id="editAlunoId">
+          <div class="form-group">
+            <label>Nome</label>
+            <input type="text" name="nome" id="editAlunoNome" required>
+          </div>
+          <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" name="email" id="editAlunoEmail" required>
+          </div>
+          <div class="form-group">
+            <label>Nova senha (deixe em branco para manter)</label>
+            <input type="password" name="senha" id="editAlunoSenha" placeholder="••••••••">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <button type="button" class="btn" onclick="cancelarEdicaoAluno()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Lista de Alunos (<span id="contadorAlunos">0</span>)</h2>
+      </div>
+      <div class="card-body">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nome</th><th>E-mail</th><th>Progresso</th><th>Cadastrado em</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="alunosBody">
+            <tr><td colspan="5" class="empty-state">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+verificarSessao('admin', usuario => {
+  document.getElementById('userName').textContent = usuario.nome;
+
+  const params  = new URLSearchParams(window.location.search);
+  const sucesso = params.get('sucesso');
+  const erro    = params.get('erro');
+  if (sucesso) exibirToast(sucesso, 'success');
+  if (erro)    exibirToast(erro, 'error');
+
+  carregarAlunos();
+});
+</script>
+</body>
+</html>

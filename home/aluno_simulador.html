@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador — EduvFinance</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><h2>EduvFinance</h2></div>
+    <ul class="sidebar-menu">
+      <li><a href="student.html">Dashboard</a></li>
+      <li><a href="aluno_cursos.html">Cursos</a></li>
+      <li class="active"><a href="aluno_simulador.html">Simulador</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <span id="userName"></span>
+      <button onclick="logout()" class="btn btn-sm">Sair</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="page-header">
+      <h1>Simulador de Investimentos</h1>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>Calcular simulação</h2></div>
+      <div class="card-body">
+        <form id="formSimulador">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Capital inicial (R$)</label>
+              <input type="number" id="initial_capital" name="initial_capital" min="0" step="0.01" value="1000">
+            </div>
+            <div class="form-group">
+              <label>Aporte mensal (R$)</label>
+              <input type="number" id="monthly_contribution" name="monthly_contribution" min="0" step="0.01" value="100">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Período (meses)</label>
+              <input type="number" id="period_months" name="period_months" min="1" max="600" value="12">
+            </div>
+            <div class="form-group">
+              <label>Tipo de investimento</label>
+              <select id="investment_type" name="investment_type">
+                <option value="savings">Poupança (0,5%/mês)</option>
+                <option value="cdb">CDB (0,8%/mês)</option>
+                <option value="stocks">Ações (1,2%/mês)</option>
+                <option value="crypto">Cripto (2,0%/mês)</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Simular</button>
+        </form>
+
+        <div id="resultado" style="display:none; margin-top:20px">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="res-investido"></div>
+              <div class="stat-label">Total investido</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="res-rendimento"></div>
+              <div class="stat-label">Rendimento</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="res-final"></div>
+              <div class="stat-label">Valor final</div>
+            </div>
+          </div>
+          <canvas id="graficoSimulador" height="100"></canvas>
+        </div>
+        <div id="erro-simulador" class="alert alert-error" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Histórico -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Histórico de simulações</h2>
+        <button class="btn btn-sm btn-secondary" onclick="carregarHistorico()">Atualizar</button>
+      </div>
+      <div class="card-body" id="historico-container">
+        <p class="empty-state">Carregando...</p>
+      </div>
+    </div>
+
+    <!-- Perfil de investidor -->
+    <div class="card" id="perfil">
+      <div class="card-header"><h2>Perfil de Investidor</h2></div>
+      <div class="card-body">
+        <div id="perfilAtual" style="display:none"></div>
+
+        <form method="POST" action="../php/investor_salvar.php">
+          <div class="quiz-question">
+            <p><strong>1. Como você reage a perdas financeiras?</strong></p>
+            <label><input type="radio" name="q1" value="a" required> Fico muito preocupado e prefiro evitar qualquer risco</label>
+            <label><input type="radio" name="q1" value="b"> Aceito pequenas perdas, mas prefiro segurança</label>
+            <label><input type="radio" name="q1" value="c"> Encaro como parte do processo de investir</label>
+          </div>
+          <div class="quiz-question">
+            <p><strong>2. Qual é seu objetivo principal ao investir?</strong></p>
+            <label><input type="radio" name="q2" value="a" required> Preservar meu dinheiro</label>
+            <label><input type="radio" name="q2" value="b"> Crescimento moderado com segurança</label>
+            <label><input type="radio" name="q2" value="c"> Maximizar o retorno, mesmo com risco alto</label>
+          </div>
+          <div class="quiz-question">
+            <p><strong>3. Por quanto tempo você pretende deixar o dinheiro investido?</strong></p>
+            <label><input type="radio" name="q3" value="a" required> Menos de 1 ano</label>
+            <label><input type="radio" name="q3" value="b"> 1 a 5 anos</label>
+            <label><input type="radio" name="q3" value="c"> Mais de 5 anos</label>
+          </div>
+          <div class="quiz-question">
+            <p><strong>4. O que você faria se seu investimento caísse 20%?</strong></p>
+            <label><input type="radio" name="q4" value="a" required> Resgataria tudo imediatamente</label>
+            <label><input type="radio" name="q4" value="b"> Esperaria para ver se recupera</label>
+            <label><input type="radio" name="q4" value="c"> Aproveitaria para investir mais</label>
+          </div>
+          <div class="quiz-question">
+            <p><strong>5. Qual é sua experiência com investimentos?</strong></p>
+            <label><input type="radio" name="q5" value="a" required> Nenhuma — só poupança</label>
+            <label><input type="radio" name="q5" value="b"> Básica — já investi em CDB ou fundos</label>
+            <label><input type="radio" name="q5" value="c"> Avançada — ações, cripto, etc.</label>
+          </div>
+          <br>
+          <button type="submit" class="btn btn-primary">Salvar perfil</button>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script>
+let grafico = null;
+
+verificarSessao('aluno', usuario => {
+  document.getElementById('userName').textContent = usuario.nome;
+
+  const params  = new URLSearchParams(window.location.search);
+  const sucesso = params.get('sucesso');
+  const erro    = params.get('erro');
+  if (sucesso) exibirToast(sucesso, 'success');
+  if (erro)    exibirToast(erro, 'error');
+
+  carregarHistorico();
+  carregarPerfilInvestidor();
+});
+
+document.getElementById('formSimulador').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const erroEl = document.getElementById('erro-simulador');
+  erroEl.style.display = 'none';
+
+  const dados = {
+    initial_capital:      parseFloat(document.getElementById('initial_capital').value)      || 0,
+    monthly_contribution: parseFloat(document.getElementById('monthly_contribution').value) || 0,
+    period_months:        parseInt(document.getElementById('period_months').value)          || 0,
+    investment_type:      document.getElementById('investment_type').value,
+  };
+
+  try {
+    const resp = await fetch('../php/simulator_calcular.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados),
+      credentials: 'include',
+    });
+    const data = await resp.json();
+
+    if (!data.success) {
+      erroEl.textContent = data.message;
+      erroEl.style.display = 'block';
+      return;
+    }
+
+    document.getElementById('res-investido').textContent  = formatarMoeda(data.totalInvested);
+    document.getElementById('res-rendimento').textContent = formatarMoeda(data.totalProfit);
+    document.getElementById('res-final').textContent      = formatarMoeda(data.finalAmount);
+    document.getElementById('resultado').style.display = 'block';
+
+    const labels = data.evolution.map((_, i) => 'Mês ' + (i + 1));
+    if (grafico) grafico.destroy();
+    grafico = new Chart(document.getElementById('graficoSimulador'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Patrimônio', data: data.evolution,    borderColor: '#7b9cff', fill: false },
+          { label: 'Investido',  data: data.investedEvol, borderColor: '#4caf50', fill: false, borderDash: [5,5] },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#e0e0e0' } } },
+        scales: {
+          x: { ticks: { color: '#aaa' }, grid: { color: '#333' } },
+          y: { ticks: { color: '#aaa', callback: v => 'R$ ' + v.toLocaleString('pt-BR') }, grid: { color: '#333' } },
+        },
+      },
+    });
+
+    carregarHistorico();
+  } catch (err) {
+    erroEl.textContent = 'Erro ao calcular simulação.';
+    erroEl.style.display = 'block';
+  }
+});
+
+async function carregarHistorico() {
+  const container = document.getElementById('historico-container');
+  try {
+    const resp = await fetch('../php/simulator_historico.php', { credentials: 'include' });
+    const data = await resp.json();
+
+    if (!data.success || !data.simulations.length) {
+      container.innerHTML = '<p class="empty-state">Nenhuma simulação realizada ainda.</p>';
+      return;
+    }
+
+    const tiposLabel = { savings: 'Poupança', cdb: 'CDB', stocks: 'Ações', crypto: 'Cripto' };
+    let html = '<table class="table"><thead><tr><th>Tipo</th><th>Capital</th><th>Aporte</th><th>Período</th><th>Valor final</th><th>Data</th></tr></thead><tbody>';
+    for (const s of data.simulations) {
+      html += `<tr>
+        <td>${tiposLabel[s.investment_type] || s.investment_type}</td>
+        <td>${formatarMoeda(s.initial_capital)}</td>
+        <td>${formatarMoeda(s.monthly_contribution)}</td>
+        <td>${s.period_months} meses</td>
+        <td>${formatarMoeda(s.final_amount)}</td>
+        <td>${formatarData(s.created_at)}</td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<p class="empty-state">Erro ao carregar histórico.</p>';
+  }
+}
+
+async function carregarPerfilInvestidor() {
+  try {
+    const resp = await fetch('../php/sessao_check.php', { credentials: 'include' });
+  } catch {}
+  // O perfil é carregado via sessao_check; para exibir o perfil atual precisamos de endpoint dedicado.
+  // Por enquanto, o formulário sempre aparece para permitir refazer o questionário.
+}
+</script>
+</body>
+</html>

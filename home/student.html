@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — EduvFinance</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><h2>EduvFinance</h2></div>
+    <ul class="sidebar-menu">
+      <li class="active"><a href="student.html">Dashboard</a></li>
+      <li><a href="aluno_cursos.html">Cursos</a></li>
+      <li><a href="aluno_simulador.html">Simulador</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <span id="userName"></span>
+      <button onclick="logout()" class="btn btn-sm">Sair</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="page-header">
+      <h1 id="saudacao">Olá!</h1>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="statConcluidas">—</div>
+        <div class="stat-label">Aulas concluídas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statProgresso">—</div>
+        <div class="stat-label">Progresso geral</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statCursos">—</div>
+        <div class="stat-label">Cursos matriculados</div>
+      </div>
+    </div>
+
+    <!-- Cursos matriculados -->
+    <div class="card" id="cardCursos" style="display:none">
+      <div class="card-header">
+        <h2>Meus Cursos</h2>
+        <a href="aluno_cursos.html" class="btn btn-sm btn-secondary">Ver todos</a>
+      </div>
+      <div class="card-body">
+        <div class="course-grid" id="cursosGrid"></div>
+      </div>
+    </div>
+
+    <div class="card" id="cardSemCursos" style="display:none">
+      <div class="card-body">
+        <p class="empty-state">Você ainda não está matriculado em nenhum curso. <a href="aluno_cursos.html">Explorar cursos</a></p>
+      </div>
+    </div>
+
+    <!-- Perfil de investidor -->
+    <div class="card" id="cardPerfil" style="display:none">
+      <div class="card-header"><h2>Perfil de Investidor</h2></div>
+      <div class="card-body">
+        <p>Descubra seu perfil de investidor respondendo ao nosso questionário.</p>
+        <br>
+        <a href="aluno_simulador.html#perfil" class="btn btn-primary">Fazer o teste</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/aluno.js"></script>
+<script>
+verificarSessao('aluno', async usuario => {
+  document.getElementById('userName').textContent  = usuario.nome;
+  document.getElementById('saudacao').textContent  = 'Olá, ' + usuario.nome + '!';
+
+  const params  = new URLSearchParams(window.location.search);
+  const sucesso = params.get('sucesso');
+  const erro    = params.get('erro');
+  if (sucesso) exibirToast(sucesso, 'success');
+  if (erro)    exibirToast(erro, 'error');
+
+  await carregarDashboardAluno(usuario);
+
+  // Verificar perfil de investidor
+  try {
+    const resp = await fetch('../php/sessao_check.php', { credentials: 'include' });
+  } catch {}
+
+  // Mostrar card de perfil de investidor se não tiver
+  // (sessao_check não retorna perfil; para simplificar, sempre mostramos o card)
+  document.getElementById('cardPerfil').style.display = 'block';
+});
+</script>
+</body>
+</html>
