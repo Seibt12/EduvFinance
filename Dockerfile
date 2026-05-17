@@ -21,6 +21,17 @@ COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh
 
+# Copia os arquivos da aplicação
+COPY home/ /var/www/html/home/
+COPY login/ /var/www/html/login/
+COPY assets/ /var/www/html/assets/
+COPY php/ /var/www/html/php/
+COPY backend/ /var/www/html/backend/
+COPY index.html /var/www/html/index.html
+
+# Define permissões
+RUN chown -R www-data:www-data /var/www/html
+
 EXPOSE 80
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

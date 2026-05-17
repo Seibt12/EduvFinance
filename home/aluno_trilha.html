@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilha de Aprendizagem — EduvFinance</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><h2>EduvFinance</h2></div>
+    <ul class="sidebar-menu">
+      <li><a href="student.html">Dashboard</a></li>
+      <li><a href="aluno_cursos.html">Cursos</a></li>
+      <li class="active"><a href="aluno_trilha.html">Trilhas</a></li>
+      <li><a href="aluno_simulador.html">Simulador</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <span id="userName"></span>
+      <button onclick="logout()" class="btn btn-sm">Sair</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <!-- Seletor de Cursos -->
+    <div id="viewSelectorCursos">
+      <div class="page-header">
+        <h1>Trilhas de Aprendizagem</h1>
+        <p>Escolha um curso e acompanhe sua jornada de aprendizagem</p>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="course-grid" id="cursosGrid">
+            <p class="empty-state">Carregando seus cursos...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visualização da Trilha -->
+    <div id="viewTrilha" style="display:none">
+      <div class="page-header">
+        <div style="display: flex; align-items: center; gap: 16px; justify-content: space-between; width: 100%;">
+          <div>
+            <a href="aluno_trilha.html" class="btn btn-sm" style="margin-bottom: 8px">← Voltar</a>
+            <h1 id="trilhaTitulo"></h1>
+            <p id="trilhaDescricao" style="color: #888; margin-top: 4px;"></p>
+          </div>
+          <div class="trilha-stats-header">
+            <div class="stat-mini">
+              <div class="stat-mini-value" id="statPercentual">0%</div>
+              <div class="stat-mini-label">Progresso</div>
+            </div>
+            <div class="stat-mini">
+              <div class="stat-mini-value" id="statConcluidas">0</div>
+              <div class="stat-mini-label">Concluídas</div>
+            </div>
+            <div class="stat-mini">
+              <div class="stat-mini-value" id="statTotal">0</div>
+              <div class="stat-mini-label">Total</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Progresso Principal -->
+      <div class="card" style="margin-bottom: 8px;">
+        <div class="card-body">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="flex: 1;">
+              <div class="progress-bar-grande">
+                <div class="progress-fill-grande" id="progressBarGrande" style="width: 0%"></div>
+              </div>
+            </div>
+            <span id="progressText" style="font-size: 12px; color: #888; white-space: nowrap;">0/0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trilha Visual (Horizontal Scrollable) -->
+      <div class="card">
+        <div class="card-body">
+          <div class="trilha-container" id="trilhaContainer">
+            <div class="trilha-scroll" id="trilhaScroll">
+              <!-- Preenchido pelo JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detalhes da Aula Selecionada -->
+      <div class="card" id="cardDetalheAula" style="display:none;">
+        <div class="card-header">
+          <h2 id="detalheAulaTitulo"></h2>
+          <button onclick="fecharDetalhes()" class="btn btn-sm">Fechar</button>
+        </div>
+        <div class="card-body">
+          <div id="detalheAulaConteudo"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/aluno.js"></script>
+<script src="../assets/js/trilha.js"></script>
+<script>
+verificarSessao('aluno', usuario => {
+  document.getElementById('userName').textContent = usuario.nome;
+
+  const params = new URLSearchParams(window.location.search);
+  const cursoId = params.get('curso_id');
+  const sucesso = params.get('sucesso');
+  const erro = params.get('erro');
+
+  if (sucesso) exibirToast(sucesso, 'success');
+  if (erro) exibirToast(erro, 'error');
+
+  if (cursoId) {
+    document.getElementById('viewSelectorCursos').style.display = 'none';
+    document.getElementById('viewTrilha').style.display = 'block';
+    carregarTrilha(parseInt(cursoId));
+  } else {
+    carregarCursosParaTrilha();
+  }
+});
+</script>
+</body>
+</html>
