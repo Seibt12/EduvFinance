@@ -16,12 +16,17 @@ if ($id <= 0) {
 
 require_once __DIR__ . '/conexao.php';
 
-$stmt = $conn->prepare("SELECT id, nome, email FROM users WHERE id = ? AND tipo = 'aluno' LIMIT 1");
-$stmt->execute([$id]);
+$tipo = trim($_GET['tipo'] ?? 'aluno');
+if (!in_array($tipo, ['aluno', 'professor'], true)) {
+    $tipo = 'aluno';
+}
+
+$stmt = $conn->prepare("SELECT id, nome, email FROM users WHERE id = ? AND tipo = ? LIMIT 1");
+$stmt->execute([$id, $tipo]);
 $user = $stmt->fetch();
 
 if (!$user) {
-    echo json_encode(['success' => false, 'message' => 'Aluno não encontrado.']);
+    echo json_encode(['success' => false, 'message' => 'Usuário não encontrado.']);
     exit;
 }
 

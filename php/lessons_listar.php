@@ -15,7 +15,7 @@ $cursoId   = isset($_GET['curso_id']) ? (int)$_GET['curso_id'] : 0;
 
 if ($cursoId > 0) {
     $stmt = $conn->prepare("
-        SELECT l.id, l.titulo, l.descricao, l.nivel,
+        SELECT l.id, l.titulo, l.descricao, l.nivel, l.video_link, l.attachment_path, l.attachment_name,
                COALESCE(p.concluido, 0) AS concluido
         FROM lessons l
         JOIN course_lessons cl ON cl.lesson_id = l.id

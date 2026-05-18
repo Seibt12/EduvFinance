@@ -34,6 +34,13 @@ $_SESSION['user_nome']  = $usuario['nome'];
 $_SESSION['user_email'] = $usuario['email'];
 $_SESSION['user_tipo']  = $usuario['tipo'];
 
-$destino = $usuario['tipo'] === 'admin' ? '../home/index.html' : '../home/student.html';
+if ($usuario['tipo'] === 'admin') {
+    $destino = '../home/index.html';
+} elseif ($usuario['tipo'] === 'professor') {
+    $destino = '../home/professor.html';
+} else {
+    $destino = '../home/student.html';
+}
+
 header("Location: $destino");
 exit;
