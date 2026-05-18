@@ -144,8 +144,16 @@ async function carregarAulasDoCurso(cursoId) {
     const labelNivel = { basico: 'Básico', intermediario: 'Intermediário', avancado: 'Avançado' };
     for (const a of dataAulas.lessons) {
         const concluido = parseInt(a.concluido) === 1;
+        let conteudoHtml = `<strong>${escHtml(a.titulo)}</strong>`;
+        if (a.descricao) conteudoHtml += `<br><small>${escHtml(a.descricao)}</small>`;
+        if (a.video_link) {
+            conteudoHtml += `<br><a href="${escHtml(a.video_link)}" target="_blank" rel="noopener" class="btn btn-sm btn-secondary" style="margin-top:6px">Assistir vídeo</a>`;
+        }
+        if (a.attachment_path) {
+            conteudoHtml += `<br><a href="../${escHtml(a.attachment_path)}" target="_blank" rel="noopener" class="btn btn-sm btn-secondary" style="margin-top:6px">📎 ${escHtml(a.attachment_name || 'Material de apoio')}</a>`;
+        }
         tbody.innerHTML += `<tr>
-            <td>${escHtml(a.titulo)}</td>
+            <td>${conteudoHtml}</td>
             <td><span class="badge badge-${a.nivel}">${labelNivel[a.nivel] || a.nivel}</span></td>
             <td>${concluido
                 ? '<span class="badge badge-success">Concluída</span>'
