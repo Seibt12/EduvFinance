@@ -1,13 +1,11 @@
 <?php
 /**
  * EduFinance — Setup
- * Inicializa o banco de dados e cria o usuário admin
+ * Inicializa o banco, migrações e usuário admin
  */
-
 header('Content-Type: text/plain; charset=utf-8');
 
 try {
-    // ── 1. Conecta ao PostgreSQL ──────────────────────────
     $conn = new PDO(
         "pgsql:host=" . (getenv('DB_HOST') ?: 'postgres') .
         ";port="      . (getenv('DB_PORT') ?: '5432') .
@@ -21,59 +19,61 @@ try {
         ]
     );
 
-    // ── 2. Cria as tabelas (se não existirem) ─────────────
-    $sql_file = '/var/www/html/database/edufinance.sql';
-    if (file_exists($sql_file)) {
-        $sql_commands = file_get_contents($sql_file);
-        
-        // Separa os comandos SQL e executa cada um
-        $commands = preg_split('/;/', $sql_commands);
+    $sqlFile = __DIR__ . '/../database/edufinance.sql';
+    if (file_exists($sqlFile)) {
+        $commands = preg_split('/;/', file_get_contents($sqlFile));
         foreach ($commands as $command) {
             $command = trim($command);
-            if (!empty($command)) {
-                try {
-                    $conn->exec($command);
-                } catch (Exception $e) {
-                    // Ignora erros de tabelas que já existem
-                    if (strpos($e->getMessage(), 'already exists') === false) {
-                        // Log apenas para erros reais
-                    }
+            if ($command === '') continue;
+            try {
+                $conn->exec($command);
+            } catch (Exception $e) {
+                if (stripos($e->getMessage(), 'already exists') === false) {
+                    // ignora erros benignos de objetos já criados
                 }
             }
         }
-        echo "✓ Banco de dados inicializado\n";
+        echo "✓ Schema principal (edufinance.sql)\n";
     }
 
-    // ── 3. Verifica e cria o admin ────────────────────────
-    $admin_email = 'admin@email.com';
-    $admin_password = '123';
-    $admin_name = 'Administrador';
+    $migrationFile = __DIR__ . '/../database/migrations/001_professor_approval.sql';
+    if (file_exists($migrationFile)) {
+        $commands = preg_split('/;/', file_get_contents($migrationFile));
+        foreach ($commands as $command) {
+            $command = trim($command);
+            if ($command === '') continue;
+            try {
+                $conn->exec($command);
+            } catch (Exception $e) {
+                // migração idempotente
+            }
+        }
+        echo "✓ Migração professor/aprovação\n";
+    }
 
-    // Verifica se o admin já existe
-    $stmt = $conn->prepare('SELECT id FROM users WHERE email = ?');
-    $stmt->execute([$admin_email]);
-    $admin_exists = $stmt->fetch();
+    $uploadsDir = __DIR__ . '/../uploads';
+    if (!is_dir($uploadsDir)) {
+        mkdir($uploadsDir, 0755, true);
+    }
+    echo "✓ Pasta uploads\n";
 
-    if (!$admin_exists) {
-        // Cria o admin com password_hash (bcrypt)
-        $hashed_password = password_hash($admin_password, PASSWORD_BCRYPT, ['cost' => 10]);
-        
-        $stmt = $conn->prepare('
-            INSERT INTO users (nome, email, senha, tipo)
-            VALUES (?, ?, ?, ?)
-        ');
-        $stmt->execute([$admin_name, $admin_email, $hashed_password, 'admin']);
-        
-        echo "✓ Usuário admin criado: $admin_email\n";
+    $adminEmail = 'admin@email.com';
+    $adminPass  = '123';
+    $adminName  = 'Administrador';
+
+    $stmt = $conn->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
+    $stmt->execute([$adminEmail]);
+    if (!$stmt->fetch()) {
+        $hash = password_hash($adminPass, PASSWORD_BCRYPT, ['cost' => 10]);
+        $conn->prepare('INSERT INTO users (nome, email, senha, tipo) VALUES (?, ?, ?, ?)')
+            ->execute([$adminName, $adminEmail, $hash, 'admin']);
+        echo "✓ Usuário admin criado: {$adminEmail}\n";
     } else {
         echo "✓ Usuário admin já existe\n";
     }
 
     echo "✓ Setup completado com sucesso!\n";
-
 } catch (Exception $e) {
-    echo "✗ Erro durante setup:\n";
-    echo "  " . $e->getMessage() . "\n";
+    echo "✗ Erro durante setup:\n  " . $e->getMessage() . "\n";
     exit(1);
 }
-?>
