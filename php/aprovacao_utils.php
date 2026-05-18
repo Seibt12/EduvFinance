@@ -1,0 +1,90 @@
+<?php
+
+function syncPublicLesson(PDO $conn, array $oferta): int {
+    $publicId = !empty($oferta['public_lesson_id']) ? (int)$oferta['public_lesson_id'] : 0;
+
+    if ($publicId > 0) {
+        $stmt = $conn->prepare("UPDATE lessons SET titulo=?, descricao=?, nivel=?, video_link=?, attachment_path=?, attachment_name=?, updated_at=CURRENT_TIMESTAMP WHERE id=?");
+        $stmt->execute([
+            $oferta['titulo'], $oferta['descricao'], $oferta['nivel'],
+            $oferta['video_link'] ?: null, $oferta['attachment_path'] ?: null, $oferta['attachment_name'] ?: null,
+            $publicId,
+        ]);
+        return $publicId;
+    }
+
+    $stmt = $conn->prepare("INSERT INTO lessons (titulo, descricao, nivel, video_link, attachment_path, attachment_name) VALUES (?, ?, ?, ?, ?, ?) RETURNING id");
+    $stmt->execute([
+        $oferta['titulo'], $oferta['descricao'], $oferta['nivel'],
+        $oferta['video_link'] ?: null, $oferta['attachment_path'] ?: null, $oferta['attachment_name'] ?: null,
+    ]);
+    return (int)$stmt->fetchColumn();
+}
+
+function syncPublicCourse(PDO $conn, array $oferta): int {
+    $publicId = !empty($oferta['public_course_id']) ? (int)$oferta['public_course_id'] : 0;
+
+    if ($publicId > 0) {
+        $stmt = $conn->prepare("UPDATE courses SET nome=?, descricao=?, nivel=?, updated_at=CURRENT_TIMESTAMP WHERE id=?");
+        $stmt->execute([$oferta['nome'], $oferta['descricao'], $oferta['nivel'], $publicId]);
+        return $publicId;
+    }
+
+    $stmt = $conn->prepare("INSERT INTO courses (nome, descricao, nivel) VALUES (?, ?, ?) RETURNING id");
+    $stmt->execute([$oferta['nome'], $oferta['descricao'], $oferta['nivel']]);
+    return (int)$stmt->fetchColumn();
+}
+
+function syncCourseLessonsFromProfessor(PDO $conn, int $professorCourseId, int $publicCourseId): void {
+    $conn->prepare("DELETE FROM course_lessons WHERE course_id = ?")->execute([$publicCourseId]);
+
+    $stmt = $conn->prepare("
+        SELECT pl.public_lesson_id
+        FROM professor_course_lessons pcl
+        JOIN professor_lessons pl ON pl.id = pcl.professor_lesson_id
+        WHERE pcl.professor_course_id = ?
+          AND pl.status = 'aprovado'
+          AND pl.public_lesson_id IS NOT NULL
+    ");
+    $stmt->execute([$professorCourseId]);
+    $lessonIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    $insert = $conn->prepare("INSERT INTO course_lessons (course_id, lesson_id) VALUES (?, ?) ON CONFLICT DO NOTHING");
+    foreach ($lessonIds as $lessonId) {
+        if ((int)$lessonId > 0) {
+            $insert->execute([$publicCourseId, (int)$lessonId]);
+        }
+    }
+}
+
+function linkApprovedLessonToCourses(PDO $conn, int $professorLessonId, int $publicLessonId): void {
+    $stmt = $conn->prepare("
+        SELECT pc.public_course_id
+        FROM professor_course_lessons pcl
+        JOIN professor_courses pc ON pc.id = pcl.professor_course_id
+        WHERE pcl.professor_lesson_id = ?
+          AND pc.status = 'aprovado'
+          AND pc.public_course_id IS NOT NULL
+    ");
+    $stmt->execute([$professorLessonId]);
+    $courseIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    $insert = $conn->prepare("INSERT INTO course_lessons (course_id, lesson_id) VALUES (?, ?) ON CONFLICT DO NOTHING");
+    foreach ($courseIds as $courseId) {
+        if ((int)$courseId > 0) {
+            $insert->execute([(int)$courseId, $publicLessonId]);
+        }
+    }
+}
+
+function removePublicLesson(PDO $conn, ?int $publicLessonId): void {
+    if ($publicLessonId && $publicLessonId > 0) {
+        $conn->prepare("DELETE FROM lessons WHERE id = ?")->execute([$publicLessonId]);
+    }
+}
+
+function removePublicCourse(PDO $conn, ?int $publicCourseId): void {
+    if ($publicCourseId && $publicCourseId > 0) {
+        $conn->prepare("DELETE FROM courses WHERE id = ?")->execute([$publicCourseId]);
+    }
+}
