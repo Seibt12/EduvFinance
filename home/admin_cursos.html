@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gerenciar Cursos — EduvFinance</title>
+<title>Aprovar Cursos — EduvFinance</title>
 <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
@@ -13,8 +13,9 @@
     <ul class="sidebar-menu">
       <li><a href="index.html">Dashboard</a></li>
       <li><a href="admin_alunos.html">Alunos</a></li>
-      <li><a href="admin_aulas.html">Aulas</a></li>
-      <li class="active"><a href="admin_cursos.html">Cursos</a></li>
+      <li><a href="admin_professores.html">Professores</a></li>
+      <li class="active"><a href="admin_cursos.html">Aprovar Cursos</a></li>
+      <li><a href="admin_aulas.html">Aprovar Aulas</a></li>
     </ul>
     <div class="sidebar-footer">
       <span id="userName"></span>
@@ -24,42 +25,35 @@
 
   <main class="content">
     <div class="page-header">
-      <h1>Gerenciar Cursos</h1>
+      <h1>Aprovar Ofertas de Cursos</h1>
+      <p class="page-subtitle">Analise conteúdos enviados pelos professores. Somente cursos aprovados ficam visíveis para alunos e matrículas.</p>
     </div>
 
-    <div class="card">
+    <div class="card" id="cardAnaliseCurso" style="display:none">
       <div class="card-header">
-        <h2 id="cardTituloCurso">Novo Curso</h2>
+        <h2>Detalhes da Oferta</h2>
+        <button type="button" class="btn btn-sm" onclick="fecharAnaliseCurso()">Fechar</button>
       </div>
       <div class="card-body">
-        <form method="POST" action="../php/courses_inserir.php" id="formCursoEl">
-          <input type="hidden" name="id" id="formCursoId">
+        <div id="analiseCursoConteudo"></div>
+        <input type="hidden" id="analiseCursoId">
+        <div class="form-actions" style="margin-top:1rem">
+          <form method="POST" action="../php/admin_professor_courses_aprovar.php" style="display:inline"
+                onsubmit="return confirm('Aprovar e publicar este curso?')">
+            <input type="hidden" name="id" id="inputAprovarCursoId">
+            <button type="submit" class="btn btn-primary" id="btnAprovarCurso"
+                    onclick="document.getElementById('inputAprovarCursoId').value=document.getElementById('analiseCursoId').value">Aprovar</button>
+          </form>
+        </div>
+        <form method="POST" action="../php/admin_professor_courses_rejeitar.php" id="formRejeitarCurso" style="margin-top:1rem;display:none">
+          <input type="hidden" name="id" id="inputRejeitarCursoId">
           <div class="form-group">
-            <label>Nome</label>
-            <input type="text" name="nome" id="formCursoNome" required>
-          </div>
-          <div class="form-group">
-            <label>Descrição</label>
-            <textarea name="descricao" id="formCursoDescricao" rows="3" required></textarea>
-          </div>
-          <div class="form-group">
-            <label>Nível</label>
-            <select name="nivel" id="formCursoNivel" required>
-              <option value="">Selecione...</option>
-              <option value="basico">Básico</option>
-              <option value="intermediario">Intermediário</option>
-              <option value="avancado">Avançado</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Aulas vinculadas</label>
-            <div class="checkbox-list" id="checkboxAulas">
-              <p class="empty-state">Carregando aulas...</p>
-            </div>
+            <label>Motivo da rejeição</label>
+            <textarea name="review_comment" rows="3" required placeholder="Descreva o que precisa ser ajustado..."></textarea>
           </div>
           <div class="form-actions">
-            <button type="submit" class="btn btn-primary" id="btnSubmitCurso">Criar Curso</button>
-            <button type="button" class="btn" id="btnCancelarCurso" onclick="cancelarEdicaoCurso()" style="display:none">Cancelar</button>
+            <button type="submit" class="btn btn-danger"
+                    onclick="document.getElementById('inputRejeitarCursoId').value=document.getElementById('analiseCursoId').value">Rejeitar</button>
           </div>
         </form>
       </div>
@@ -67,15 +61,21 @@
 
     <div class="card">
       <div class="card-header">
-        <h2>Lista de Cursos (<span id="contadorCursos">0</span>)</h2>
+        <h2>Ofertas (<span id="contadorOfertasCursos">0</span>)</h2>
+        <select id="filtroStatusCursos" class="form-control" style="max-width:200px" onchange="carregarOfertasCursosAdmin()">
+          <option value="pendente" selected>Pendentes</option>
+          <option value="aprovado">Aprovados</option>
+          <option value="rejeitado">Rejeitados</option>
+          <option value="todos">Todos</option>
+        </select>
       </div>
       <div class="card-body">
         <table class="table">
           <thead>
-            <tr><th>Nome</th><th>Nível</th><th>Aulas</th><th>Matrículas</th><th>Ações</th></tr>
+            <tr><th>Curso</th><th>Professor</th><th>Nível</th><th>Status</th><th>Enviado em</th><th>Ações</th></tr>
           </thead>
-          <tbody id="cursosBody">
-            <tr><td colspan="5" class="empty-state">Carregando...</td></tr>
+          <tbody id="ofertasCursosBody">
+            <tr><td colspan="6" class="empty-state">Carregando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -85,18 +85,14 @@
 
 <script src="../assets/js/utils.js"></script>
 <script src="../assets/js/auth.js"></script>
-<script src="../assets/js/admin.js"></script>
+<script src="../assets/js/admin_aprovacoes.js"></script>
 <script>
 verificarSessao('admin', usuario => {
   document.getElementById('userName').textContent = usuario.nome;
-
-  const params  = new URLSearchParams(window.location.search);
-  const sucesso = params.get('sucesso');
-  const erro    = params.get('erro');
-  if (sucesso) exibirToast(sucesso, 'success');
-  if (erro)    exibirToast(erro, 'error');
-
-  carregarCursos();
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('sucesso')) exibirToast(params.get('sucesso'), 'success');
+  if (params.get('erro'))    exibirToast(params.get('erro'), 'error');
+  carregarOfertasCursosAdmin();
 });
 </script>
 </body>

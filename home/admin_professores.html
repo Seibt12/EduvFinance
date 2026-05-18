@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerenciar Professores — EduvFinance</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><h2>EduvFinance</h2></div>
+    <ul class="sidebar-menu">
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="admin_alunos.html">Alunos</a></li>
+      <li class="active"><a href="admin_professores.html">Professores</a></li>
+      <li><a href="admin_cursos.html">Aprovar Cursos</a></li>
+      <li><a href="admin_aulas.html">Aprovar Aulas</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <span id="userName"></span>
+      <button onclick="logout()" class="btn btn-sm">Sair</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="page-header">
+      <h1>Gerenciar Professores</h1>
+    </div>
+
+    <div class="card" id="formEdicaoProfessor" style="display:none">
+      <div class="card-header"><h2>Editar Professor</h2></div>
+      <div class="card-body">
+        <form method="POST" action="../php/users_atualizar.php" id="formProfessorEdicao">
+          <input type="hidden" name="id" id="editProfessorId">
+          <div class="form-group">
+            <label>Nome</label>
+            <input type="text" name="nome" id="editProfessorNome" required>
+          </div>
+          <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" name="email" id="editProfessorEmail" required>
+          </div>
+          <div class="form-group">
+            <label>Nova senha (deixe em branco para manter)</label>
+            <input type="password" name="senha" id="editProfessorSenha" placeholder="••••••••">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <button type="button" class="btn" onclick="cancelarEdicaoProfessor()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>Novo Professor</h2></div>
+      <div class="card-body">
+        <form method="POST" action="../php/users_inserir.php" id="formProfessorInserir">
+          <input type="hidden" name="tipo" value="professor">
+          <div class="form-group">
+            <label>Nome</label>
+            <input type="text" name="nome" id="newProfessorNome" required>
+          </div>
+          <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" name="email" id="newProfessorEmail" required>
+          </div>
+          <div class="form-group">
+            <label>Senha</label>
+            <input type="password" name="senha" id="newProfessorSenha" required placeholder="••••••••">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Criar Professor</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Lista de Professores (<span id="contadorProfessores">0</span>)</h2>
+      </div>
+      <div class="card-body">
+        <table class="table">
+          <thead>
+            <tr><th>Nome</th><th>E-mail</th><th>Cadastrado em</th><th>Ações</th></tr>
+          </thead>
+          <tbody id="professoresBody">
+            <tr><td colspan="4" class="empty-state">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/admin_professores.js"></script>
+<script>
+verificarSessao('admin', usuario => {
+  document.getElementById('userName').textContent = usuario.nome;
+
+  const params  = new URLSearchParams(window.location.search);
+  const sucesso = params.get('sucesso');
+  const erro    = params.get('erro');
+  if (sucesso) exibirToast(sucesso, 'success');
+  if (erro)    exibirToast(erro, 'error');
+
+  carregarProfessores();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Área do Professor — EduvFinance</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><h2>EduvFinance</h2></div>
+    <ul class="sidebar-menu">
+      <li class="active"><a href="professor.html">Ofertas</a></li>
+      <li><a href="#cursosProfSection">Cursos</a></li>
+      <li><a href="#aulasProfSection">Aulas</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <span id="userName"></span>
+      <button onclick="logout()" class="btn btn-sm">Sair</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="page-header">
+      <h1>Bem-vindo, <span id="nomeProfessor"></span></h1>
+      <p class="page-subtitle">Crie ofertas de cursos e aulas. Após envio, aguarde aprovação do administrador.</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="statOfertasCursos">—</div>
+        <div class="stat-label">Ofertas de Cursos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statOfertasAulas">—</div>
+        <div class="stat-label">Ofertas de Aulas</div>
+      </div>
+    </div>
+
+    <div class="card" id="cursosProfSection">
+      <div class="card-header"><h2 id="cardTituloCurso">Nova Oferta de Curso</h2></div>
+      <div class="card-body">
+        <form method="POST" action="../php/professor_courses_inserir.php" id="formCursoProfEl">
+          <input type="hidden" name="id" id="formCursoProfId">
+          <div class="form-group">
+            <label>Nome</label>
+            <input type="text" name="nome" id="formCursoProfNome" required>
+          </div>
+          <div class="form-group">
+            <label>Descrição</label>
+            <textarea name="descricao" id="formCursoProfDescricao" rows="3" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Nível</label>
+            <select name="nivel" id="formCursoProfNivel" required>
+              <option value="">Selecione...</option>
+              <option value="basico">Básico</option>
+              <option value="intermediario">Intermediário</option>
+              <option value="avancado">Avançado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Aulas vinculadas (opcional)</label>
+            <div id="checkboxAulasCursoProf" class="checkbox-list"></div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="btnSubmitCursoProf">Criar Oferta</button>
+            <button type="button" class="btn" id="btnCancelarCursoProf" onclick="cancelarEdicaoCursoProf()" style="display:none">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>Lista de Ofertas de Cursos (<span id="contadorCursosProf">0</span>)</h2></div>
+      <div class="card-body">
+        <table class="table">
+          <thead>
+            <tr><th>Nome</th><th>Nível</th><th>Status</th><th>Criado em</th><th>Ações</th></tr>
+          </thead>
+          <tbody id="cursosProfBody">
+            <tr><td colspan="5" class="empty-state">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" id="aulasProfSection">
+      <div class="card-header"><h2 id="cardTituloAula">Nova Oferta de Aula</h2></div>
+      <div class="card-body">
+        <form method="POST" action="../php/professor_lessons_inserir.php" id="formAulaProfEl" enctype="multipart/form-data">
+          <input type="hidden" name="id" id="formAulaProfId">
+          <div class="form-group">
+            <label>Título</label>
+            <input type="text" name="titulo" id="formAulaProfTitulo" required>
+          </div>
+          <div class="form-group">
+            <label>Descrição</label>
+            <textarea name="descricao" id="formAulaProfDescricao" rows="3" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Nível</label>
+            <select name="nivel" id="formAulaProfNivel" required>
+              <option value="">Selecione...</option>
+              <option value="basico">Básico</option>
+              <option value="intermediario">Intermediário</option>
+              <option value="avancado">Avançado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Link do vídeo (YouTube, etc.)</label>
+            <input type="url" name="video_link" id="formAulaProfVideo" placeholder="https://www.youtube.com/watch?v=...">
+          </div>
+          <div class="form-group">
+            <label>Material de apoio (PDF, DOCX, PPT, ZIP — máx. recomendado 10MB)</label>
+            <input type="file" name="attachment" id="formAulaProfAnexo" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip">
+            <small id="anexoAtualProf" class="form-hint" style="display:none"></small>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="btnSubmitAulaProf">Criar Oferta</button>
+            <button type="button" class="btn" id="btnCancelarAulaProf" onclick="cancelarEdicaoAulaProf()" style="display:none">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>Lista de Ofertas de Aulas (<span id="contadorAulasProf">0</span>)</h2></div>
+      <div class="card-body">
+        <table class="table">
+          <thead>
+            <tr><th>Título</th><th>Nível</th><th>Status</th><th>Criado em</th><th>Ações</th></tr>
+          </thead>
+          <tbody id="aulasProfBody">
+            <tr><td colspan="5" class="empty-state">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/professor.js"></script>
+<script>
+verificarSessao('professor', usuario => {
+  document.getElementById('userName').textContent    = usuario.nome;
+  document.getElementById('nomeProfessor').textContent = usuario.nome;
+
+  const params  = new URLSearchParams(window.location.search);
+  const sucesso = params.get('sucesso');
+  const erro    = params.get('erro');
+  if (sucesso) exibirToast(sucesso, 'success');
+  if (erro)    exibirToast(erro, 'error');
+
+  carregarOfertasProfessor();
+});
+</script>
+</body>
+</html>
