@@ -10,8 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- AULAS (públicas, somente conteúdo aprovado)
--- ------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS lessons (
     id              SERIAL       PRIMARY KEY,
     titulo          VARCHAR(200) NOT NULL,
@@ -25,8 +24,7 @@ CREATE TABLE IF NOT EXISTS lessons (
     updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- CURSOS (públicos, somente conteúdo aprovado)
--- ------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS courses (
     id         SERIAL       PRIMARY KEY,
     nome       VARCHAR(200) NOT NULL,
@@ -43,8 +41,7 @@ CREATE TABLE IF NOT EXISTS course_lessons (
     PRIMARY KEY (course_id, lesson_id)
 );
 
--- PROGRESSO
--- ------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS progress (
     id         SERIAL   PRIMARY KEY,
     user_id    INTEGER  NOT NULL REFERENCES users(id)   ON DELETE CASCADE,
@@ -54,7 +51,6 @@ CREATE TABLE IF NOT EXISTS progress (
     UNIQUE (user_id, lesson_id)
 );
 
--- Matrículas
 CREATE TABLE IF NOT EXISTS course_enrollments (
     id         SERIAL    PRIMARY KEY,
     user_id    INTEGER   NOT NULL REFERENCES users(id)   ON DELETE CASCADE,
@@ -63,8 +59,7 @@ CREATE TABLE IF NOT EXISTS course_enrollments (
     UNIQUE (user_id, course_id)
 );
 
--- OFERTAS DO PROFESSOR (fluxo de aprovação)
--- ------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS professor_courses (
     id              SERIAL       PRIMARY KEY,
     professor_id    INTEGER      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -102,8 +97,7 @@ CREATE TABLE IF NOT EXISTS professor_course_lessons (
     PRIMARY KEY (professor_course_id, professor_lesson_id)
 );
 
--- PERFIL DE INVESTIDOR
--- ------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS investor_profile (
     id         SERIAL      PRIMARY KEY,
     user_id    INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
@@ -115,8 +109,7 @@ CREATE TABLE IF NOT EXISTS investor_profile (
     updated_at TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- SIMULAÇÕES DE INVESTIMENTO
--- ------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS investment_simulations (
     id                   SERIAL         PRIMARY KEY,
     user_id              INTEGER        NOT NULL REFERENCES users(id) ON DELETE CASCADE,

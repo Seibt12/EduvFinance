@@ -1,10 +1,3 @@
-/**
- * trilha.js
- * Lógica da Trilha de Aprendizagem
- * Carrega aulas em sequência, exibe status de progresso, permite marcar como concluída
- */
-
-// ── Carregar lista de cursos para seleção de trilha ────────────────────────
 async function carregarCursosParaTrilha() {
     const resp = await fetch('../php/courses_listar.php', { credentials: 'include' });
     const data = await resp.json();
@@ -51,7 +44,6 @@ async function carregarCursosParaTrilha() {
     }
 }
 
-// ── Carregar trilha de um curso específico ──────────────────────────────────
 async function carregarTrilha(cursoId) {
     try {
         const resp = await fetch('../php/trilha_listar.php?curso_id=' + cursoId, { 
@@ -68,17 +60,13 @@ async function carregarTrilha(cursoId) {
         const aulas = data.lessons;
         const stats = data.stats;
 
-        // Preencher header
         document.getElementById('trilhaTitulo').textContent = curso.nome;
         document.getElementById('trilhaDescricao').textContent = curso.descricao;
 
-        // Atualizar estatísticas
         atualizarEstatisticas(stats);
 
-        // Renderizar trilha
         renderizarTrilha(aulas, cursoId);
 
-        // Guardar estado global
         window.trilhaAtual = {
             cursoId: cursoId,
             aulas: aulas,
@@ -90,7 +78,6 @@ async function carregarTrilha(cursoId) {
     }
 }
 
-// ── Atualizar dados de estatísticas ────────────────────────────────────────
 function atualizarEstatisticas(stats) {
     document.getElementById('statPercentual').textContent = stats.percentual + '%';
     document.getElementById('statConcluidas').textContent = stats.concluidas;
@@ -103,7 +90,6 @@ function atualizarEstatisticas(stats) {
     }
 }
 
-// ── Renderizar trilha visual ───────────────────────────────────────────────
 function renderizarTrilha(aulas, cursoId) {
     const container = document.getElementById('trilhaScroll');
     container.innerHTML = '';
@@ -119,7 +105,6 @@ function renderizarTrilha(aulas, cursoId) {
         const aula = aulas[i];
         const isUltima = i === aulas.length - 1;
 
-        // Card da aula
         const card = document.createElement('div');
         card.className = `trilha-card trilha-status-${aula.status}`;
         card.id = `trilha-card-${aula.id}`;
@@ -169,7 +154,6 @@ function renderizarTrilha(aulas, cursoId) {
 
         container.appendChild(card);
 
-        // Conector entre cards
         if (!isUltima) {
             const conector = document.createElement('div');
             conector.className = 'trilha-conector';
@@ -183,7 +167,6 @@ function renderizarTrilha(aulas, cursoId) {
         }
     }
 
-    // Auto-scroll para a aula em progresso
     setTimeout(() => {
         const cardEmProgresso = container.querySelector('.trilha-em-progresso');
         if (cardEmProgresso) {
@@ -192,7 +175,6 @@ function renderizarTrilha(aulas, cursoId) {
     }, 300);
 }
 
-// ── Exibir detalhes da aula ────────────────────────────────────────────────
 function exibirDetalheAula(aulaId, aulaTitulo, concluido, cursoId) {
     const detalheDiv = document.getElementById('cardDetalheAula');
     const tituloDiv = document.getElementById('detalheAulaTitulo');
@@ -223,18 +205,15 @@ function exibirDetalheAula(aulaId, aulaTitulo, concluido, cursoId) {
 
     detalheDiv.style.display = 'block';
 
-    // Scroll suave para o card de detalhes
     setTimeout(() => {
         detalheDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 100);
 }
 
-// ── Fechar detalhes da aula ────────────────────────────────────────────────
 function fecharDetalhes() {
     document.getElementById('cardDetalheAula').style.display = 'none';
 }
 
-// ── Atualizar progresso em tempo real ──────────────────────────────────────
 async function atualizarProgressoTrilha(cursoId) {
     try {
         const resp = await fetch('../php/trilha_progresso.php?curso_id=' + cursoId, { 
@@ -245,7 +224,6 @@ async function atualizarProgressoTrilha(cursoId) {
         if (data.success) {
             atualizarEstatisticas(data.stats);
             
-            // Recarregar trilha completa após marcar como concluída
             setTimeout(() => carregarTrilha(cursoId), 1500);
         }
     } catch (erro) {
@@ -253,7 +231,6 @@ async function atualizarProgressoTrilha(cursoId) {
     }
 }
 
-// ── Helper para escape HTML ────────────────────────────────────────────────
 function escHtml(str) {
     return String(str)
         .replace(/&/g, '&amp;')
