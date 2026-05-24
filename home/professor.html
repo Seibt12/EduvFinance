@@ -124,6 +124,20 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 .btn-del { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: var(--text-xs); font-weight: var(--weight-medium); cursor: pointer; border: 1px solid var(--danger-border); background: var(--danger-subtle); color: var(--danger); transition: var(--transition-base); }
 .btn-del:hover { background: var(--danger); color: #fff; }
 
+/* ── Review styles (professor) ── */
+.review-stat-mini { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; display: flex; flex-direction: column; gap: 4px; }
+.review-stat-mini .rsm-value { font-size: var(--text-2xl); font-weight: var(--weight-black); letter-spacing: -0.03em; color: var(--text-primary); line-height: 1; }
+.review-stat-mini .rsm-label { font-size: var(--text-xs); color: var(--text-muted); font-weight: var(--weight-medium); }
+.prof-review-item { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 10px; }
+.prof-review-item:last-child { margin-bottom: 0; }
+.prof-review-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; flex-wrap: wrap; gap: 8px; }
+.prof-review-name { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--text-primary); }
+.prof-review-meta { font-size: var(--text-xs); color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+.prof-review-stars { color: #f59e0b; letter-spacing: 1px; font-size: 13px; }
+.prof-review-course { font-size: var(--text-xs); color: var(--primary); background: var(--primary-subtle); border: 1px solid var(--primary-border); padding: 2px 8px; border-radius: var(--radius-full); font-weight: var(--weight-medium); }
+.prof-review-comment { font-size: var(--text-sm); color: var(--text-secondary); margin-top: 4px; line-height: var(--leading-normal); }
+.stars-cell { color: #f59e0b; letter-spacing: 1px; font-size: 14px; }
+
 /* ── Responsive ── */
 @media (max-width: 900px) { .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); box-shadow: var(--shadow-xl); } .sidebar.open { transform: translateX(0); } .sidebar-toggle { display: flex; } .content { padding: 16px; padding-top: 68px; } }
 @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr; } .card-body { padding: 16px; } }
@@ -277,11 +291,42 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
     </div>
   </div>
 
+  <!-- ── Avaliações dos Meus Cursos ─────────────────────── -->
+  <div class="card" id="reviewsProfSection">
+    <div class="card-header">
+      <h2 style="display:flex;align-items:center;gap:8px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Avaliações dos Meus Cursos
+      </h2>
+    </div>
+    <div class="card-body">
+
+      <!-- Global stats -->
+      <div id="reviewsProfStats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px"></div>
+
+      <!-- Per-course table -->
+      <h3 style="font-size:var(--text-sm);font-weight:var(--weight-semibold);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Por Curso</h3>
+      <div class="table-wrap" style="margin-bottom:24px">
+        <table class="table">
+          <thead><tr><th>Curso</th><th>Nível</th><th>Nota Média</th><th>Avaliações</th></tr></thead>
+          <tbody id="reviewsProfCursosBody">
+            <tr><td colspan="4" style="padding:32px;text-align:center;color:var(--text-muted)">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Recent reviews -->
+      <h3 style="font-size:var(--text-sm);font-weight:var(--weight-semibold);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Avaliações Recentes</h3>
+      <div id="reviewsProfRecentes"></div>
+    </div>
+  </div>
+
 </main>
 
 <script src="../assets/js/utils.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/professor.js"></script>
+<script src="../assets/js/professor_reviews.js"></script>
 <script>
 lucide.createIcons();
 const sidebarToggle = document.getElementById('sidebarToggle');
@@ -303,6 +348,7 @@ verificarSessao('professor', usuario => {
   if (erro)    exibirToast(erro, 'error');
 
   carregarOfertasProfessor().then(() => lucide.createIcons());
+  carregarReviewsProf();
 });
 </script>
 </body>

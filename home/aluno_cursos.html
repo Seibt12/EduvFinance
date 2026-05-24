@@ -355,6 +355,155 @@ body {
 .skeleton-line.tall { height: 48px; }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
+/* ── Star Rating ──────────────────────────────────────────── */
+.star-display {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: var(--text-sm); color: var(--text-muted);
+}
+.star-display .stars { color: #f59e0b; letter-spacing: 1px; font-size: 14px; }
+.star-display .media-val { font-weight: var(--weight-semibold); color: var(--text-primary); margin-left: 4px; }
+.star-display .total-val { font-size: var(--text-xs); color: var(--text-muted); }
+
+.star-selector {
+  display: flex; gap: 6px; justify-content: center; margin: 4px 0;
+}
+.star-selector button {
+  background: none; border: none; cursor: pointer;
+  font-size: 32px; color: var(--border-strong);
+  transition: color 0.15s, transform 0.1s;
+  padding: 2px; line-height: 1;
+}
+.star-selector button.active,
+.star-selector button.hovered { color: #f59e0b; transform: scale(1.15); }
+
+/* ── Review Modal ─────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+.modal-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  width: 100%; max-width: 480px;
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  transform: translateY(16px);
+  transition: transform 0.25s ease;
+}
+.modal-overlay.open .modal-box { transform: translateY(0); }
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px; border-bottom: 1px solid var(--border);
+}
+.modal-header h3 {
+  font-size: var(--text-lg); font-weight: var(--weight-semibold);
+  color: var(--text-primary); letter-spacing: -0.01em;
+}
+.modal-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); padding: 4px; border-radius: var(--radius-sm);
+  transition: var(--transition-base); display: flex;
+}
+.modal-close:hover { color: var(--text-primary); background: var(--bg-hover); }
+.modal-close svg { width: 18px; height: 18px; }
+
+.modal-body { padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+
+.modal-body label {
+  display: block; font-size: var(--text-sm); font-weight: var(--weight-medium);
+  color: var(--text-secondary); margin-bottom: 8px;
+}
+
+.modal-body textarea {
+  width: 100%; background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-md); color: var(--text-primary);
+  font-family: var(--font-sans); font-size: var(--text-sm);
+  padding: 10px 12px; resize: vertical; min-height: 80px;
+  outline: none; transition: var(--transition-base);
+}
+.modal-body textarea:focus {
+  border-color: var(--border-focus); background: var(--bg-overlay);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.modal-body textarea::placeholder { color: var(--text-muted); }
+
+.modal-footer {
+  display: flex; gap: 10px; justify-content: flex-end;
+  padding: 16px 24px; border-top: 1px solid var(--border);
+}
+.btn-modal-cancel {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 18px; background: var(--bg-elevated);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  color: var(--text-secondary); font-family: var(--font-sans);
+  font-size: var(--text-sm); font-weight: var(--weight-medium);
+  cursor: pointer; transition: var(--transition-base);
+}
+.btn-modal-cancel:hover { background: var(--bg-overlay); color: var(--text-primary); }
+.btn-modal-submit {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 20px; background: var(--gradient-primary);
+  border: none; border-radius: var(--radius-md); color: #fff;
+  font-family: var(--font-sans); font-size: var(--text-sm);
+  font-weight: var(--weight-semibold); cursor: pointer;
+  box-shadow: var(--shadow-primary); transition: var(--transition-smooth);
+}
+.btn-modal-submit:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-modal-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; filter: none; }
+.btn-modal-submit svg { width: 14px; height: 14px; }
+
+/* ── Review list (inside course lessons view) ─────────────── */
+.reviews-section {
+  margin-top: 28px; border-top: 1px solid var(--border); padding-top: 24px;
+}
+.reviews-section h3 {
+  font-size: var(--text-md); font-weight: var(--weight-semibold);
+  color: var(--text-primary); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.reviews-list { display: flex; flex-direction: column; gap: 12px; }
+.review-item {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 14px 18px;
+}
+.review-item-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px; gap: 8px; flex-wrap: wrap;
+}
+.review-item-name {
+  font-size: var(--text-sm); font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+.review-item-meta {
+  font-size: var(--text-xs); color: var(--text-muted);
+  display: flex; align-items: center; gap: 6px;
+}
+.review-item-stars { color: #f59e0b; letter-spacing: 1px; font-size: 13px; }
+.review-item-comment {
+  font-size: var(--text-sm); color: var(--text-secondary);
+  line-height: var(--leading-normal); margin-top: 4px;
+}
+.review-empty {
+  text-align: center; color: var(--text-muted); font-size: var(--text-sm);
+  padding: 24px 0; font-style: italic;
+}
+
+/* btn-action-review */
+.btn-action-review {
+  background: var(--warning-subtle);
+  color: var(--warning);
+  border: 1px solid var(--warning-border);
+}
+.btn-action-review:hover { background: var(--warning); color: #fff; }
+
 /* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 900px) {
   .sidebar {
@@ -457,7 +606,10 @@ body {
   <div id="viewAulas" style="display:none">
     <div class="card">
       <div class="card-header">
-        <h2 id="cursoTitulo"></h2>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <h2 id="cursoTitulo"></h2>
+          <div id="cursoRatingHeader"></div>
+        </div>
         <a href="aluno_cursos.html" class="btn-sm-link">
           <i data-lucide="arrow-left"></i>
           Voltar aos cursos
@@ -478,16 +630,66 @@ body {
             <tbody id="aulasBody"></tbody>
           </table>
         </div>
+
+        <!-- Review action + listing -->
+        <div class="reviews-section" id="reviewsSection">
+          <h3>
+            <i data-lucide="star" style="width:18px;height:18px;color:#f59e0b"></i>
+            Avaliações
+          </h3>
+          <div id="reviewActionArea"></div>
+          <div class="reviews-list" id="reviewsList"></div>
+        </div>
       </div>
     </div>
   </div>
 
 </main>
 
+<!-- ── Review Modal ───────────────────────────────────────────── -->
+<div class="modal-overlay" id="reviewModal" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="reviewModalTitle">Avaliar Curso</h3>
+      <button class="modal-close" id="reviewModalClose" aria-label="Fechar">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <label>Sua nota <span style="color:var(--danger)">*</span></label>
+        <div class="star-selector" id="starSelector" role="radiogroup" aria-label="Selecione uma nota de 1 a 5 estrelas">
+          <button type="button" data-value="1" aria-label="1 estrela">★</button>
+          <button type="button" data-value="2" aria-label="2 estrelas">★</button>
+          <button type="button" data-value="3" aria-label="3 estrelas">★</button>
+          <button type="button" data-value="4" aria-label="4 estrelas">★</button>
+          <button type="button" data-value="5" aria-label="5 estrelas">★</button>
+        </div>
+        <div id="ratingError" style="font-size:var(--text-xs);color:var(--danger);margin-top:4px;display:none">
+          Por favor, selecione uma nota.
+        </div>
+      </div>
+      <div>
+        <label for="reviewComment">Comentário <span style="color:var(--text-muted);font-weight:400">(opcional)</span></label>
+        <textarea id="reviewComment" maxlength="2000" placeholder="Compartilhe sua experiência com o curso..."></textarea>
+        <span style="font-size:var(--text-xs);color:var(--text-muted)">Máximo 2000 caracteres.</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" id="reviewModalCancelBtn">Cancelar</button>
+      <button class="btn-modal-submit" id="reviewModalSubmitBtn">
+        <i data-lucide="send"></i>
+        Enviar avaliação
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Scripts ────────────────────────────────────────────────── -->
 <script src="../assets/js/utils.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/aluno.js"></script>
+<script src="../assets/js/reviews.js"></script>
 <script>
 lucide.createIcons();
 

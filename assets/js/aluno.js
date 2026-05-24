@@ -27,6 +27,7 @@ async function carregarDashboardAluno(usuario) {
     }
     document.getElementById('statCursos').textContent = cursosMatriculados.length;
 
+
     // Grid de cursos matriculados
     const grid = document.getElementById('cursosGrid');
     const cardCursos = document.getElementById('cardCursos');
@@ -68,6 +69,7 @@ async function carregarCursos() {
     if (!grid) return;
     grid.innerHTML = '';
 
+
     const labelNivel = { basico: 'Básico', intermediario: 'Intermediário', avancado: 'Avançado' };
     for (const c of data.courses) {
         const totalC = parseInt(c.total_aulas);
@@ -101,18 +103,22 @@ async function carregarCursos() {
             </div>`;
         }
 
-        grid.innerHTML += `<div class="course-card">
+        grid.innerHTML += `<div class="course-card" data-curso-id="${c.id}">
             <div class="course-nivel">
                 <span class="badge badge-${c.nivel}">${labelNivel[c.nivel] || c.nivel}</span>
                 ${matriculado ? '<span class="badge badge-success">Matriculado</span>' : ''}
             </div>
             <h3>${escHtml(c.nome)}</h3>
             <p>${escHtml(c.descricao)}</p>
+            <div class="course-rating-placeholder"></div>
             <small>${totalC} aula(s)</small>
             ${progressHtml}
             ${actionsHtml}
         </div>`;
     }
+
+    // Inject average ratings into grid cards
+    if (typeof injectMediasNaGrade === 'function') injectMediasNaGrade();
 }
 
 async function carregarAulasDoCurso(cursoId) {
@@ -169,6 +175,12 @@ async function carregarAulasDoCurso(cursoId) {
                 </form>
             </td>
         </tr>`;
+    }
+
+    // Load reviews section
+    if (typeof carregarReviewsDoCurso === 'function') {
+        await carregarReviewsDoCurso(cursoId);
+        lucide.createIcons();
     }
 }
 
