@@ -18,8 +18,10 @@ async function carregarDashboard() {
             <td>${escHtml(a.nome)}</td>
             <td>${parseInt(a.concluidas)} / ${data.totalLessons}</td>
             <td>
-                <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-                ${pct}%
+                <div class="progress-wrap">
+                    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+                    <span class="progress-label">${pct}%</span>
+                </div>
             </td>
         </tr>`;
     }
@@ -52,17 +54,21 @@ async function carregarAlunos() {
             <td>${escHtml(u.nome)}</td>
             <td>${escHtml(u.email)}</td>
             <td>
-                <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-                ${concluidas}/${totalAulas} (${pct}%)
+                <div class="progress-wrap">
+                    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+                    <span class="progress-label">${concluidas}/${totalAulas} (${pct}%)</span>
+                </div>
             </td>
             <td>${dataFormatada}</td>
-            <td class="actions">
-                <button class="btn btn-sm btn-secondary" onclick="mostrarFormEdicaoAluno(${u.id})">Editar</button>
-                <form method="POST" action="../php/users_excluir.php" style="display:inline"
-                      onsubmit="return confirm('Excluir aluno ${escJs(u.nome)}?')">
-                    <input type="hidden" name="id" value="${u.id}">
-                    <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
-                </form>
+            <td>
+                <div class="actions">
+                    <button class="btn-edit" onclick="mostrarFormEdicaoAluno(${u.id})">Editar</button>
+                    <form method="POST" action="../php/users_excluir.php" style="display:inline"
+                          onsubmit="return confirm('Excluir aluno ${escJs(u.nome)}?')">
+                        <input type="hidden" name="id" value="${u.id}">
+                        <button type="submit" class="btn-del">Excluir</button>
+                    </form>
+                </div>
             </td>
         </tr>`;
     }
@@ -111,13 +117,15 @@ async function carregarAulas() {
             <td>${escHtml(l.titulo)}</td>
             <td><span class="badge badge-${l.nivel}">${labelNivel[l.nivel] || l.nivel}</span></td>
             <td>${dataFormatada}</td>
-            <td class="actions">
-                <button class="btn btn-sm btn-secondary" onclick="mostrarFormEdicaoAula(${l.id})">Editar</button>
-                <form method="POST" action="../php/lessons_excluir.php" style="display:inline"
-                      onsubmit="return confirm('Excluir aula \'${escJs(l.titulo)}\'?')">
-                    <input type="hidden" name="id" value="${l.id}">
-                    <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
-                </form>
+            <td>
+                <div class="actions">
+                    <button class="btn-edit" onclick="mostrarFormEdicaoAula(${l.id})">Editar</button>
+                    <form method="POST" action="../php/lessons_excluir.php" style="display:inline"
+                          onsubmit="return confirm('Excluir aula \'${escJs(l.titulo)}\'?')">
+                        <input type="hidden" name="id" value="${l.id}">
+                        <button type="submit" class="btn-del">Excluir</button>
+                    </form>
+                </div>
             </td>
         </tr>`;
     }
@@ -195,13 +203,15 @@ async function carregarCursos() {
             <td><span class="badge badge-${c.nivel}">${labelNivel[c.nivel] || c.nivel}</span></td>
             <td>${parseInt(c.total_aulas)}</td>
             <td>${parseInt(c.total_matriculas)}</td>
-            <td class="actions">
-                <button class="btn btn-sm btn-secondary" onclick="mostrarFormEdicaoCurso(${c.id})">Editar</button>
-                <form method="POST" action="../php/courses_excluir.php" style="display:inline"
-                      onsubmit="return confirm('Excluir curso \'${escJs(c.nome)}\'?')">
-                    <input type="hidden" name="id" value="${c.id}">
-                    <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
-                </form>
+            <td>
+                <div class="actions">
+                    <button class="btn-edit" onclick="mostrarFormEdicaoCurso(${c.id})">Editar</button>
+                    <form method="POST" action="../php/courses_excluir.php" style="display:inline"
+                          onsubmit="return confirm('Excluir curso \'${escJs(c.nome)}\'?')">
+                        <input type="hidden" name="id" value="${c.id}">
+                        <button type="submit" class="btn-del">Excluir</button>
+                    </form>
+                </div>
             </td>
         </tr>`;
     }

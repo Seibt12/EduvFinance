@@ -4,23 +4,68 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trilha de Aprendizagem — EduvFinance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/style.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); background: var(--bg-base); color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; }
+.sidebar { width: var(--sidebar-width); flex-shrink: 0; height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column; background: var(--bg-surface); border-right: 1px solid var(--border); overflow-y: auto; overflow-x: hidden; z-index: 40; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+.sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.sidebar-logo h2 { font-size: var(--text-lg); font-weight: var(--weight-bold); background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; }
+.sidebar-logo .site-sub { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
+.sidebar-user { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.user-avatar { width: 36px; height: 36px; border-radius: var(--radius-full); background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; font-size: var(--text-sm); font-weight: var(--weight-bold); color: #fff; flex-shrink: 0; box-shadow: var(--shadow-primary); }
+.sidebar-user-info { min-width: 0; }
+.user-name { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-role { font-size: var(--text-xs); color: var(--text-muted); margin-top: 1px; }
+.sidebar-menu { list-style: none; padding: 12px 10px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.sidebar-menu li a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-secondary); text-decoration: none; transition: var(--transition-base); }
+.sidebar-menu li a svg { width: 17px; height: 17px; flex-shrink: 0; opacity: 0.7; }
+.sidebar-menu li a:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sidebar-menu li a:hover svg { opacity: 1; }
+.sidebar-menu li.active a { background: var(--primary-subtle); color: var(--primary); font-weight: var(--weight-semibold); }
+.sidebar-menu li.active a svg { opacity: 1; color: var(--primary); }
+.sidebar-footer { padding: 12px 10px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.btn-logout { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md); background: none; border: none; cursor: pointer; font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-muted); transition: var(--transition-base); text-align: left; }
+.btn-logout svg { width: 17px; height: 17px; flex-shrink: 0; }
+.btn-logout:hover { background: var(--danger-subtle); color: var(--danger); }
+.sidebar-toggle { display: none; position: fixed; top: 14px; left: 14px; z-index: 60; width: 40px; height: 40px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; align-items: center; justify-content: center; color: var(--text-secondary); transition: var(--transition-base); }
+.sidebar-toggle svg { width: 18px; height: 18px; }
+.sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 39; backdrop-filter: blur(2px); }
+.content { flex: 1; min-width: 0; padding: var(--content-padding); display: flex; flex-direction: column; gap: 24px; }
+@media (max-width: 900px) { .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); box-shadow: var(--shadow-xl); } .sidebar.open { transform: translateX(0); } .sidebar-toggle { display: flex; } .sidebar-backdrop { display: block; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; } .sidebar-backdrop.visible { opacity: 1; pointer-events: auto; } .content { padding: 16px; padding-top: 68px; } }
+</style>
 </head>
 <body>
-<div class="layout">
-  <nav class="sidebar">
-    <div class="sidebar-logo"><h2>EduvFinance</h2></div>
-    <ul class="sidebar-menu">
-      <li><a href="student.html">Dashboard</a></li>
-      <li><a href="aluno_cursos.html">Cursos</a></li>
-      <li class="active"><a href="aluno_trilha.html">Trilhas</a></li>
-      <li><a href="aluno_simulador.html">Simulador</a></li>
-    </ul>
-    <div class="sidebar-footer">
-      <span id="userName"></span>
-      <button onclick="logout()" class="btn btn-sm">Sair</button>
+
+<button class="sidebar-toggle" id="sidebarToggle"><i data-lucide="menu"></i></button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <h2>EduvFinance</h2>
+    <p class="site-sub">Educação Financeira</p>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar" id="userAvatar">U</div>
+    <div class="sidebar-user-info">
+      <div class="user-name" id="userName"></div>
+      <div class="user-role">Aluno</div>
     </div>
-  </nav>
+  </div>
+  <ul class="sidebar-menu">
+    <li><a href="student.html"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a></li>
+    <li><a href="aluno_cursos.html"><i data-lucide="book-open"></i><span>Cursos</span></a></li>
+    <li class="active"><a href="aluno_trilha.html"><i data-lucide="map"></i><span>Trilhas</span></a></li>
+    <li><a href="aluno_simulador.html"><i data-lucide="trending-up"></i><span>Simulador</span></a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <button onclick="logout()" class="btn-logout"><i data-lucide="log-out"></i><span>Sair</span></button>
+  </div>
+</nav>
 
   <main class="content">
     <!-- Seletor de Cursos -->
@@ -111,6 +156,8 @@
 <script>
 verificarSessao('aluno', usuario => {
   document.getElementById('userName').textContent = usuario.nome;
+  const av = document.getElementById('userAvatar');
+  if (av) av.textContent = usuario.nome.charAt(0).toUpperCase();
 
   const params = new URLSearchParams(window.location.search);
   const cursoId = params.get('curso_id');
@@ -128,6 +175,16 @@ verificarSessao('aluno', usuario => {
     carregarCursosParaTrilha();
   }
 });
+
+lucide.createIcons();
+
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+const sidebar = document.getElementById('sidebar');
+if (sidebarToggle) {
+  sidebarToggle.addEventListener('click', () => { sidebar.classList.toggle('open'); sidebarBackdrop.classList.toggle('visible'); });
+  sidebarBackdrop.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarBackdrop.classList.remove('visible'); });
+}
 </script>
 </body>
 </html>

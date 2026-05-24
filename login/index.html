@@ -4,40 +4,632 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login — EduvFinance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/style.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+/* ── Login Split-Screen Layout ───────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── Left Panel ─────────────────────────────────────────── */
+.auth-left {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 56px;
+  background: linear-gradient(145deg, #0D1526 0%, #0B1120 60%, #0E1830 100%);
+  overflow: hidden;
+}
+
+.auth-left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 700px 500px at 20% 30%, rgba(79,124,255,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 400px at 80% 80%, rgba(123,95,255,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* decorative blobs */
+.auth-blob {
+  position: absolute;
+  border-radius: var(--radius-full);
+  filter: blur(60px);
+  pointer-events: none;
+  opacity: 0.25;
+}
+.auth-blob-1 {
+  width: 320px; height: 320px;
+  background: var(--primary);
+  top: -80px; left: -80px;
+  animation: blobFloat 8s ease-in-out infinite;
+}
+.auth-blob-2 {
+  width: 200px; height: 200px;
+  background: #7B5FFF;
+  bottom: 60px; right: 40px;
+  animation: blobFloat 10s ease-in-out infinite reverse;
+}
+.auth-blob-3 {
+  width: 140px; height: 140px;
+  background: var(--info);
+  top: 50%; left: 60%;
+  animation: blobFloat 12s ease-in-out infinite 2s;
+}
+
+@keyframes blobFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(20px, -15px) scale(1.05); }
+  66%       { transform: translate(-10px, 20px) scale(0.97); }
+}
+
+/* glass card decorativo */
+.auth-glass-card {
+  position: absolute;
+  bottom: 48px;
+  left: 56px;
+  right: 56px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-xl);
+  padding: 20px 24px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.auth-glass-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  padding-right: 16px;
+}
+.auth-glass-stat:last-child { border-right: none; padding-right: 0; }
+
+.auth-glass-stat strong {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.auth-glass-stat span {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* brand + content */
+.auth-brand {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 48px;
+}
+
+.auth-brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.auth-brand-icon {
+  width: 44px; height: 44px;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-primary);
+}
+.auth-brand-icon svg { color: #fff; }
+
+.auth-brand-logo h1 {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.auth-brand-sub {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-left: 56px;
+}
+
+.auth-headline {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 32px;
+}
+
+.auth-headline h2 {
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-black);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+}
+
+.auth-headline h2 .gradient-word {
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.auth-headline p {
+  font-size: var(--text-md);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  max-width: 360px;
+}
+
+.auth-bullets {
+  position: relative;
+  z-index: 1;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 48px;
+}
+
+.auth-bullets li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.auth-bullet-icon {
+  width: 32px; height: 32px;
+  flex-shrink: 0;
+  background: var(--primary-subtle);
+  border: 1px solid var(--primary-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.auth-bullet-icon svg { color: var(--primary); }
+
+/* mobile collapse button */
+.auth-panel-toggle {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 100;
+  width: 40px; height: 40px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: var(--transition-base);
+}
+.auth-panel-toggle:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+/* ── Right Panel (form) ─────────────────────────────────── */
+.auth-right {
+  width: 480px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 40px;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.auth-form-wrap {
+  width: 100%;
+  max-width: 360px;
+}
+
+.auth-form-header {
+  margin-bottom: 32px;
+}
+
+.auth-form-header h2 {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.auth-form-header p {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* alerts */
+.alert {
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid;
+  animation: slideDown 0.2s ease;
+}
+@keyframes slideDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+.alert-error {
+  background: var(--danger-subtle);
+  border-color: var(--danger-border);
+  color: #FCA5A5;
+}
+.alert-success {
+  background: var(--success-subtle);
+  border-color: var(--success-border);
+  color: #86EFAC;
+}
+
+/* form fields */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.input-wrap {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+  display: flex;
+}
+
+.input-wrap input {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  padding: 12px 14px 12px 42px;
+  transition: var(--transition-base);
+  outline: none;
+  appearance: none;
+}
+
+.input-wrap input::placeholder { color: var(--text-muted); }
+
+.input-wrap input:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-overlay);
+}
+
+.input-wrap input:focus {
+  border-color: var(--border-focus);
+  background: var(--bg-overlay);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+/* password toggle */
+.input-eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  transition: var(--transition-fast);
+}
+.input-eye:hover { color: var(--text-secondary); }
+
+/* submit button */
+.btn-auth {
+  width: 100%;
+  padding: 13px 20px;
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: var(--transition-smooth);
+  box-shadow: var(--shadow-primary);
+  letter-spacing: 0.01em;
+  margin-top: 8px;
+}
+
+.btn-auth:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px rgba(79,124,255,0.45);
+}
+
+.btn-auth:active {
+  transform: translateY(0);
+  filter: brightness(1);
+}
+
+.auth-footer-link {
+  text-align: center;
+  margin-top: 24px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.auth-footer-link a {
+  color: var(--primary);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+.auth-footer-link a:hover { color: var(--primary-hover); text-decoration: underline; }
+
+/* divider */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .auth-left {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    padding: 80px 32px 32px;
+    overflow-y: auto;
+  }
+  .auth-left.mobile-open { display: flex; }
+  .auth-right {
+    width: 100%;
+    min-height: 100vh;
+    border-left: none;
+    padding: 56px 24px 40px;
+  }
+  .auth-panel-toggle { display: flex; }
+  .auth-glass-card { display: none; }
+}
+
+@media (max-width: 420px) {
+  .auth-right { padding: 64px 16px 32px; }
+  .auth-form-wrap { max-width: 100%; }
+  .auth-headline h2 { font-size: var(--text-3xl); }
+}
+</style>
 </head>
 <body>
-<div class="auth-container">
-  <div class="auth-box">
-    <div class="auth-logo">
+
+<!-- Mobile: botão para abrir painel esquerdo -->
+<button class="auth-panel-toggle" id="panelToggle" title="Ver mais sobre a plataforma">
+  <i data-lucide="info"></i>
+</button>
+
+<!-- ── Painel Esquerdo ────────────────────────────────────────── -->
+<div class="auth-left" id="authLeft">
+  <!-- blobs decorativos -->
+  <div class="auth-blob auth-blob-1"></div>
+  <div class="auth-blob auth-blob-2"></div>
+  <div class="auth-blob auth-blob-3"></div>
+
+  <!-- marca -->
+  <div class="auth-brand">
+    <div class="auth-brand-logo">
+      <div class="auth-brand-icon">
+        <i data-lucide="trending-up" style="width:22px;height:22px;"></i>
+      </div>
       <h1>EduvFinance</h1>
-      <p>Educação Financeira</p>
+    </div>
+    <p class="auth-brand-sub">Educação Financeira</p>
+  </div>
+
+  <!-- headline -->
+  <div class="auth-headline">
+    <h2>
+      Transforme sua<br>
+      <span class="gradient-word">relação com</span><br>
+      o dinheiro
+    </h2>
+    <p>Aprenda finanças de forma prática, com trilhas personalizadas e simuladores reais.</p>
+  </div>
+
+  <!-- bullets de valor -->
+  <ul class="auth-bullets">
+    <li>
+      <div class="auth-bullet-icon">
+        <i data-lucide="book-open" style="width:16px;height:16px;"></i>
+      </div>
+      Cursos e aulas criados por especialistas do mercado
+    </li>
+    <li>
+      <div class="auth-bullet-icon">
+        <i data-lucide="map" style="width:16px;height:16px;"></i>
+      </div>
+      Trilhas de aprendizado personalizadas ao seu perfil
+    </li>
+    <li>
+      <div class="auth-bullet-icon">
+        <i data-lucide="bar-chart-2" style="width:16px;height:16px;"></i>
+      </div>
+      Simulador financeiro para treinar decisões reais
+    </li>
+    <li>
+      <div class="auth-bullet-icon">
+        <i data-lucide="shield-check" style="width:16px;height:16px;"></i>
+      </div>
+      Progresso salvo e certificados de conclusão
+    </li>
+  </ul>
+
+  <!-- glass card com stats -->
+  <div class="auth-glass-card">
+    <div class="auth-glass-stat">
+      <strong>+500</strong>
+      <span>Alunos</span>
+    </div>
+    <div class="auth-glass-stat">
+      <strong>30+</strong>
+      <span>Cursos</span>
+    </div>
+    <div class="auth-glass-stat">
+      <strong>98%</strong>
+      <span>Satisfação</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Painel Direito (formulário) ────────────────────────────── -->
+<div class="auth-right">
+  <div class="auth-form-wrap">
+
+    <div class="auth-form-header">
+      <h2>Bem-vindo de volta</h2>
+      <p>Entre na sua conta para continuar aprendendo</p>
     </div>
 
+    <!-- alertas: IDs e classes preservados exatamente -->
     <div id="loginAlert" class="alert alert-error" style="display:none"></div>
     <div id="loginSucesso" class="alert alert-success" style="display:none"></div>
 
+    <!-- form: method e action preservados -->
     <form method="POST" action="../php/login.php">
+
       <div class="form-group">
         <label for="email">E-mail</label>
-        <input type="email" id="email" name="email" required placeholder="seu@email.com">
+        <div class="input-wrap">
+          <span class="input-icon">
+            <i data-lucide="mail" style="width:16px;height:16px;"></i>
+          </span>
+          <input type="email" id="email" name="email" required placeholder="seu@email.com">
+        </div>
       </div>
+
       <div class="form-group">
         <label for="senha">Senha</label>
-        <input type="password" id="senha" name="senha" required placeholder="••••••••">
+        <div class="input-wrap">
+          <span class="input-icon">
+            <i data-lucide="lock" style="width:16px;height:16px;"></i>
+          </span>
+          <input type="password" id="senha" name="senha" required placeholder="••••••••">
+          <button type="button" class="input-eye" id="eyeToggle" title="Mostrar/ocultar senha">
+            <i data-lucide="eye" id="eyeIcon" style="width:16px;height:16px;"></i>
+          </button>
+        </div>
       </div>
-      <button type="submit" class="btn btn-primary btn-full">Entrar</button>
+
+      <button type="submit" class="btn-auth">
+        <i data-lucide="log-in" style="width:16px;height:16px;"></i>
+        Entrar na conta
+      </button>
+
     </form>
 
-    <p class="auth-link">Não tem conta? <a href="cadastro.html">Cadastre-se</a></p>
+    <div class="auth-divider">ou</div>
+
+    <p class="auth-footer-link">
+      Não tem conta? <a href="cadastro.html">Cadastre-se gratuitamente</a>
+    </p>
+
   </div>
 </div>
+
+<!-- ── Scripts ────────────────────────────────────────────────── -->
 <script>
-const params = new URLSearchParams(window.location.search);
-const erro   = params.get('erro');
+/* leitura de query params — lógica original preservada */
+const params  = new URLSearchParams(window.location.search);
+const erro    = params.get('erro');
 const sucesso = params.get('sucesso');
-if (erro)   { const el = document.getElementById('loginAlert');  el.textContent = erro;   el.style.display = 'block'; }
+if (erro)    { const el = document.getElementById('loginAlert');  el.textContent = erro;   el.style.display = 'block'; }
 if (sucesso) { const el = document.getElementById('loginSucesso'); el.textContent = sucesso; el.style.display = 'block'; }
+</script>
+<script>
+lucide.createIcons();
+
+/* toggle visibilidade da senha */
+const eyeToggle = document.getElementById('eyeToggle');
+const senhaInput = document.getElementById('senha');
+const eyeIcon = document.getElementById('eyeIcon');
+let senhaVisivel = false;
+
+eyeToggle.addEventListener('click', () => {
+  senhaVisivel = !senhaVisivel;
+  senhaInput.type = senhaVisivel ? 'text' : 'password';
+  eyeIcon.setAttribute('data-lucide', senhaVisivel ? 'eye-off' : 'eye');
+  lucide.createIcons();
+});
+
+/* mobile: toggle painel esquerdo */
+const panelToggle = document.getElementById('panelToggle');
+const authLeft    = document.getElementById('authLeft');
+
+panelToggle.addEventListener('click', () => {
+  authLeft.classList.toggle('mobile-open');
+  const isOpen = authLeft.classList.contains('mobile-open');
+  panelToggle.querySelector('[data-lucide]').setAttribute('data-lucide', isOpen ? 'x' : 'info');
+  lucide.createIcons();
+});
 </script>
 </body>
 </html>

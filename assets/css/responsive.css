@@ -1,0 +1,214 @@
+/* ============================================================
+   DESIGN SYSTEM — RESPONSIVE
+   EduvFinance Premium Fintech Theme
+   ============================================================ */
+
+/* ── Large desktops (1440px+) ────────────────────────────────── */
+@media (min-width: 1440px) {
+  :root {
+    --content-padding: 36px;
+  }
+}
+
+/* ── Laptops / standard desktops (1024px–1439px) ─────────────── */
+@media (max-width: 1280px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  }
+
+  .simulator-layout {
+    grid-template-columns: 260px 1fr;
+  }
+}
+
+/* ── Small laptops / tablets landscape (768px–1023px) ───────── */
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 220px;
+    --content-padding: 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .simulator-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .simulator-form-card { position: static; }
+}
+
+/* ── Tablets portrait (768px–1023px) ────────────────────────── */
+@media (max-width: 900px) {
+  :root {
+    --sidebar-width: 200px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .courses-grid,
+  .course-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .trilha-card { width: 130px; }
+}
+
+/* ── Mobile (< 768px) ────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root {
+    --content-padding: 16px;
+  }
+
+  /* ── Sidebar becomes an overlay on mobile ────────────────── */
+  .sidebar {
+    transform: translateX(-100%);
+    width: var(--sidebar-width);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop { display: block; }
+
+  .sidebar-toggle {
+    display: flex;
+  }
+
+  /* Main content takes full width */
+  .content,
+  .main-content {
+    margin-left: 0;
+    padding-top: calc(var(--content-padding) + 48px);
+  }
+
+  /* ── Stats ───────────────────────────────────────────────── */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-card { padding: 16px; }
+  .stat-value { font-size: 26px; }
+
+  /* ── Grids ───────────────────────────────────────────────── */
+  .courses-grid,
+  .course-grid,
+  .lessons-grid,
+  .recommendations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Auth ────────────────────────────────────────────────── */
+  .auth-card,
+  .auth-box {
+    padding: 28px 22px;
+    border-radius: var(--radius-lg);
+  }
+
+  /* ── Tables ──────────────────────────────────────────────── */
+  .data-table td:not(:first-child):not(:last-child),
+  .table td:not(:first-child):not(:last-child) {
+    display: none;
+  }
+
+  /* ── Forms ───────────────────────────────────────────────── */
+  .form-row { grid-template-columns: 1fr; }
+
+  /* ── Simulator ───────────────────────────────────────────── */
+  .simulator-layout  { grid-template-columns: 1fr; }
+  .simulator-form-card { position: static; }
+  .sim-type-cards { grid-template-columns: 1fr 1fr; }
+
+  .sim-profile-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* ── Trilha ──────────────────────────────────────────────── */
+  .trilha-card { width: 118px; }
+  .trilha-card-numero { font-size: 18px; }
+  .trilha-card-icon   { font-size: 22px; }
+  .trilha-scroll { padding: 10px 4px; gap: 4px; }
+  .trilha-conector { width: 10px; height: 46px; }
+
+  .trilha-stats-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .stat-mini {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 12px;
+  }
+
+  .stat-mini-value { font-size: 18px; }
+
+  /* ── Page header ─────────────────────────────────────────── */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .page-header h1 { font-size: var(--text-xl); }
+
+  /* ── Modal ───────────────────────────────────────────────── */
+  .modal-content {
+    margin: 10px;
+    border-radius: var(--radius-lg);
+  }
+
+  /* ── Misc ────────────────────────────────────────────────── */
+  .actions { flex-wrap: wrap; }
+  .form-actions { flex-wrap: wrap; }
+}
+
+/* ── Extra small (< 400px) ───────────────────────────────────── */
+@media (max-width: 420px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card { padding: 14px; }
+
+  .sim-type-cards { grid-template-columns: 1fr; }
+
+  .auth-card,
+  .auth-box { padding: 22px 18px; }
+
+  .toast { left: 12px; right: 12px; max-width: none; }
+}
+
+/* ── Tablet landscape specific fixes ────────────────────────── */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar-toggle { display: none; }
+
+  .content,
+  .main-content { padding-top: var(--content-padding); }
+}
+
+/* ── Print ───────────────────────────────────────────────────── */
+@media print {
+  .sidebar,
+  .sidebar-toggle,
+  .sidebar-backdrop,
+  .toast {
+    display: none !important;
+  }
+
+  .content,
+  .main-content {
+    margin-left: 0 !important;
+  }
+
+  body { background: #fff; color: #000; }
+  .card { box-shadow: none; border: 1px solid #ddd; }
+}

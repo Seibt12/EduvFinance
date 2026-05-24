@@ -1,0 +1,376 @@
+/* ============================================================
+   DESIGN SYSTEM — LAYOUT
+   EduvFinance Premium Fintech Theme
+   ============================================================ */
+
+/* ── App Shell ───────────────────────────────────────────────── */
+
+.layout,
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+.content,
+.main-content {
+  flex: 1;
+  padding: var(--content-padding);
+  min-width: 0;
+  animation: fadeIn 0.3s ease;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────── */
+
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 200;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Sidebar subtle gradient overlay */
+.sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(79, 124, 255, 0.04) 0%,
+    transparent 40%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sidebar > * { position: relative; z-index: 1; }
+
+/* ── Sidebar Logo / Brand ────────────────────────────────────── */
+
+.sidebar-logo,
+.sidebar-header {
+  padding: 20px 18px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.sidebar-logo h2,
+.sidebar-header .site-name {
+  font-size: 20px;
+  font-weight: var(--weight-bold);
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0;
+  letter-spacing: -0.3px;
+}
+
+.site-sub {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  margin-top: 2px;
+}
+
+/* ── User Info Block ─────────────────────────────────────────── */
+
+.sidebar-user {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.user-info {
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  background: var(--gradient-primary);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: var(--weight-bold);
+  color: #fff;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+.user-name {
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  margin-bottom: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-role {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  text-transform: capitalize;
+}
+
+/* ── Sidebar Navigation ──────────────────────────────────────── */
+
+.sidebar-nav,
+.sidebar-menu {
+  flex: 1;
+  padding: 10px 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  list-style: none;
+}
+
+.sidebar-menu { margin: 0; }
+
+/* Nav group label */
+.nav-group-label {
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  color: var(--text-disabled);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 14px 10px 6px;
+}
+
+/* Nav item */
+.nav-item,
+.sidebar-menu li a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: var(--transition-base);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  margin-bottom: 2px;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-item svg,
+.sidebar-menu li a svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: var(--transition-fast);
+}
+
+.nav-item:hover,
+.sidebar-menu li a:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+.nav-item:hover svg,
+.sidebar-menu li a:hover svg {
+  opacity: 1;
+}
+
+.nav-item.active,
+.sidebar-menu li.active a {
+  background: var(--primary-subtle);
+  color: var(--primary-hover);
+  border-color: var(--primary-border);
+  font-weight: var(--weight-semibold);
+}
+
+.nav-item.active svg,
+.sidebar-menu li.active a svg {
+  opacity: 1;
+  color: var(--primary);
+}
+
+/* Active glow dot */
+.nav-item.active::before,
+.sidebar-menu li.active a::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--primary);
+  border-radius: 0 3px 3px 0;
+}
+
+/* ── Sidebar Footer ──────────────────────────────────────────── */
+
+.sidebar-footer {
+  padding: 14px 10px;
+  border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+/* ── Mobile Sidebar Toggle ───────────────────────────────────── */
+
+.sidebar-toggle {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 300;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-base);
+}
+
+.sidebar-toggle:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.sidebar-toggle svg { width: 18px; height: 18px; }
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 190;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-backdrop.visible { opacity: 1; }
+
+/* ── Auth Pages ──────────────────────────────────────────────── */
+
+.auth-page,
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--bg-base);
+  position: relative;
+}
+
+/* Animated background mesh */
+.auth-page::before,
+.auth-container::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 30%, rgba(79, 124, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 80% 70%, rgba(123, 95, 255, 0.06) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auth-card,
+.auth-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 40px;
+  width: 100%;
+  max-width: 440px;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  position: relative;
+  z-index: 1;
+  animation: fadeInScale 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.auth-card::before,
+.auth-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: var(--gradient-primary);
+  opacity: 0.5;
+  border-radius: var(--radius-full);
+}
+
+.auth-logo { text-align: center; margin-bottom: 32px; }
+
+.auth-logo h1 {
+  font-size: 24px;
+  font-weight: var(--weight-bold);
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.auth-logo p {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin-top: 5px;
+}
+
+.auth-title    { font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: 4px; }
+.auth-subtitle { color: var(--text-muted); font-size: var(--text-sm); margin-bottom: 22px; }
+
+.site-name {
+  font-size: 22px;
+  font-weight: var(--weight-bold);
+  margin-bottom: 4px;
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 18px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.auth-link a {
+  color: var(--text-accent);
+  font-weight: var(--weight-medium);
+}

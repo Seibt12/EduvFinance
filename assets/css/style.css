@@ -1,3 +1,17 @@
+/* ============================================================
+   EduvFinance — Main Stylesheet
+   Design System is imported first; legacy styles below remain
+   for full backward compatibility during incremental migration.
+   ============================================================ */
+
+/* ── Design System Imports ─────────────────────────────────── */
+@import url('variables.css');
+@import url('animations.css');
+@import url('components.css');
+@import url('layout.css');
+@import url('responsive.css');
+
+/* ── Legacy Google Fonts (kept for compatibility) ─────────── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* ============================================================
@@ -1444,7 +1458,7 @@ form .form-group:first-of-type {
    ============================================================ */
 
 .layout  { display: flex; min-height: 100vh; }
-.content { flex: 1; margin-left: 240px; padding: 24px; animation: fadeIn 0.3s ease; }
+.content { flex: 1; padding: 24px; animation: fadeIn 0.3s ease; }
 
 /* Sidebar PHP clássico */
 .sidebar-logo { padding: 18px 16px; border-bottom: 1px solid #2a2a2a; }

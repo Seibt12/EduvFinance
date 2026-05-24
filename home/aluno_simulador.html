@@ -4,24 +4,69 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Simulador — EduvFinance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); background: var(--bg-base); color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; }
+.sidebar { width: var(--sidebar-width); flex-shrink: 0; height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column; background: var(--bg-surface); border-right: 1px solid var(--border); overflow-y: auto; overflow-x: hidden; z-index: 40; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+.sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.sidebar-logo h2 { font-size: var(--text-lg); font-weight: var(--weight-bold); background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; }
+.sidebar-logo .site-sub { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
+.sidebar-user { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.user-avatar { width: 36px; height: 36px; border-radius: var(--radius-full); background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; font-size: var(--text-sm); font-weight: var(--weight-bold); color: #fff; flex-shrink: 0; box-shadow: var(--shadow-primary); }
+.sidebar-user-info { min-width: 0; }
+.user-name { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-role { font-size: var(--text-xs); color: var(--text-muted); margin-top: 1px; }
+.sidebar-menu { list-style: none; padding: 12px 10px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.sidebar-menu li a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-secondary); text-decoration: none; transition: var(--transition-base); }
+.sidebar-menu li a svg { width: 17px; height: 17px; flex-shrink: 0; opacity: 0.7; }
+.sidebar-menu li a:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sidebar-menu li a:hover svg { opacity: 1; }
+.sidebar-menu li.active a { background: var(--primary-subtle); color: var(--primary); font-weight: var(--weight-semibold); }
+.sidebar-menu li.active a svg { opacity: 1; color: var(--primary); }
+.sidebar-footer { padding: 12px 10px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.btn-logout { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md); background: none; border: none; cursor: pointer; font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-muted); transition: var(--transition-base); text-align: left; }
+.btn-logout svg { width: 17px; height: 17px; flex-shrink: 0; }
+.btn-logout:hover { background: var(--danger-subtle); color: var(--danger); }
+.sidebar-toggle { display: none; position: fixed; top: 14px; left: 14px; z-index: 60; width: 40px; height: 40px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; align-items: center; justify-content: center; color: var(--text-secondary); transition: var(--transition-base); }
+.sidebar-toggle svg { width: 18px; height: 18px; }
+.sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 39; backdrop-filter: blur(2px); }
+.content { flex: 1; min-width: 0; padding: var(--content-padding); display: flex; flex-direction: column; gap: 24px; }
+@media (max-width: 900px) { .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); box-shadow: var(--shadow-xl); } .sidebar.open { transform: translateX(0); } .sidebar-toggle { display: flex; } .sidebar-backdrop { display: block; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; } .sidebar-backdrop.visible { opacity: 1; pointer-events: auto; } .content { padding: 16px; padding-top: 68px; } }
+</style>
 </head>
 <body>
-<div class="layout">
-  <nav class="sidebar">
-    <div class="sidebar-logo"><h2>EduvFinance</h2></div>
-    <ul class="sidebar-menu">
-      <li><a href="student.html">Dashboard</a></li>
-      <li><a href="aluno_cursos.html">Cursos</a></li>
-      <li><a href="aluno_trilha.html">Trilhas</a></li>
-      <li class="active"><a href="aluno_simulador.html">Simulador</a></li>
-    </ul>
-    <div class="sidebar-footer">
-      <span id="userName"></span>
-      <button onclick="logout()" class="btn btn-sm">Sair</button>
+
+<button class="sidebar-toggle" id="sidebarToggle"><i data-lucide="menu"></i></button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <h2>EduvFinance</h2>
+    <p class="site-sub">Educação Financeira</p>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar" id="userAvatar">U</div>
+    <div class="sidebar-user-info">
+      <div class="user-name" id="userName"></div>
+      <div class="user-role">Aluno</div>
     </div>
-  </nav>
+  </div>
+  <ul class="sidebar-menu">
+    <li><a href="student.html"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a></li>
+    <li><a href="aluno_cursos.html"><i data-lucide="book-open"></i><span>Cursos</span></a></li>
+    <li><a href="aluno_trilha.html"><i data-lucide="map"></i><span>Trilhas</span></a></li>
+    <li class="active"><a href="aluno_simulador.html"><i data-lucide="trending-up"></i><span>Simulador</span></a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <button onclick="logout()" class="btn-logout"><i data-lucide="log-out"></i><span>Sair</span></button>
+  </div>
+</nav>
 
   <main class="content">
     <div class="page-header">
@@ -98,39 +143,115 @@
       <div class="card-body">
         <div id="perfilAtual" style="display:none"></div>
 
-        <form method="POST" action="../php/investor_salvar.php">
+        <form method="POST" action="../php/investor_salvar.php" id="formPerfil">
           <div class="quiz-question">
             <p><strong>1. Como você reage a perdas financeiras?</strong></p>
-            <label><input type="radio" name="q1" value="a" required> Fico muito preocupado e prefiro evitar qualquer risco</label>
-            <label><input type="radio" name="q1" value="b"> Aceito pequenas perdas, mas prefiro segurança</label>
-            <label><input type="radio" name="q1" value="c"> Encaro como parte do processo de investir</label>
+            <div class="quiz-options">
+              <label class="quiz-option">
+                <input type="radio" name="q1" value="a" required hidden>
+                <span class="option-letter">A</span>
+                Fico muito preocupado e prefiro evitar qualquer risco
+              </label>
+              <label class="quiz-option">
+                <input type="radio" name="q1" value="b" hidden>
+                <span class="option-letter">B</span>
+                Aceito pequenas perdas, mas prefiro segurança
+              </label>
+              <label class="quiz-option">
+                <input type="radio" name="q1" value="c" hidden>
+                <span class="option-letter">C</span>
+                Encaro como parte do processo de investir
+              </label>
+            </div>
           </div>
+
           <div class="quiz-question">
             <p><strong>2. Qual é seu objetivo principal ao investir?</strong></p>
-            <label><input type="radio" name="q2" value="a" required> Preservar meu dinheiro</label>
-            <label><input type="radio" name="q2" value="b"> Crescimento moderado com segurança</label>
-            <label><input type="radio" name="q2" value="c"> Maximizar o retorno, mesmo com risco alto</label>
+            <div class="quiz-options">
+              <label class="quiz-option">
+                <input type="radio" name="q2" value="a" required hidden>
+                <span class="option-letter">A</span>
+                Preservar meu dinheiro
+              </label>
+              <label class="quiz-option">
+                <input type="radio" name="q2" value="b" hidden>
+                <span class="option-letter">B</span>
+                Crescimento moderado com segurança
+              </label>
+              <label class="quiz-option">
+                <input type="radio" name="q2" value="c" hidden>
+                <span class="option-letter">C</span>
+                Maximizar o retorno, mesmo com risco alto
+              </label>
+            </div>
           </div>
+
           <div class="quiz-question">
             <p><strong>3. Por quanto tempo você pretende deixar o dinheiro investido?</strong></p>
-            <label><input type="radio" name="q3" value="a" required> Menos de 1 ano</label>
-            <label><input type="radio" name="q3" value="b"> 1 a 5 anos</label>
-            <label><input type="radio" name="q3" value="c"> Mais de 5 anos</label>
+            <div class="quiz-options">
+              <label class="quiz-option">
+                <input type="radio" name="q3" value="a" required hidden>
+                <span class="option-letter">A</span>
+                Menos de 1 ano
+              </label>
+              <label class="quiz-option">
+                <input type="radio" name="q3" value="b" hidden>
+                <span class="option-letter">B</span>
+                1 a 5 anos
+              </label>
+              <label class="quiz-option">
+                <input type="radio" name="q3" value="c" hidden>
+                <span class="option-letter">C</span>
+                Mais de 5 anos
+              </label>
+            </div>
           </div>
+
           <div class="quiz-question">
             <p><strong>4. O que você faria se seu investimento caísse 20%?</strong></p>
-            <label><input type="radio" name="q4" value="a" required> Resgataria tudo imediatamente</label>
-            <label><input type="radio" name="q4" value="b"> Esperaria para ver se recupera</label>
-            <label><input type="radio" name="q4" value="c"> Aproveitaria para investir mais</label>
+            <div class="quiz-options">
+              <label class="quiz-option">
+                <input type="radio" name="q4" value="a" required hidden>
+                <span class="option-letter">A</span>
+                Resgataria tudo imediatamente
+              </label>
+              <label class="quiz-option">
+                <input type="radio" name="q4" value="b" hidden>
+                <span class="option-letter">B</span>
+                Esperaria para ver se recupera
+              </label>
+              <label class="quiz-option">
+                <input type="radio" name="q4" value="c" hidden>
+                <span class="option-letter">C</span>
+                Aproveitaria para investir mais
+              </label>
+            </div>
           </div>
+
           <div class="quiz-question">
             <p><strong>5. Qual é sua experiência com investimentos?</strong></p>
-            <label><input type="radio" name="q5" value="a" required> Nenhuma — só poupança</label>
-            <label><input type="radio" name="q5" value="b"> Básica — já investi em CDB ou fundos</label>
-            <label><input type="radio" name="q5" value="c"> Avançada — ações, cripto, etc.</label>
+            <div class="quiz-options">
+              <label class="quiz-option">
+                <input type="radio" name="q5" value="a" required hidden>
+                <span class="option-letter">A</span>
+                Nenhuma — só poupança
+              </label>
+              <label class="quiz-option">
+                <input type="radio" name="q5" value="b" hidden>
+                <span class="option-letter">B</span>
+                Básica — já investi em CDB ou fundos
+              </label>
+              <label class="quiz-option">
+                <input type="radio" name="q5" value="c" hidden>
+                <span class="option-letter">C</span>
+                Avançada — ações, cripto, etc.
+              </label>
+            </div>
           </div>
-          <br>
-          <button type="submit" class="btn btn-primary">Salvar perfil</button>
+
+          <div style="margin-top: 8px;">
+            <button type="submit" class="btn btn-primary">Salvar perfil</button>
+          </div>
         </form>
       </div>
     </div>
@@ -144,6 +265,8 @@ let grafico = null;
 
 verificarSessao('aluno', usuario => {
   document.getElementById('userName').textContent = usuario.nome;
+  const av = document.getElementById('userAvatar');
+  if (av) av.textContent = usuario.nome.charAt(0).toUpperCase();
 
   const params  = new URLSearchParams(window.location.search);
   const sucesso = params.get('sucesso');
@@ -249,8 +372,26 @@ async function carregarPerfilInvestidor() {
   try {
     const resp = await fetch('../php/sessao_check.php', { credentials: 'include' });
   } catch {}
-  // O perfil é carregado via sessao_check; para exibir o perfil atual precisamos de endpoint dedicado.
-  // Por enquanto, o formulário sempre aparece para permitir refazer o questionário.
+}
+
+// Quiz option selection highlight
+document.querySelectorAll('#formPerfil .quiz-options').forEach(group => {
+  group.querySelectorAll('.quiz-option').forEach(option => {
+    option.addEventListener('click', () => {
+      group.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+      option.classList.add('selected');
+    });
+  });
+});
+
+lucide.createIcons();
+
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+const sidebar = document.getElementById('sidebar');
+if (sidebarToggle) {
+  sidebarToggle.addEventListener('click', () => { sidebar.classList.toggle('open'); sidebarBackdrop.classList.toggle('visible'); });
+  sidebarBackdrop.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarBackdrop.classList.remove('visible'); });
 }
 </script>
 </body>

@@ -78,16 +78,16 @@ async function carregarCursos() {
         let progressHtml = '';
         let actionsHtml  = '';
         if (matriculado) {
-            progressHtml = `<div class="progress-bar" style="margin-top:8px">
+            progressHtml = `<div class="progress-bar">
                 <div class="progress-fill" style="width:${pct}%"></div>
             </div>
-            <small>${conclC}/${totalC} — ${pct}%</small>`;
+            <small>${conclC}/${totalC} aulas &mdash; ${pct}%</small>`;
             actionsHtml = `<div class="course-actions">
-                <a href="aluno_cursos.html?curso=${c.id}" class="btn btn-sm btn-primary">Ver aulas</a>
+                <a href="aluno_cursos.html?curso=${c.id}" class="btn-action btn-action-primary">Ver aulas</a>
                 <form method="POST" action="../php/courses_matricular.php" style="display:inline">
                     <input type="hidden" name="course_id" value="${c.id}">
                     <input type="hidden" name="action" value="unenroll">
-                    <button type="submit" class="btn btn-sm btn-danger"
+                    <button type="submit" class="btn-action btn-action-danger"
                             onclick="return confirm('Cancelar matrícula?')">Cancelar matrícula</button>
                 </form>
             </div>`;
@@ -96,7 +96,7 @@ async function carregarCursos() {
                 <form method="POST" action="../php/courses_matricular.php">
                     <input type="hidden" name="course_id" value="${c.id}">
                     <input type="hidden" name="action" value="enroll">
-                    <button type="submit" class="btn btn-sm btn-primary">Matricular-se</button>
+                    <button type="submit" class="btn-action btn-action-enroll">Matricular-se</button>
                 </form>
             </div>`;
         }
@@ -147,23 +147,23 @@ async function carregarAulasDoCurso(cursoId) {
         let conteudoHtml = `<strong>${escHtml(a.titulo)}</strong>`;
         if (a.descricao) conteudoHtml += `<br><small>${escHtml(a.descricao)}</small>`;
         if (a.video_link) {
-            conteudoHtml += `<br><a href="${escHtml(a.video_link)}" target="_blank" rel="noopener" class="btn btn-sm btn-secondary" style="margin-top:6px">Assistir vídeo</a>`;
+            conteudoHtml += `<br><a href="${escHtml(a.video_link)}" target="_blank" rel="noopener" class="btn-table btn-table-video">Assistir vídeo</a>`;
         }
         if (a.attachment_path) {
-            conteudoHtml += `<br><a href="../${escHtml(a.attachment_path)}" target="_blank" rel="noopener" class="btn btn-sm btn-secondary" style="margin-top:6px">📎 ${escHtml(a.attachment_name || 'Material de apoio')}</a>`;
+            conteudoHtml += `<br><a href="../${escHtml(a.attachment_path)}" target="_blank" rel="noopener" class="btn-table btn-table-file">📎 ${escHtml(a.attachment_name || 'Material de apoio')}</a>`;
         }
         tbody.innerHTML += `<tr>
             <td>${conteudoHtml}</td>
             <td><span class="badge badge-${a.nivel}">${labelNivel[a.nivel] || a.nivel}</span></td>
             <td>${concluido
                 ? '<span class="badge badge-success">Concluída</span>'
-                : '<span class="badge">Pendente</span>'}</td>
+                : '<span class="badge" style="background:var(--bg-elevated);color:var(--text-muted);border:1px solid var(--border)">Pendente</span>'}</td>
             <td>
                 <form method="POST" action="../php/progress_marcar.php">
                     <input type="hidden" name="lesson_id" value="${a.id}">
                     <input type="hidden" name="concluido" value="${concluido ? '0' : '1'}">
                     <input type="hidden" name="redirect" value="aluno_cursos.html?curso=${cursoId}">
-                    <button type="submit" class="btn btn-sm ${concluido ? 'btn-secondary' : 'btn-primary'}">
+                    <button type="submit" class="btn-table ${concluido ? 'btn-table-done' : 'btn-table-primary'}">
                         ${concluido ? 'Desmarcar' : 'Marcar concluída'}
                     </button>
                 </form>
