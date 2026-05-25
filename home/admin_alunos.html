@@ -99,8 +99,17 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 .btn-del:hover { background: var(--danger); color: #fff; }
 
 /* ── Responsive ── */
-@media (max-width: 900px) { .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); box-shadow: var(--shadow-xl); } .sidebar.open { transform: translateX(0); } .sidebar-toggle { display: flex; } .content { padding: 16px; padding-top: 68px; } }
-@media (max-width: 600px) { .card-body { padding: 16px; } }
+@media (max-width: 900px) {
+  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); box-shadow: var(--shadow-xl); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-toggle { display: flex; }
+  .content { padding: 16px; padding-top: 68px; }
+}
+@media (max-width: 600px) {
+  .card-body { padding: 16px; }
+  .actions { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .btn-edit, .btn-del { width: 100%; justify-content: center; }
+}
 </style>
 </head>
 <body>

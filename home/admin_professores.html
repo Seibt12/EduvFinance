@@ -73,7 +73,17 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 .btn-del { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: var(--text-xs); font-weight: var(--weight-medium); cursor: pointer; border: 1px solid var(--danger-border); background: var(--danger-subtle); color: var(--danger); transition: var(--transition-base); }
 .btn-del:hover { background: var(--danger); color: #fff; }
 
-@media (max-width: 900px) { .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); box-shadow: var(--shadow-xl); } .sidebar.open { transform: translateX(0); } .sidebar-toggle { display: flex; } .content { padding: 16px; padding-top: 68px; } }
+@media (max-width: 900px) {
+  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); box-shadow: var(--shadow-xl); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-toggle { display: flex; }
+  .content { padding: 16px; padding-top: 68px; }
+}
+@media (max-width: 600px) {
+  .card-body { padding: 16px; }
+  .actions { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .btn-edit, .btn-del { width: 100%; justify-content: center; }
+}
 </style>
 </head>
 <body>
