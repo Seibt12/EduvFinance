@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 if (empty($_SESSION['user_id'])) {
-    header('Location: ../login/index.php');
+    header('Location: ../login/index.html');
     exit;
 }
 if (($_SESSION['user_tipo'] ?? '') !== 'professor') {

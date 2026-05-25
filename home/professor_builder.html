@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor de Curso — EduvFinance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); background: var(--bg-base); color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; }
+
+/* ── Sidebar ── */
+.sidebar { width: var(--sidebar-width); flex-shrink: 0; height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column; background: var(--bg-surface); border-right: 1px solid var(--border); overflow-y: auto; z-index: 40; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+.sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid var(--border); }
+.sidebar-logo h2 { font-size: var(--text-lg); font-weight: var(--weight-bold); background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; }
+.sidebar-logo .site-sub { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
+.sidebar-user { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.user-avatar { width: 36px; height: 36px; border-radius: var(--radius-full); background: linear-gradient(135deg,#22C55E,#16A34A); display: flex; align-items: center; justify-content: center; font-size: var(--text-sm); font-weight: var(--weight-bold); color: #fff; flex-shrink: 0; }
+.sidebar-user-info { min-width: 0; }
+.user-name { font-size: var(--text-sm); font-weight: var(--weight-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-role { font-size: var(--text-xs); color: var(--text-muted); margin-top: 1px; }
+.role-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-full); font-size: 10px; font-weight: var(--weight-semibold); text-transform: uppercase; background: var(--success-subtle); color: var(--success); border: 1px solid var(--success-border); }
+.sidebar-menu { list-style: none; padding: 12px 10px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.sidebar-menu li a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-secondary); text-decoration: none; transition: var(--transition-base); }
+.sidebar-menu li a:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sidebar-footer { padding: 12px 10px 16px; border-top: 1px solid var(--border); }
+.btn-logout { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md); background: none; border: none; cursor: pointer; font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-muted); transition: var(--transition-base); text-align: left; }
+.btn-logout:hover { background: var(--danger-subtle); color: var(--danger); }
+.sidebar-toggle { display: none; position: fixed; top: 14px; left: 14px; z-index: 60; width: 40px; height: 40px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; align-items: center; justify-content: center; color: var(--text-secondary); }
+.sidebar-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 39; backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+.sidebar-backdrop.visible { opacity: 1; pointer-events: auto; }
+
+/* ── Builder layout ── */
+.builder-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.builder-topbar { background: var(--bg-surface); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; position: sticky; top: 0; z-index: 30; }
+.builder-back { display: inline-flex; align-items: center; gap: 7px; font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-secondary); text-decoration: none; transition: var(--transition-base); }
+.builder-back:hover { color: var(--text-primary); }
+.builder-back svg { width: 15px; height: 15px; }
+.builder-title { font-size: var(--text-base); font-weight: var(--weight-semibold); color: var(--text-primary); }
+.builder-status { font-size: var(--text-xs); font-weight: var(--weight-medium); color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+.save-indicator { display: flex; align-items: center; gap: 5px; font-size: var(--text-xs); color: var(--text-muted); }
+
+/* ── Stepper ── */
+.stepper-wrap { padding: 24px 32px; border-bottom: 1px solid var(--border); background: var(--bg-surface); }
+.stepper { display: flex; align-items: center; gap: 0; max-width: 600px; }
+.step { display: flex; align-items: center; gap: 10px; flex: 1; cursor: pointer; }
+.step-num { width: 32px; height: 32px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-size: var(--text-sm); font-weight: var(--weight-bold); flex-shrink: 0; transition: var(--transition-base); }
+.step-num.pending  { background: var(--bg-elevated); color: var(--text-muted); border: 2px solid var(--border); }
+.step-num.active   { background: var(--primary); color: #fff; border: 2px solid var(--primary); box-shadow: 0 0 0 4px var(--primary-glow); }
+.step-num.done     { background: var(--success); color: #fff; border: 2px solid var(--success); }
+.step-label { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-muted); white-space: nowrap; }
+.step.active .step-label { color: var(--text-primary); font-weight: var(--weight-semibold); }
+.step-connector { flex: 1; height: 2px; background: var(--border); margin: 0 8px; transition: var(--transition-base); min-width: 20px; }
+.step-connector.done { background: var(--success); }
+
+/* ── Main content ── */
+.builder-content { flex: 1; padding: 32px; max-width: 860px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+/* ── Panels ── */
+.panel { display: none; }
+.panel.active { display: flex; flex-direction: column; gap: 20px; }
+.panel-title { font-size: var(--text-xl); font-weight: var(--weight-bold); letter-spacing: -0.02em; }
+.panel-subtitle { font-size: var(--text-sm); color: var(--text-muted); margin-top: 4px; }
+
+/* ── Form elements ── */
+.form-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 24px; }
+.form-card h3 { font-size: var(--text-base); font-weight: var(--weight-semibold); color: var(--text-primary); margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 7px; }
+.form-group label { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-secondary); }
+.form-group label .req { color: var(--danger); margin-left: 2px; }
+.form-group input, .form-group textarea, .form-group select {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md);
+  color: var(--text-primary); font-family: var(--font-sans); font-size: var(--text-base);
+  padding: 11px 14px; transition: var(--transition-base); outline: none; width: 100%;
+}
+.form-group input::placeholder, .form-group textarea::placeholder { color: var(--text-muted); }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--border-focus); background: var(--bg-overlay); box-shadow: 0 0 0 3px var(--primary-glow); }
+.form-group textarea { resize: vertical; min-height: 100px; }
+.form-group select option { background: var(--bg-elevated); }
+.form-hint { font-size: var(--text-xs); color: var(--text-muted); }
+
+
+/* ── Panel actions ── */
+.panel-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 8px; }
+.btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; background: var(--gradient-primary); border: none; border-radius: var(--radius-md); color: #fff; font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-semibold); cursor: pointer; box-shadow: var(--shadow-primary); transition: var(--transition-smooth); }
+.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.btn-primary svg { width: 16px; height: 16px; }
+.btn-secondary { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-secondary); font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-medium); cursor: pointer; transition: var(--transition-base); }
+.btn-secondary:hover { background: var(--bg-overlay); color: var(--text-primary); }
+.btn-secondary svg { width: 16px; height: 16px; }
+
+/* ── Lessons panel ── */
+.lessons-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.lessons-header h3 { font-size: var(--text-base); font-weight: var(--weight-semibold); }
+.lessons-list { display: flex; flex-direction: column; gap: 8px; }
+.lesson-item { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; display: flex; align-items: center; gap: 12px; transition: var(--transition-base); }
+.lesson-item:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+.lesson-item.dragging { opacity: .5; border-style: dashed; }
+.lesson-item.drag-over { border-color: var(--primary); background: var(--primary-subtle); }
+.lesson-drag { cursor: grab; color: var(--text-muted); flex-shrink: 0; display: flex; padding: 2px; border-radius: var(--radius-sm); }
+.lesson-drag:hover { color: var(--text-secondary); background: var(--bg-hover); }
+.lesson-drag svg { width: 16px; height: 16px; }
+.lesson-num { width: 26px; height: 26px; border-radius: var(--radius-full); background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: var(--weight-bold); color: var(--text-muted); flex-shrink: 0; }
+.lesson-info { flex: 1; min-width: 0; }
+.lesson-title { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lesson-meta { font-size: var(--text-xs); color: var(--text-muted); display: flex; gap: 8px; margin-top: 3px; flex-wrap: wrap; }
+.lesson-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.btn-icon { width: 30px; height: 30px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-base); color: var(--text-muted); }
+.btn-icon:hover { background: var(--bg-overlay); color: var(--text-primary); }
+.btn-icon.danger:hover { background: var(--danger-subtle); color: var(--danger); border-color: var(--danger-border); }
+.btn-icon svg { width: 14px; height: 14px; }
+.lessons-empty { background: var(--bg-surface); border: 2px dashed var(--border); border-radius: var(--radius-xl); padding: 40px 24px; text-align: center; }
+.lessons-empty svg { width: 40px; height: 40px; color: var(--text-muted); opacity: .4; margin-bottom: 12px; }
+.lessons-empty p { font-size: var(--text-sm); color: var(--text-muted); }
+
+/* ── Lesson form modal ── */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; }
+.modal-backdrop.open { display: flex; }
+.modal-box { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+.modal-box .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg-surface); z-index: 1; }
+.modal-box .modal-header h2 { font-size: var(--text-lg); font-weight: var(--weight-semibold); }
+.modal-box .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.modal-box .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ── Review panel ── */
+.checklist { display: flex; flex-direction: column; gap: 10px; }
+.check-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.check-item.ok { border-color: var(--success-border); background: var(--success-subtle); }
+.check-item.fail { border-color: var(--danger-border); background: var(--danger-subtle); }
+.check-icon { width: 28px; height: 28px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.check-item.ok   .check-icon { background: var(--success); }
+.check-item.fail .check-icon { background: var(--danger); }
+.check-item svg { color: var(--text-muted); }
+.check-item.ok   svg, .check-item.fail svg { color: #fff; width: 14px; height: 14px; }
+.check-label { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-primary); }
+.check-item.fail .check-label { color: var(--danger); }
+
+/* ── Submit section ── */
+.submit-box { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 28px; text-align: center; }
+.submit-box h3 { font-size: var(--text-lg); font-weight: var(--weight-bold); margin-bottom: 8px; }
+.submit-box p { font-size: var(--text-sm); color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+.btn-submit-review { display: inline-flex; align-items: center; gap: 8px; padding: 13px 28px; background: linear-gradient(135deg,#22C55E,#16A34A); border: none; border-radius: var(--radius-md); color: #fff; font-family: var(--font-sans); font-size: var(--text-base); font-weight: var(--weight-bold); cursor: pointer; box-shadow: var(--shadow-success); transition: var(--transition-smooth); }
+.btn-submit-review:hover { filter: brightness(1.1); transform: translateY(-2px); }
+.btn-submit-review:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.btn-submit-review svg { width: 18px; height: 18px; }
+
+/* ── Status locked notice ── */
+.locked-notice { background: var(--warning-subtle); border: 1px solid var(--warning-border); border-radius: var(--radius-lg); padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+.locked-notice svg { width: 20px; height: 20px; color: var(--warning); flex-shrink: 0; }
+.locked-notice p { font-size: var(--text-sm); color: var(--warning); font-weight: var(--weight-medium); }
+
+/* ── Badges ── */
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-full); font-size: 11px; font-weight: var(--weight-semibold); }
+.badge-draft    { background: rgba(148,163,184,.15); color: var(--text-muted); }
+.badge-pendente { background: var(--warning-subtle); color: var(--warning); }
+.badge-aprovado { background: var(--success-subtle); color: var(--success); }
+.badge-rejeitado{ background: var(--danger-subtle); color: var(--danger); }
+
+/* ── Responsive ── */
+@media (max-width: 900px) { .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); box-shadow: var(--shadow-xl); } .sidebar.open { transform: translateX(0); } .sidebar-toggle { display: flex; } .builder-topbar { padding: 14px 16px; padding-left: 64px; } .builder-content { padding: 20px 16px; } .stepper-wrap { padding: 16px; } }
+@media (max-width: 600px) { .form-grid-2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<button class="sidebar-toggle" id="sidebarToggle"><i data-lucide="menu"></i></button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><h2>EduvFinance</h2><p class="site-sub">Educação Financeira</p></div>
+  <div class="sidebar-user">
+    <div class="user-avatar" id="userAvatar">P</div>
+    <div class="sidebar-user-info">
+      <div class="user-name" id="userName"></div>
+      <div class="user-role"><span class="role-badge">Professor</span></div>
+    </div>
+  </div>
+  <ul class="sidebar-menu">
+    <li><a href="professor.html"><i data-lucide="layout-dashboard"></i><span>Meus Cursos</span></a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <button onclick="logout()" class="btn-logout"><i data-lucide="log-out"></i><span>Sair</span></button>
+  </div>
+</nav>
+
+<!-- Builder -->
+<div class="builder-wrap">
+
+  <!-- Top bar -->
+  <div class="builder-topbar">
+    <a href="professor.html" class="builder-back"><i data-lucide="arrow-left"></i> Meus Cursos</a>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span class="builder-title" id="builderTitleBar">Novo Curso</span>
+      <span class="badge" id="statusBadge" style="display:none"></span>
+    </div>
+    <div class="save-indicator" id="saveIndicator"><i data-lucide="cloud"></i> Rascunho salvo</div>
+  </div>
+
+  <!-- Stepper -->
+  <div class="stepper-wrap">
+    <div class="stepper">
+      <div class="step" data-step="1" onclick="irParaStep(1)">
+        <div class="step-num active" id="stepNum1">1</div>
+        <span class="step-label">Informações</span>
+      </div>
+      <div class="step-connector" id="conn1"></div>
+      <div class="step" data-step="2" onclick="irParaStep(2)">
+        <div class="step-num pending" id="stepNum2">2</div>
+        <span class="step-label">Aulas</span>
+      </div>
+      <div class="step-connector" id="conn2"></div>
+      <div class="step" data-step="3" onclick="irParaStep(3)">
+        <div class="step-num pending" id="stepNum3">3</div>
+        <span class="step-label">Enviar</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main area -->
+  <div class="builder-content">
+
+    <!-- ─── STEP 1: Course Info ─────────────────────────── -->
+    <div class="panel active" id="panel1">
+      <div>
+        <div class="panel-title">Informações do Curso</div>
+        <div class="panel-subtitle">Defina o título, descrição, nível e thumbnail do curso.</div>
+      </div>
+
+      <div class="form-card">
+        <h3>Dados Básicos</h3>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="form-group">
+            <label>Título <span class="req">*</span></label>
+            <input type="text" id="fNome" placeholder="Ex: Investimentos para Iniciantes" maxlength="200">
+          </div>
+          <div class="form-group">
+            <label>Subtítulo</label>
+            <input type="text" id="fSubtitulo" placeholder="Uma frase que resume o valor do curso" maxlength="300">
+          </div>
+          <div class="form-group">
+            <label>Descrição <span class="req">*</span></label>
+            <textarea id="fDescricao" rows="4" placeholder="Descreva o que o aluno irá aprender..."></textarea>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Nível <span class="req">*</span></label>
+              <select id="fNivel">
+                <option value="">Selecione...</option>
+                <option value="basico">Básico</option>
+                <option value="intermediario">Intermediário</option>
+                <option value="avancado">Avançado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Categoria</label>
+              <select id="fCategoria">
+                <option value="">Selecione...</option>
+                <option value="investimentos">Investimentos</option>
+                <option value="planejamento">Planejamento Financeiro</option>
+                <option value="renda_fixa">Renda Fixa</option>
+                <option value="renda_variavel">Renda Variável</option>
+                <option value="criptomoedas">Criptomoedas</option>
+                <option value="previdencia">Previdência</option>
+                <option value="impostos">Impostos</option>
+                <option value="empreendedorismo">Empreendedorismo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-actions">
+        <div></div>
+        <button class="btn-primary" id="btnSalvarInfo" onclick="salvarInformacoes()">
+          <i data-lucide="save"></i> Salvar e Continuar
+        </button>
+      </div>
+    </div>
+
+    <!-- ─── STEP 2: Lessons ────────────────────────────── -->
+    <div class="panel" id="panel2">
+      <div>
+        <div class="panel-title">Aulas do Curso</div>
+        <div class="panel-subtitle">Adicione, edite e organize as aulas. Arraste para reordenar.</div>
+      </div>
+
+      <div id="lockedNotice" style="display:none" class="locked-notice">
+        <i data-lucide="lock"></i>
+        <p>Este curso está em análise. Não é possível editar as aulas até o resultado da revisão.</p>
+      </div>
+
+      <div class="form-card" id="lessonsContainer">
+        <div class="lessons-header">
+          <h3 style="margin-bottom:0;border:none;padding:0">Aulas (<span id="lessonsCount">0</span>)</h3>
+          <button class="btn-primary" id="btnAddLesson" onclick="abrirModalAula(null)" style="padding:8px 16px;font-size:var(--text-xs)">
+            <i data-lucide="plus"></i> Adicionar Aula
+          </button>
+        </div>
+        <div id="lessonsList" class="lessons-list" style="margin-top:16px"></div>
+        <div id="lessonsEmpty" class="lessons-empty" style="margin-top:16px;display:none">
+          <i data-lucide="video"></i>
+          <p style="font-weight:var(--weight-semibold);color:var(--text-primary);margin-bottom:4px">Nenhuma aula ainda</p>
+          <p>Adicione a primeira aula ao seu curso usando o botão acima.</p>
+        </div>
+      </div>
+
+      <div class="panel-actions">
+        <button class="btn-secondary" onclick="irParaStep(1)"><i data-lucide="arrow-left"></i> Voltar</button>
+        <button class="btn-primary" onclick="irParaStep(3)">Continuar <i data-lucide="arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- ─── STEP 3: Submit ─────────────────────────────── -->
+    <div class="panel" id="panel3">
+      <div>
+        <div class="panel-title">Revisar e Enviar</div>
+        <div class="panel-subtitle">Verifique se tudo está pronto antes de enviar para análise.</div>
+      </div>
+
+      <div class="form-card">
+        <h3>Checklist de Publicação</h3>
+        <div class="checklist" id="checklist"></div>
+      </div>
+
+      <div class="submit-box" id="submitBox">
+        <h3>Pronto para enviar?</h3>
+        <p>Ao enviar, o curso ficará bloqueado para edição enquanto o administrador analisar o conteúdo. Após a aprovação, ele será publicado automaticamente para os alunos.</p>
+        <button class="btn-submit-review" id="btnSubmitReview" onclick="submeterCurso()">
+          <i data-lucide="send"></i> Enviar para Revisão
+        </button>
+      </div>
+
+      <div class="panel-actions">
+        <button class="btn-secondary" onclick="irParaStep(2)"><i data-lucide="arrow-left"></i> Voltar</button>
+        <div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── Modal: Lesson Form ──────────────────────────── -->
+<div class="modal-backdrop" id="modalAula">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="modalAulaTitulo">Nova Aula</h2>
+      <button class="btn-icon" onclick="fecharModalAula()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="mLessonId">
+      <div class="form-group">
+        <label>Título <span class="req" style="color:var(--danger)">*</span></label>
+        <input type="text" id="mTitulo" placeholder="Título da aula" maxlength="200">
+      </div>
+      <div class="form-group">
+        <label>Descrição</label>
+        <textarea id="mDescricao" rows="3" placeholder="Do que se trata essa aula..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Link do Vídeo <span style="font-weight:400;color:var(--text-muted)">(YouTube, Vimeo…)</span></label>
+        <input type="url" id="mVideoLink" placeholder="https://www.youtube.com/watch?v=...">
+      </div>
+      <div class="form-group">
+        <label>Conteúdo Textual</label>
+        <textarea id="mContent" rows="4" placeholder="Texto complementar, roteiro, resumo..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Material de Apoio <span style="font-weight:400;color:var(--text-muted)">(PDF, DOCX, PPT, ZIP · Máx. 10MB)</span></label>
+        <input type="file" id="mAttachment" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip">
+        <span class="form-hint" id="mAttachmentHint" style="display:none"></span>
+      </div>
+      <div class="form-group">
+        <label>Duração Estimada <span style="font-weight:400;color:var(--text-muted)">(minutos)</span></label>
+        <input type="number" id="mDuracao" placeholder="Ex: 15" min="1" max="600">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModalAula()">Cancelar</button>
+      <button class="btn-primary" onclick="salvarAula()"><i data-lucide="save"></i> Salvar Aula</button>
+    </div>
+  </div>
+</div><!-- /#modalAula -->
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script>
+lucide.createIcons();
+const sidebarToggle   = document.getElementById('sidebarToggle');
+const sidebar         = document.getElementById('sidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+sidebarToggle.addEventListener('click', () => { sidebar.classList.toggle('open'); sidebarBackdrop.classList.toggle('visible'); });
+sidebarBackdrop.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarBackdrop.classList.remove('visible'); });
+
+// ─── State ────────────────────────────────────────────────────────────────
+let courseId   = null;
+let lessons    = [];
+let courseData = null;
+let currentStep = 1;
+
+const labelNivel = { basico: 'Básico', intermediario: 'Intermediário', avancado: 'Avançado' };
+
+const params = new URLSearchParams(window.location.search);
+if (params.get('id')) courseId = parseInt(params.get('id'), 10);
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+verificarSessao('professor', usuario => {
+  document.getElementById('userName').textContent = usuario.nome;
+  document.getElementById('userAvatar').textContent = usuario.nome ? usuario.nome.charAt(0).toUpperCase() : 'P';
+  if (courseId) {
+    carregarCurso();
+  } else {
+    atualizarStepper(1);
+  }
+});
+
+async function carregarCurso() {
+  try {
+    const resp = await fetch('../php/professor_course_buscar.php?id=' + courseId, { credentials: 'include' });
+    const data = await resp.json();
+    if (!data.success) { exibirToast('Curso não encontrado', 'error'); return; }
+    courseData = data.course;
+    lessons = data.course.lessons || [];
+    preencherFormulario(courseData);
+    renderizarAulas();
+    document.getElementById('builderTitleBar').textContent = courseData.nome || 'Curso sem título';
+    atualizarStatusBadge(courseData.status);
+    atualizarStepper(1);
+  } catch (e) {
+    exibirToast('Erro ao carregar curso', 'error');
+  }
+}
+
+function preencherFormulario(c) {
+  document.getElementById('fNome').value      = c.nome || '';
+  document.getElementById('fSubtitulo').value = c.subtitulo || '';
+  document.getElementById('fDescricao').value = c.descricao || '';
+  document.getElementById('fNivel').value     = c.nivel || '';
+  document.getElementById('fCategoria').value = c.categoria || '';
+}
+
+// ─── Stepper ──────────────────────────────────────────────────────────────
+function atualizarStepper(step) {
+  currentStep = step;
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('stepNum' + i);
+    if (i < step)      { el.className = 'step-num done'; el.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'; }
+    else if (i === step){ el.className = 'step-num active'; el.textContent = i; }
+    else               { el.className = 'step-num pending'; el.textContent = i; }
+  }
+  for (let i = 1; i <= 2; i++) {
+    document.getElementById('conn' + i).className = 'step-connector' + (i < step ? ' done' : '');
+  }
+  document.querySelectorAll('.panel').forEach((p, idx) => p.className = 'panel' + (idx + 1 === step ? ' active' : ''));
+  if (step === 2) renderizarAulas();
+  if (step === 3) construirChecklist();
+}
+
+function irParaStep(step) {
+  if (step > 1 && !courseId) { exibirToast('Salve as informações do curso primeiro.', 'error'); return; }
+  atualizarStepper(step);
+}
+
+// ─── Save course info ─────────────────────────────────────────────────────
+async function salvarInformacoes() {
+  const nome      = document.getElementById('fNome').value.trim();
+  const descricao = document.getElementById('fDescricao').value.trim();
+  const nivel     = document.getElementById('fNivel').value;
+  if (!nome)   { exibirToast('Informe o título do curso', 'error'); return; }
+  if (!nivel)  { exibirToast('Selecione o nível do curso', 'error'); return; }
+
+  const btn = document.getElementById('btnSalvarInfo');
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader"></i> Salvando...';
+
+  const fd = new FormData();
+  fd.append('nome',      nome);
+  fd.append('subtitulo', document.getElementById('fSubtitulo').value.trim());
+  fd.append('descricao', descricao);
+  fd.append('nivel',     nivel);
+  fd.append('categoria', document.getElementById('fCategoria').value);
+
+  const endpoint = courseId
+    ? (fd.append('id', courseId), '../php/professor_course_draft_atualizar.php')
+    : '../php/professor_course_draft_criar.php';
+
+  try {
+    const resp = await fetch(endpoint, { method: 'POST', credentials: 'include', body: fd });
+    const data = await resp.json();
+    if (!data.success) { exibirToast(data.error || 'Erro ao salvar', 'error'); return; }
+    if (!courseId && data.course_id) {
+      courseId = data.course_id;
+      history.replaceState(null, '', '?id=' + courseId);
+    }
+    document.getElementById('builderTitleBar').textContent = nome;
+    exibirToast('Informações salvas!', 'success');
+    atualizarStepper(2);
+  } catch (e) {
+    exibirToast('Erro de conexão', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="save"></i> Salvar e Continuar';
+    lucide.createIcons();
+  }
+}
+
+// ─── Lessons ──────────────────────────────────────────────────────────────
+function renderizarAulas() {
+  const list  = document.getElementById('lessonsList');
+  const empty = document.getElementById('lessonsEmpty');
+  const count = document.getElementById('lessonsCount');
+  const locked = courseData && (courseData.status === 'pendente' || courseData.status === 'aprovado');
+
+  document.getElementById('lockedNotice').style.display = locked ? 'flex' : 'none';
+  document.getElementById('btnAddLesson').style.display = locked ? 'none' : 'inline-flex';
+  count.textContent = lessons.length;
+
+  if (lessons.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = '';
+
+  lessons.forEach((l, i) => {
+    const div = document.createElement('div');
+    div.className = 'lesson-item';
+    div.setAttribute('draggable', !locked);
+    div.dataset.id = l.id;
+    div.innerHTML = `
+      ${!locked ? `<div class="lesson-drag" title="Arrastar para reordenar"><i data-lucide="grip-vertical"></i></div>` : ''}
+      <div class="lesson-num">${i + 1}</div>
+      <div class="lesson-info">
+        <div class="lesson-title">${escHtml(l.titulo)}</div>
+        <div class="lesson-meta">
+          ${l.video_link ? '<span>🎬 Vídeo</span>' : ''}
+          ${l.attachment_path ? '<span>📎 Material</span>' : ''}
+          ${l.duracao ? `<span>⏱ ${l.duracao} min</span>` : ''}
+        </div>
+      </div>
+      ${!locked ? `
+      <div class="lesson-actions">
+        <button class="btn-icon" title="Editar" onclick="abrirModalAula(${l.id})"><i data-lucide="edit-2"></i></button>
+        <button class="btn-icon danger" title="Excluir" onclick="excluirAula(${l.id})"><i data-lucide="trash-2"></i></button>
+      </div>` : ''}
+    `;
+    list.appendChild(div);
+  });
+
+  if (!locked) ativarDragDrop();
+  lucide.createIcons();
+}
+
+// ─── Drag & Drop ──────────────────────────────────────────────────────────
+let dragSrc = null;
+
+function ativarDragDrop() {
+  document.querySelectorAll('.lesson-item').forEach(item => {
+    item.addEventListener('dragstart', e => { dragSrc = item; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    item.addEventListener('dragend',   e => { item.classList.remove('dragging'); document.querySelectorAll('.lesson-item').forEach(i => i.classList.remove('drag-over')); });
+    item.addEventListener('dragover',  e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; item.classList.add('drag-over'); });
+    item.addEventListener('dragleave', e => item.classList.remove('drag-over'));
+    item.addEventListener('drop', async e => {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      if (!dragSrc || dragSrc === item) return;
+      const list = document.getElementById('lessonsList');
+      const items = [...list.children];
+      const fromIdx = items.indexOf(dragSrc);
+      const toIdx   = items.indexOf(item);
+      if (fromIdx < toIdx) list.insertBefore(dragSrc, item.nextSibling);
+      else                 list.insertBefore(dragSrc, item);
+      // Rebuild lessons array in new order
+      const newOrder = [...list.children].map(el => parseInt(el.dataset.id, 10));
+      lessons = newOrder.map(id => lessons.find(l => l.id === id)).filter(Boolean);
+      renderizarAulas();
+      await salvarOrdem(newOrder);
+    });
+  });
+}
+
+async function salvarOrdem(orderedIds) {
+  const fd = new FormData();
+  fd.append('course_id',   courseId);
+  fd.append('ordered_ids', JSON.stringify(orderedIds));
+  await fetch('../php/professor_course_lessons_ordenar.php', { method: 'POST', credentials: 'include', body: fd });
+}
+
+// ─── Lesson modal ─────────────────────────────────────────────────────────
+function abrirModalAula(id) {
+  document.getElementById('mLessonId').value   = id || '';
+  document.getElementById('mTitulo').value     = '';
+  document.getElementById('mDescricao').value  = '';
+  document.getElementById('mVideoLink').value  = '';
+  document.getElementById('mContent').value    = '';
+  document.getElementById('mDuracao').value    = '';
+  document.getElementById('mAttachment').value = '';
+  document.getElementById('mAttachmentHint').style.display = 'none';
+  document.getElementById('modalAulaTitulo').textContent = id ? 'Editar Aula' : 'Nova Aula';
+
+  if (id) {
+    const l = lessons.find(x => x.id === id);
+    if (l) {
+      document.getElementById('mTitulo').value    = l.titulo || '';
+      document.getElementById('mDescricao').value = l.descricao || '';
+      document.getElementById('mVideoLink').value = l.video_link || '';
+      document.getElementById('mContent').value   = l.content || '';
+      document.getElementById('mDuracao').value   = l.duracao || '';
+      if (l.attachment_path) {
+        const hint = document.getElementById('mAttachmentHint');
+        hint.style.display = 'block';
+        hint.innerHTML = `Arquivo atual: <a href="../${escHtml(l.attachment_path)}" target="_blank">${escHtml(l.attachment_name || 'Download')}</a> — envie outro para substituir`;
+      }
+    }
+  }
+  document.getElementById('modalAula').classList.add('open');
+  lucide.createIcons();
+}
+
+function fecharModalAula() {
+  document.getElementById('modalAula').classList.remove('open');
+}
+
+async function salvarAula() {
+  const titulo  = document.getElementById('mTitulo').value.trim();
+  if (!titulo) { exibirToast('Informe o título da aula', 'error'); return; }
+
+  const lessonId   = parseInt(document.getElementById('mLessonId').value, 10) || null;
+  const isEdicao   = !!lessonId;
+  const endpoint   = isEdicao
+    ? '../php/professor_course_lessons_atualizar.php'
+    : '../php/professor_course_lessons_inserir.php';
+
+  const fd = new FormData();
+  if (isEdicao)  fd.append('id', lessonId);
+  else           fd.append('course_id', courseId);
+  fd.append('titulo',     titulo);
+  fd.append('descricao',  document.getElementById('mDescricao').value.trim());
+  fd.append('video_link', document.getElementById('mVideoLink').value.trim());
+  fd.append('content',    document.getElementById('mContent').value.trim());
+  fd.append('duracao',    document.getElementById('mDuracao').value || '');
+  const file = document.getElementById('mAttachment').files[0];
+  if (file) fd.append('attachment', file);
+
+  try {
+    const resp = await fetch(endpoint, { method: 'POST', credentials: 'include', body: fd });
+    const data = await resp.json();
+    if (!data.success) { exibirToast(data.error || 'Erro ao salvar aula', 'error'); return; }
+
+    if (isEdicao) {
+      const idx = lessons.findIndex(l => l.id === lessonId);
+      if (idx >= 0) {
+        lessons[idx] = { ...lessons[idx], titulo, descricao: document.getElementById('mDescricao').value.trim(), video_link: document.getElementById('mVideoLink').value.trim(), content: document.getElementById('mContent').value.trim(), duracao: parseInt(document.getElementById('mDuracao').value,10)||null };
+      }
+    } else {
+      lessons.push({ id: data.lesson_id, titulo, descricao: document.getElementById('mDescricao').value.trim(), video_link: document.getElementById('mVideoLink').value.trim(), content: document.getElementById('mContent').value.trim(), duracao: parseInt(document.getElementById('mDuracao').value,10)||null, attachment_path: null, order_index: data.order_index });
+    }
+
+    fecharModalAula();
+    renderizarAulas();
+    exibirToast(isEdicao ? 'Aula atualizada!' : 'Aula adicionada!', 'success');
+  } catch (e) {
+    exibirToast('Erro de conexão', 'error');
+  }
+}
+
+async function excluirAula(id) {
+  if (!confirm('Excluir esta aula? Esta ação não pode ser desfeita.')) return;
+  const fd = new FormData();
+  fd.append('id', id);
+  const resp = await fetch('../php/professor_course_lessons_excluir.php', { method: 'POST', credentials: 'include', body: fd });
+  const data = await resp.json();
+  if (!data.success) { exibirToast(data.error || 'Erro ao excluir aula', 'error'); return; }
+  lessons = lessons.filter(l => l.id !== id);
+  renderizarAulas();
+  exibirToast('Aula excluída.', 'success');
+}
+
+// ─── Review panel ─────────────────────────────────────────────────────────
+function construirChecklist() {
+  const nome      = document.getElementById('fNome').value.trim() || (courseData?.nome || '');
+  const descricao = document.getElementById('fDescricao').value.trim() || (courseData?.descricao || '');
+  const nivel     = document.getElementById('fNivel').value || (courseData?.nivel || '');
+  const totalAulas = lessons.length;
+  const status     = courseData?.status || 'draft';
+
+  const checks = [
+    { ok: !!nome,      label: 'Título do curso preenchido' },
+    { ok: !!descricao, label: 'Descrição do curso preenchida' },
+    { ok: !!nivel,     label: 'Nível do curso definido' },
+    { ok: totalAulas >= 1, label: `Pelo menos 1 aula adicionada (${totalAulas} aula${totalAulas !== 1 ? 's' : ''})` },
+  ];
+
+  const allOk = checks.every(c => c.ok);
+  const isPending  = status === 'pendente';
+  const isApproved = status === 'aprovado';
+
+  document.getElementById('checklist').innerHTML = checks.map(c => `
+    <div class="check-item ${c.ok ? 'ok' : 'fail'}">
+      <div class="check-icon">
+        <i data-lucide="${c.ok ? 'check' : 'x'}"></i>
+      </div>
+      <span class="check-label">${escHtml(c.label)}</span>
+    </div>
+  `).join('');
+
+  const submitBox = document.getElementById('submitBox');
+  const btn = document.getElementById('btnSubmitReview');
+
+  if (isPending) {
+    submitBox.innerHTML = `<div class="locked-notice" style="text-align:left"><i data-lucide="clock"></i><div><p style="font-weight:var(--weight-semibold);color:var(--warning)">Em análise</p><p style="font-size:var(--text-xs);color:var(--warning);margin-top:4px">Seu curso foi enviado e está aguardando revisão do administrador. Você será notificado quando houver uma resposta.</p></div></div>`;
+  } else if (isApproved) {
+    submitBox.innerHTML = `<div class="check-item ok" style="justify-content:center;gap:16px"><div class="check-icon" style="background:var(--success)"><i data-lucide="check"></i></div><div><p style="font-weight:var(--weight-semibold);color:var(--success)">Publicado!</p><p style="font-size:var(--text-xs);color:var(--text-muted);margin-top:2px">Este curso está visível para os alunos na plataforma.</p></div></div>`;
+  } else {
+    btn.disabled = !allOk;
+  }
+
+  lucide.createIcons();
+}
+
+async function submeterCurso() {
+  if (!courseId) { exibirToast('Salve o curso primeiro.', 'error'); return; }
+  if (!confirm('Enviar o curso para revisão? Ele ficará bloqueado para edição até o resultado.')) return;
+
+  const btn = document.getElementById('btnSubmitReview');
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader"></i> Enviando...';
+  lucide.createIcons();
+
+  try {
+    const fd = new FormData();
+    fd.append('id', courseId);
+    const resp = await fetch('../php/professor_course_submeter.php', { method: 'POST', credentials: 'include', body: fd });
+    const data = await resp.json();
+    if (!data.success) { exibirToast(data.error || 'Erro ao enviar', 'error'); return; }
+    exibirToast(data.message || 'Enviado para revisão!', 'success');
+    if (courseData) courseData.status = 'pendente';
+    atualizarStatusBadge('pendente');
+    construirChecklist();
+  } catch (e) {
+    exibirToast('Erro de conexão', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="send"></i> Enviar para Revisão';
+    lucide.createIcons();
+  }
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+function atualizarStatusBadge(status) {
+  const badge = document.getElementById('statusBadge');
+  const labels = { draft: 'Rascunho', pendente: 'Em Análise', aprovado: 'Publicado', rejeitado: 'Rejeitado' };
+  badge.textContent  = labels[status] || status;
+  badge.className    = 'badge badge-' + status;
+  badge.style.display = 'inline-flex';
+}
+
+function escHtml(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Close modal on backdrop click
+document.getElementById('modalAula').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalAula')) fecharModalAula();
+});
+</script>
+</body>
+</html>

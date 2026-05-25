@@ -31,14 +31,29 @@ if (!$course) {
     exit;
 }
 
+// Fetch lessons using new schema (professor_course_id), fall back to old junction table
 $stmtLessons = $conn->prepare("
-    SELECT pl.id, pl.titulo, pl.nivel, pl.status, pl.public_lesson_id
-    FROM professor_course_lessons pcl
-    JOIN professor_lessons pl ON pl.id = pcl.professor_lesson_id
-    WHERE pcl.professor_course_id = ?
-    ORDER BY pl.titulo ASC
+    SELECT id, titulo, descricao, video_link, attachment_path, attachment_name, order_index, duracao, content
+    FROM professor_lessons
+    WHERE professor_course_id = ?
+    ORDER BY order_index ASC, id ASC
 ");
 $stmtLessons->execute([$id]);
-$course['lessons'] = $stmtLessons->fetchAll();
+$lessons = $stmtLessons->fetchAll();
+
+// Legacy fallback: if no lessons found via new schema, try old junction table
+if (empty($lessons)) {
+    $stmtLegacy = $conn->prepare("
+        SELECT pl.id, pl.titulo, pl.descricao, pl.video_link, pl.attachment_path, pl.attachment_name
+        FROM professor_course_lessons pcl
+        JOIN professor_lessons pl ON pl.id = pcl.professor_lesson_id
+        WHERE pcl.professor_course_id = ?
+        ORDER BY pl.titulo ASC
+    ");
+    $stmtLegacy->execute([$id]);
+    $lessons = $stmtLegacy->fetchAll();
+}
+
+$course['lessons'] = $lessons;
 
 echo json_encode(['success' => true, 'course' => $course]);

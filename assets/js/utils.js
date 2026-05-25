@@ -12,7 +12,7 @@ function exibirToast(mensagem, tipo) {
     const toast = document.createElement('div');
     toast.className = 'alert alert-' + (tipo || 'success');
     toast.textContent = mensagem;
-    toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;max-width:400px';
+    toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;max-width:400px;display:block';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
 }

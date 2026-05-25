@@ -203,11 +203,13 @@
                 await carregarReviewsDoCurso(activeCourseId);
                 lucide.createIcons();
             } else {
-                fecharModalReview();
+                btn.disabled  = false;
+                btn.innerHTML = 'Enviar avaliação';
                 exibirToast(data.message || 'Erro ao enviar avaliação.', 'error');
             }
         } catch (_) {
-            fecharModalReview();
+            btn.disabled  = false;
+            btn.innerHTML = 'Enviar avaliação';
             exibirToast('Erro de conexão. Tente novamente.', 'error');
         }
     }

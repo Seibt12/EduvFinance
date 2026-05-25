@@ -15,10 +15,10 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 
 /* ── Sidebar ── */
 .sidebar { width: var(--sidebar-width); flex-shrink: 0; height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column; background: var(--bg-surface); border-right: 1px solid var(--border); overflow-y: auto; overflow-x: hidden; z-index: 40; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
-.sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid var(--border); }
 .sidebar-logo h2 { font-size: var(--text-lg); font-weight: var(--weight-bold); background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; }
 .sidebar-logo .site-sub { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
-.sidebar-user { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.sidebar-user { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
 .user-avatar { width: 36px; height: 36px; border-radius: var(--radius-full); background: linear-gradient(135deg,#22C55E,#16A34A); display: flex; align-items: center; justify-content: center; font-size: var(--text-sm); font-weight: var(--weight-bold); color: #fff; flex-shrink: 0; box-shadow: var(--shadow-success); }
 .sidebar-user-info { min-width: 0; }
 .user-name { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -29,79 +29,111 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 .sidebar-menu li a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-secondary); text-decoration: none; transition: var(--transition-base); }
 .sidebar-menu li a svg { width: 17px; height: 17px; flex-shrink: 0; opacity: .7; }
 .sidebar-menu li a:hover { background: var(--bg-hover); color: var(--text-primary); }
-.sidebar-menu li a:hover svg { opacity: 1; }
 .sidebar-menu li.active a { background: var(--primary-subtle); color: var(--primary); font-weight: var(--weight-semibold); }
 .sidebar-menu li.active a svg { opacity: 1; color: var(--primary); }
-.sidebar-footer { padding: 12px 10px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.sidebar-footer { padding: 12px 10px 16px; border-top: 1px solid var(--border); }
 .btn-logout { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md); background: none; border: none; cursor: pointer; font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-muted); transition: var(--transition-base); text-align: left; }
-.btn-logout svg { width: 17px; height: 17px; flex-shrink: 0; }
 .btn-logout:hover { background: var(--danger-subtle); color: var(--danger); }
 .sidebar-toggle { display: none; position: fixed; top: 14px; left: 14px; z-index: 60; width: 40px; height: 40px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; align-items: center; justify-content: center; color: var(--text-secondary); transition: var(--transition-base); }
-.sidebar-toggle svg { width: 18px; height: 18px; }
 .sidebar-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 39; backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .3s ease; }
 .sidebar-backdrop.visible { opacity: 1; pointer-events: auto; }
 
 /* ── Content ── */
-.content { flex: 1; min-width: 0; padding: var(--content-padding); display: flex; flex-direction: column; gap: 24px; }
+.content { flex: 1; min-width: 0; padding: var(--content-padding); display: flex; flex-direction: column; gap: 28px; }
 
 /* ── Hero ── */
-.hero-prof { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 28px 32px; position: relative; overflow: hidden; }
-.hero-prof::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 500px 300px at 90% 50%, rgba(34,197,94,0.07) 0%, transparent 70%); pointer-events: none; }
-.hero-prof h1 { font-size: var(--text-2xl); font-weight: var(--weight-black); letter-spacing: -0.02em; position: relative; z-index: 1; margin-bottom: 4px; }
-.hero-prof h1 span { background: linear-gradient(135deg,#22C55E,#38BDF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.hero-prof p { font-size: var(--text-sm); color: var(--text-muted); position: relative; z-index: 1; }
+.hero { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 28px 32px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 600px 300px at 90% 50%, rgba(34,197,94,0.07) 0%, transparent 70%); pointer-events: none; }
+.hero-text { position: relative; z-index: 1; }
+.hero-text h1 { font-size: var(--text-2xl); font-weight: var(--weight-black); letter-spacing: -0.02em; margin-bottom: 4px; }
+.hero-text h1 span { background: linear-gradient(135deg,#22C55E,#38BDF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-text p { font-size: var(--text-sm); color: var(--text-muted); }
+.btn-novo-curso { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; background: var(--gradient-primary); border: none; border-radius: var(--radius-md); color: #fff; font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-semibold); cursor: pointer; box-shadow: var(--shadow-primary); transition: var(--transition-smooth); text-decoration: none; position: relative; z-index: 1; }
+.btn-novo-curso:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-novo-curso svg { width: 16px; height: 16px; }
 
 /* ── Stats ── */
-.stats-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
-.stat-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 22px 24px; display: flex; flex-direction: column; gap: 12px; transition: var(--transition-smooth); }
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.stat-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 20px 22px; display: flex; align-items: center; gap: 16px; transition: var(--transition-smooth); }
 .stat-card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow-md); }
-.stat-icon { width: 40px; height: 40px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; }
+.stat-icon { width: 42px; height: 42px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .stat-icon svg { width: 20px; height: 20px; }
-.stat-card:nth-child(1) .stat-icon { background: var(--primary-subtle); color: var(--primary); }
-.stat-card:nth-child(2) .stat-icon { background: var(--success-subtle); color: var(--success); }
-.stat-body { display: flex; flex-direction: column; gap: 3px; }
-.stat-value { font-size: var(--text-3xl); font-weight: var(--weight-black); letter-spacing: -0.03em; color: var(--text-primary); line-height: 1; }
-.stat-label { font-size: var(--text-sm); color: var(--text-muted); font-weight: var(--weight-medium); }
+.stat-icon.draft    { background: rgba(148,163,184,.15); color: var(--text-muted); }
+.stat-icon.pending  { background: var(--warning-subtle); color: var(--warning); }
+.stat-icon.approved { background: var(--success-subtle); color: var(--success); }
+.stat-icon.rejected { background: var(--danger-subtle); color: var(--danger); }
+.stat-body { display: flex; flex-direction: column; gap: 2px; }
+.stat-value { font-size: var(--text-2xl); font-weight: var(--weight-black); letter-spacing: -0.03em; line-height: 1; }
+.stat-label { font-size: var(--text-xs); color: var(--text-muted); font-weight: var(--weight-medium); }
 
-/* ── Cards & Forms ── */
+/* ── Section header ── */
+.section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.section-header h2 { font-size: var(--text-base); font-weight: var(--weight-semibold); color: var(--text-primary); letter-spacing: -0.01em; }
+.section-count { padding: 2px 8px; border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: var(--weight-semibold); }
+
+/* ── Course cards ── */
+.courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.course-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; transition: var(--transition-smooth); display: flex; flex-direction: column; }
+.course-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.course-card-thumb { height: 140px; background: var(--bg-elevated); position: relative; overflow: hidden; }
+.course-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.course-card-thumb-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--bg-elevated), var(--bg-overlay)); }
+.course-card-thumb-placeholder svg { width: 40px; height: 40px; color: var(--text-muted); opacity: .4; }
+.status-ribbon { position: absolute; top: 10px; right: 10px; }
+.course-card-body { padding: 18px 20px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.course-card-title { font-size: var(--text-base); font-weight: var(--weight-semibold); color: var(--text-primary); line-height: 1.35; }
+.course-card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.course-card-desc { font-size: var(--text-xs); color: var(--text-muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex: 1; }
+.course-card-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.course-card-lessons { font-size: var(--text-xs); color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+.course-card-actions { display: flex; align-items: center; gap: 6px; }
+
+/* ── Rejection notice ── */
+.rejection-notice { margin: 8px 20px 0; padding: 10px 14px; background: var(--danger-subtle); border: 1px solid var(--danger-border); border-radius: var(--radius-md); font-size: var(--text-xs); color: var(--danger); line-height: 1.5; }
+.rejection-notice strong { display: block; margin-bottom: 2px; font-weight: var(--weight-semibold); }
+
+/* ── Empty state ── */
+.empty-section { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 40px 24px; text-align: center; }
+.empty-section svg { width: 40px; height: 40px; color: var(--text-muted); opacity: .4; margin-bottom: 12px; }
+.empty-section p { font-size: var(--text-sm); color: var(--text-muted); }
+
+/* ── Badges ── */
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: var(--weight-semibold); letter-spacing: .03em; text-transform: uppercase; }
+.badge-draft     { background: rgba(148,163,184,.15); color: var(--text-muted); border: 1px solid rgba(148,163,184,.3); }
+.badge-pendente  { background: var(--warning-subtle); color: var(--warning); border: 1px solid var(--warning-border); }
+.badge-aprovado  { background: var(--success-subtle); color: var(--success); border: 1px solid var(--success-border); }
+.badge-rejeitado { background: var(--danger-subtle); color: var(--danger); border: 1px solid var(--danger-border); }
+.badge-basico       { background: var(--info-subtle); color: var(--info); border: 1px solid var(--info-border); }
+.badge-intermediario{ background: var(--warning-subtle); color: var(--warning); border: 1px solid var(--warning-border); }
+.badge-avancado     { background: var(--danger-subtle); color: var(--danger); border: 1px solid var(--danger-border); }
+
+/* ── Buttons ── */
+.btn-sm { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: var(--text-xs); font-weight: var(--weight-medium); cursor: pointer; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-secondary); transition: var(--transition-base); text-decoration: none; }
+.btn-sm:hover { background: var(--bg-overlay); color: var(--text-primary); }
+.btn-sm svg { width: 13px; height: 13px; }
+.btn-sm-primary { border-color: var(--primary-border); background: var(--primary-subtle); color: var(--primary); }
+.btn-sm-primary:hover { background: var(--primary); color: #fff; }
+.btn-sm-danger { border-color: var(--danger-border); background: var(--danger-subtle); color: var(--danger); }
+.btn-sm-danger:hover { background: var(--danger); color: #fff; }
+.btn-sm-success { border-color: var(--success-border); background: var(--success-subtle); color: var(--success); }
+.btn-sm-success:hover { background: var(--success); color: #fff; }
+
+/* ── Reviews ── */
+.review-stat-mini { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; display: flex; flex-direction: column; gap: 4px; }
+.review-stat-mini .rsm-value { font-size: var(--text-2xl); font-weight: var(--weight-black); letter-spacing: -0.03em; color: var(--text-primary); line-height: 1; }
+.review-stat-mini .rsm-label { font-size: var(--text-xs); color: var(--text-muted); font-weight: var(--weight-medium); }
+.prof-review-item { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 10px; }
+.prof-review-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; flex-wrap: wrap; gap: 8px; }
+.prof-review-name { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--text-primary); }
+.prof-review-meta { font-size: var(--text-xs); color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+.prof-review-stars { color: #f59e0b; letter-spacing: 1px; font-size: 13px; }
+.prof-review-course { font-size: var(--text-xs); color: var(--primary); background: var(--primary-subtle); border: 1px solid var(--primary-border); padding: 2px 8px; border-radius: var(--radius-full); font-weight: var(--weight-medium); }
+.prof-review-comment { font-size: var(--text-sm); color: var(--text-secondary); margin-top: 4px; }
+.stars-cell { color: #f59e0b; letter-spacing: 1px; font-size: 14px; }
 .card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; }
 .card-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); gap: 12px; flex-wrap: wrap; }
 .card-header h2 { font-size: var(--text-lg); font-weight: var(--weight-semibold); color: var(--text-primary); letter-spacing: -0.01em; }
 .card-body { padding: 24px; }
-
-.form-group { margin-bottom: 18px; }
-.form-group label { display: block; font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-secondary); margin-bottom: 8px; }
-.form-group input[type=text],
-.form-group input[type=url],
-.form-group input[type=file],
-.form-group textarea,
-.form-group select {
-  width: 100%; background: var(--bg-elevated); border: 1px solid var(--border);
-  border-radius: var(--radius-md); color: var(--text-primary);
-  font-family: var(--font-sans); font-size: var(--text-base);
-  padding: 11px 14px; transition: var(--transition-base); outline: none;
-}
-.form-group input::placeholder, .form-group textarea::placeholder { color: var(--text-muted); }
-.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--border-focus); background: var(--bg-overlay); box-shadow: 0 0 0 3px var(--primary-glow); }
-.form-group textarea { resize: vertical; min-height: 90px; }
-.form-group select option { background: var(--bg-elevated); }
-.form-group input[type=file] { cursor: pointer; }
-.form-hint { font-size: var(--text-xs); color: var(--text-muted); margin-top: 6px; display: block; }
-
-/* checkbox list */
-.checkbox-list { display: flex; flex-direction: column; gap: 8px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; max-height: 200px; overflow-y: auto; }
-.checkbox-item { display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); color: var(--text-secondary); cursor: pointer; }
-.checkbox-item input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer; }
-.checkbox-item:hover { color: var(--text-primary); }
-
-.form-actions { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 4px; }
-.btn-submit { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; background: var(--gradient-primary); border: none; border-radius: var(--radius-md); color: #fff; font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-semibold); cursor: pointer; box-shadow: var(--shadow-primary); transition: var(--transition-smooth); }
-.btn-submit:hover { filter: brightness(1.1); transform: translateY(-1px); }
-.btn-submit svg { width: 15px; height: 15px; }
-.btn-cancel { display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-secondary); font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-medium); cursor: pointer; transition: var(--transition-base); }
-.btn-cancel:hover { background: var(--bg-overlay); color: var(--text-primary); }
-
-/* ── Table ── */
 .table-wrap { overflow-x: auto; }
 .table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
 .table thead tr { background: var(--bg-elevated); border-bottom: 1px solid var(--border); }
@@ -110,37 +142,10 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 .table tbody tr:last-child td { border-bottom: none; }
 .table tbody tr:hover td { background: var(--bg-hover); color: var(--text-primary); }
 
-.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: var(--weight-semibold); letter-spacing: .03em; text-transform: uppercase; }
-.badge-basico { background: var(--info-subtle); color: var(--info); border: 1px solid var(--info-border); }
-.badge-intermediario { background: var(--warning-subtle); color: var(--warning); border: 1px solid var(--warning-border); }
-.badge-avancado { background: var(--danger-subtle); color: var(--danger); border: 1px solid var(--danger-border); }
-.badge-pendente { background: var(--warning-subtle); color: var(--warning); border: 1px solid var(--warning-border); }
-.badge-aprovado { background: var(--success-subtle); color: var(--success); border: 1px solid var(--success-border); }
-.badge-rejeitado { background: var(--danger-subtle); color: var(--danger); border: 1px solid var(--danger-border); }
-
-.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.btn-edit { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: var(--text-xs); font-weight: var(--weight-medium); cursor: pointer; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-secondary); transition: var(--transition-base); }
-.btn-edit:hover { background: var(--primary-subtle); color: var(--primary); border-color: var(--primary-border); }
-.btn-del { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: var(--text-xs); font-weight: var(--weight-medium); cursor: pointer; border: 1px solid var(--danger-border); background: var(--danger-subtle); color: var(--danger); transition: var(--transition-base); }
-.btn-del:hover { background: var(--danger); color: #fff; }
-
-/* ── Review styles (professor) ── */
-.review-stat-mini { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; display: flex; flex-direction: column; gap: 4px; }
-.review-stat-mini .rsm-value { font-size: var(--text-2xl); font-weight: var(--weight-black); letter-spacing: -0.03em; color: var(--text-primary); line-height: 1; }
-.review-stat-mini .rsm-label { font-size: var(--text-xs); color: var(--text-muted); font-weight: var(--weight-medium); }
-.prof-review-item { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 10px; }
-.prof-review-item:last-child { margin-bottom: 0; }
-.prof-review-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; flex-wrap: wrap; gap: 8px; }
-.prof-review-name { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--text-primary); }
-.prof-review-meta { font-size: var(--text-xs); color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
-.prof-review-stars { color: #f59e0b; letter-spacing: 1px; font-size: 13px; }
-.prof-review-course { font-size: var(--text-xs); color: var(--primary); background: var(--primary-subtle); border: 1px solid var(--primary-border); padding: 2px 8px; border-radius: var(--radius-full); font-weight: var(--weight-medium); }
-.prof-review-comment { font-size: var(--text-sm); color: var(--text-secondary); margin-top: 4px; line-height: var(--leading-normal); }
-.stars-cell { color: #f59e0b; letter-spacing: 1px; font-size: 14px; }
-
 /* ── Responsive ── */
+@media (max-width: 1100px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 900px) { .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); box-shadow: var(--shadow-xl); } .sidebar.open { transform: translateX(0); } .sidebar-toggle { display: flex; } .content { padding: 16px; padding-top: 68px; } }
-@media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr; } .card-body { padding: 16px; } }
+@media (max-width: 600px) { .stats-row { grid-template-columns: 1fr 1fr; } .courses-grid { grid-template-columns: 1fr; } .hero { flex-direction: column; } }
 </style>
 </head>
 <body>
@@ -159,9 +164,8 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
   </div>
   <div class="sidebar-section-label">Minha Área</div>
   <ul class="sidebar-menu">
-    <li class="active"><a href="professor.html"><i data-lucide="package"></i><span>Ofertas</span></a></li>
-    <li><a href="#cursosProfSection"><i data-lucide="book"></i><span>Cursos</span></a></li>
-    <li><a href="#aulasProfSection"><i data-lucide="play-circle"></i><span>Aulas</span></a></li>
+    <li class="active"><a href="professor.html"><i data-lucide="layout-dashboard"></i><span>Meus Cursos</span></a></li>
+    <li><a href="#reviewsProfSection"><i data-lucide="star"></i><span>Avaliações</span></a></li>
   </ul>
   <div class="sidebar-footer">
     <button onclick="logout()" class="btn-logout"><i data-lucide="log-out"></i><span>Sair</span></button>
@@ -170,128 +174,97 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 
 <main class="content">
 
-  <!-- hero — IDs preservados -->
-  <div class="hero-prof">
-    <h1>Bem-vindo, <span id="nomeProfessor"></span></h1>
-    <p>Crie ofertas de cursos e aulas. Após envio, aguarde aprovação do administrador.</p>
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-text">
+      <h1>Olá, <span id="nomeProfessor">Professor</span></h1>
+      <p>Gerencie seus cursos e acompanhe o processo de aprovação.</p>
+    </div>
+    <a href="professor_builder.html" class="btn-novo-curso">
+      <i data-lucide="plus"></i> Criar Novo Curso
+    </a>
   </div>
 
-  <!-- stats -->
-  <div class="stats-grid">
+  <!-- Stats -->
+  <div class="stats-row">
     <div class="stat-card">
-      <div class="stat-icon"><i data-lucide="book"></i></div>
+      <div class="stat-icon draft"><i data-lucide="file-edit"></i></div>
       <div class="stat-body">
-        <div class="stat-value" id="statOfertasCursos">—</div>
-        <div class="stat-label">Ofertas de Cursos</div>
+        <div class="stat-value" id="statDraft">—</div>
+        <div class="stat-label">Rascunhos</div>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><i data-lucide="play-circle"></i></div>
+      <div class="stat-icon pending"><i data-lucide="clock"></i></div>
       <div class="stat-body">
-        <div class="stat-value" id="statOfertasAulas">—</div>
-        <div class="stat-label">Ofertas de Aulas</div>
+        <div class="stat-value" id="statPendente">—</div>
+        <div class="stat-label">Em Análise</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon approved"><i data-lucide="check-circle"></i></div>
+      <div class="stat-body">
+        <div class="stat-value" id="statAprovado">—</div>
+        <div class="stat-label">Publicados</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon rejected"><i data-lucide="x-circle"></i></div>
+      <div class="stat-body">
+        <div class="stat-value" id="statRejeitado">—</div>
+        <div class="stat-label">Rejeitados</div>
       </div>
     </div>
   </div>
 
-  <!-- ── Formulário: Nova Oferta de Curso ── -->
-  <div class="card" id="cursosProfSection">
-    <div class="card-header">
-      <h2 id="cardTituloCurso">Nova Oferta de Curso</h2>
+  <!-- Rejected — shown first so teacher sees what needs attention -->
+  <div id="sectionRejeitado" style="display:none">
+    <div class="section-header">
+      <i data-lucide="alert-triangle" style="width:18px;height:18px;color:var(--danger)"></i>
+      <h2>Requer sua atenção</h2>
+      <span class="section-count badge-rejeitado badge" id="countRejeitado">0</span>
     </div>
-    <div class="card-body">
-      <form method="POST" action="../php/professor_courses_inserir.php" id="formCursoProfEl">
-        <input type="hidden" name="id" id="formCursoProfId">
-        <div class="form-group"><label>Nome</label><input type="text" name="nome" id="formCursoProfNome" required></div>
-        <div class="form-group"><label>Descrição</label><textarea name="descricao" id="formCursoProfDescricao" rows="3" required></textarea></div>
-        <div class="form-group">
-          <label>Nível</label>
-          <select name="nivel" id="formCursoProfNivel" required>
-            <option value="">Selecione...</option>
-            <option value="basico">Básico</option>
-            <option value="intermediario">Intermediário</option>
-            <option value="avancado">Avançado</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Aulas vinculadas <span style="font-weight:400;color:var(--text-muted)">(opcional)</span></label>
-          <div id="checkboxAulasCursoProf" class="checkbox-list"></div>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn-submit" id="btnSubmitCursoProf"><i data-lucide="send"></i> Criar Oferta</button>
-          <button type="button" class="btn-cancel" id="btnCancelarCursoProf" onclick="cancelarEdicaoCursoProf()" style="display:none"><i data-lucide="x"></i> Cancelar</button>
-        </div>
-      </form>
-    </div>
+    <div id="gridRejeitado" class="courses-grid"></div>
   </div>
 
-  <!-- lista de cursos -->
-  <div class="card">
-    <div class="card-header"><h2>Lista de Ofertas de Cursos (<span id="contadorCursosProf">0</span>)</h2></div>
-    <div class="card-body" style="padding:0">
-      <div class="table-wrap">
-        <table class="table">
-          <thead><tr><th>Nome</th><th>Nível</th><th>Status</th><th>Criado em</th><th>Ações</th></tr></thead>
-          <tbody id="cursosProfBody">
-            <tr><td colspan="5" style="padding:40px;text-align:center;color:var(--text-muted)">Carregando...</td></tr>
-          </tbody>
-        </table>
-      </div>
+  <!-- Draft -->
+  <div id="sectionDraft" style="display:none">
+    <div class="section-header">
+      <i data-lucide="file-edit" style="width:18px;height:18px;color:var(--text-muted)"></i>
+      <h2>Rascunhos</h2>
+      <span class="section-count badge-draft badge" id="countDraft">0</span>
     </div>
+    <div id="gridDraft" class="courses-grid"></div>
   </div>
 
-  <!-- ── Formulário: Nova Oferta de Aula ── -->
-  <div class="card" id="aulasProfSection">
-    <div class="card-header">
-      <h2 id="cardTituloAula">Nova Oferta de Aula</h2>
+  <!-- Pending -->
+  <div id="sectionPendente" style="display:none">
+    <div class="section-header">
+      <i data-lucide="clock" style="width:18px;height:18px;color:var(--warning)"></i>
+      <h2>Em Análise</h2>
+      <span class="section-count badge-pendente badge" id="countPendente">0</span>
     </div>
-    <div class="card-body">
-      <form method="POST" action="../php/professor_lessons_inserir.php" id="formAulaProfEl" enctype="multipart/form-data">
-        <input type="hidden" name="id" id="formAulaProfId">
-        <div class="form-group"><label>Título</label><input type="text" name="titulo" id="formAulaProfTitulo" required></div>
-        <div class="form-group"><label>Descrição</label><textarea name="descricao" id="formAulaProfDescricao" rows="3" required></textarea></div>
-        <div class="form-group">
-          <label>Nível</label>
-          <select name="nivel" id="formAulaProfNivel" required>
-            <option value="">Selecione...</option>
-            <option value="basico">Básico</option>
-            <option value="intermediario">Intermediário</option>
-            <option value="avancado">Avançado</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Link do vídeo <span style="font-weight:400;color:var(--text-muted)">(YouTube, etc.)</span></label>
-          <input type="url" name="video_link" id="formAulaProfVideo" placeholder="https://www.youtube.com/watch?v=...">
-        </div>
-        <div class="form-group">
-          <label>Material de apoio <span style="font-weight:400;color:var(--text-muted)">(PDF, DOCX, PPT, ZIP — máx. 10MB)</span></label>
-          <input type="file" name="attachment" id="formAulaProfAnexo" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip">
-          <small id="anexoAtualProf" class="form-hint" style="display:none"></small>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn-submit" id="btnSubmitAulaProf"><i data-lucide="send"></i> Criar Oferta</button>
-          <button type="button" class="btn-cancel" id="btnCancelarAulaProf" onclick="cancelarEdicaoAulaProf()" style="display:none"><i data-lucide="x"></i> Cancelar</button>
-        </div>
-      </form>
-    </div>
+    <div id="gridPendente" class="courses-grid"></div>
   </div>
 
-  <!-- lista de aulas -->
-  <div class="card">
-    <div class="card-header"><h2>Lista de Ofertas de Aulas (<span id="contadorAulasProf">0</span>)</h2></div>
-    <div class="card-body" style="padding:0">
-      <div class="table-wrap">
-        <table class="table">
-          <thead><tr><th>Título</th><th>Nível</th><th>Status</th><th>Criado em</th><th>Ações</th></tr></thead>
-          <tbody id="aulasProfBody">
-            <tr><td colspan="5" style="padding:40px;text-align:center;color:var(--text-muted)">Carregando...</td></tr>
-          </tbody>
-        </table>
-      </div>
+  <!-- Approved -->
+  <div id="sectionAprovado" style="display:none">
+    <div class="section-header">
+      <i data-lucide="check-circle" style="width:18px;height:18px;color:var(--success)"></i>
+      <h2>Publicados</h2>
+      <span class="section-count badge-aprovado badge" id="countAprovado">0</span>
     </div>
+    <div id="gridAprovado" class="courses-grid"></div>
   </div>
 
-  <!-- ── Avaliações dos Meus Cursos ─────────────────────── -->
+  <!-- Empty state when no courses at all -->
+  <div id="emptyAll" class="empty-section" style="display:none">
+    <i data-lucide="book-open"></i>
+    <p style="font-weight:var(--weight-semibold);color:var(--text-primary);margin-bottom:6px">Nenhum curso criado ainda</p>
+    <p>Clique em <strong>Criar Novo Curso</strong> para começar a construir seu primeiro curso.</p>
+  </div>
+
+  <!-- Reviews -->
   <div class="card" id="reviewsProfSection">
     <div class="card-header">
       <h2 style="display:flex;align-items:center;gap:8px">
@@ -300,11 +273,7 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
       </h2>
     </div>
     <div class="card-body">
-
-      <!-- Global stats -->
       <div id="reviewsProfStats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px"></div>
-
-      <!-- Per-course table -->
       <h3 style="font-size:var(--text-sm);font-weight:var(--weight-semibold);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Por Curso</h3>
       <div class="table-wrap" style="margin-bottom:24px">
         <table class="table">
@@ -314,8 +283,6 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
           </tbody>
         </table>
       </div>
-
-      <!-- Recent reviews -->
       <h3 style="font-size:var(--text-sm);font-weight:var(--weight-semibold);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Avaliações Recentes</h3>
       <div id="reviewsProfRecentes"></div>
     </div>
@@ -329,25 +296,23 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
 <script src="../assets/js/professor_reviews.js"></script>
 <script>
 lucide.createIcons();
-const sidebarToggle = document.getElementById('sidebarToggle');
-const sidebar = document.getElementById('sidebar');
+const sidebarToggle   = document.getElementById('sidebarToggle');
+const sidebar         = document.getElementById('sidebar');
 const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 sidebarToggle.addEventListener('click', () => { sidebar.classList.toggle('open'); sidebarBackdrop.classList.toggle('visible'); });
 sidebarBackdrop.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarBackdrop.classList.remove('visible'); });
 
 verificarSessao('professor', usuario => {
   document.getElementById('userName').textContent      = usuario.nome;
-  document.getElementById('nomeProfessor').textContent = usuario.nome;
+  document.getElementById('nomeProfessor').textContent = usuario.nome.split(' ')[0];
   const inicial = usuario.nome ? usuario.nome.charAt(0).toUpperCase() : 'P';
   document.getElementById('userAvatar').textContent = inicial;
 
   const params  = new URLSearchParams(window.location.search);
-  const sucesso = params.get('sucesso');
-  const erro    = params.get('erro');
-  if (sucesso) exibirToast(sucesso, 'success');
-  if (erro)    exibirToast(erro, 'error');
+  if (params.get('sucesso')) exibirToast(params.get('sucesso'), 'success');
+  if (params.get('erro'))    exibirToast(params.get('erro'), 'error');
 
-  carregarOfertasProfessor().then(() => lucide.createIcons());
+  carregarDashboardProfessor().then(() => lucide.createIcons());
   carregarReviewsProf();
 });
 </script>

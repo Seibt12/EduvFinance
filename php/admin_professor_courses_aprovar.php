@@ -1,17 +1,14 @@
 <?php
 require_once __DIR__ . '/valida_admin.php';
+header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../home/admin_cursos.html');
-    exit;
+    echo json_encode(['success' => false]); exit;
 }
 
-$id    = (int)($_POST['id'] ?? 0);
-$redir = '../home/admin_cursos.html';
-
+$id = (int)($_POST['id'] ?? 0);
 if ($id <= 0) {
-    header('Location: ' . $redir . '?erro=' . urlencode('ID inválido.'));
-    exit;
+    echo json_encode(['success' => false, 'error' => 'ID inválido']); exit;
 }
 
 require_once __DIR__ . '/conexao.php';
@@ -22,16 +19,35 @@ $stmt->execute([$id]);
 $oferta = $stmt->fetch();
 
 if (!$oferta) {
-    header('Location: ' . $redir . '?erro=' . urlencode('Oferta de curso não encontrada.'));
-    exit;
+    echo json_encode(['success' => false, 'error' => 'Oferta de curso não encontrada']); exit;
+}
+if ($oferta['status'] !== 'pendente') {
+    echo json_encode(['success' => false, 'error' => 'Apenas cursos com status pendente podem ser aprovados']); exit;
+}
+
+// Check that course has at least one lesson
+$stmt2 = $conn->prepare("SELECT COUNT(*) FROM professor_lessons WHERE professor_course_id = ?");
+$stmt2->execute([$id]);
+$lessonCount = (int)$stmt2->fetchColumn();
+if ($lessonCount === 0) {
+    echo json_encode(['success' => false, 'error' => 'O curso não possui aulas. Solicite ao professor que adicione aulas antes de aprovar.']); exit;
 }
 
 $conn->beginTransaction();
-$publicId = syncPublicCourse($conn, $oferta);
-$conn->prepare("UPDATE professor_courses SET status='aprovado', public_course_id=?, review_comment=NULL, updated_at=CURRENT_TIMESTAMP WHERE id=?")
-     ->execute([$publicId, $id]);
-syncCourseLessonsFromProfessor($conn, $id, $publicId);
+
+// Sync course to public courses
+$publicCourseId = syncPublicCourse($conn, $oferta);
+
+// Sync all lessons to public lessons and link them (new schema)
+syncAllCourseLessons($conn, $id, $publicCourseId);
+
+// Update professor_course status
+$conn->prepare("
+    UPDATE professor_courses
+    SET status='aprovado', public_course_id=?, review_comment=NULL, updated_at=CURRENT_TIMESTAMP
+    WHERE id=?
+")->execute([$publicCourseId, $id]);
+
 $conn->commit();
 
-header('Location: ' . $redir . '?sucesso=' . urlencode('Curso aprovado e publicado com sucesso.'));
-exit;
+echo json_encode(['success' => true, 'message' => 'Curso aprovado e publicado com sucesso!']);
