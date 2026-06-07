@@ -1,6 +1,6 @@
 # EduvFinance
 
-EduvFinance é uma aplicação web de educação financeira desenvolvida em PHP com PostgreSQL. O sistema permite que alunos se cadastrem, acessem cursos e aulas, acompanhem trilhas de aprendizagem, registrem progresso e usem um simulador de investimentos. Também possui áreas específicas para professores criarem ofertas de cursos/aulas e para administradores aprovarem conteúdos e gerenciarem usuários.
+EduvFinance é uma aplicação web de educação financeira desenvolvida em PHP com PostgreSQL. O sistema permite que alunos se cadastrem, acessem cursos e aulas, acompanhem trilhas de aprendizagem, registrem progresso, avaliem cursos e usem um simulador de investimentos. Também possui áreas específicas para professores criarem cursos com um editor visual em etapas e para administradores aprovarem conteúdos e gerenciarem usuários.
 
 ## Sumário
 
@@ -38,9 +38,10 @@ O projeto é organizado como uma aplicação web tradicional:
 - PostgreSQL 16
 - PDO PostgreSQL (`pdo_pgsql`)
 - HTML5
-- CSS3
+- CSS3 (modular: variables, layout, components, animations, responsive)
 - JavaScript
 - Chart.js via CDN
+- Lucide Icons via CDN
 - Docker
 - Docker Compose
 
@@ -52,9 +53,10 @@ O projeto é organizado como uma aplicação web tradicional:
 - Dashboard com resumo de progresso.
 - Visualização de cursos disponíveis.
 - Matrícula em cursos.
-- Listagem de aulas por curso.
+- Listagem de aulas por curso (na ordem definida pelo professor).
 - Marcação de aulas como concluídas.
 - Trilha de aprendizagem por curso.
+- Avaliação de cursos com nota (1–5) e comentário.
 - Questionário de perfil de investidor.
 - Simulador de investimentos.
 - Histórico de simulações.
@@ -62,11 +64,14 @@ O projeto é organizado como uma aplicação web tradicional:
 ### Professor
 
 - Acesso a uma área própria de professor.
-- Criação de ofertas de cursos.
-- Criação de ofertas de aulas.
-- Associação de aulas a cursos.
+- Editor de curso em etapas (Course Builder):
+  - Passo 1: informações gerais (título, subtítulo, categoria, tags, preço, thumbnail).
+  - Passo 2: criação e ordenação de aulas dentro do curso.
+  - Passo 3: revisão e envio para aprovação.
+- Cursos ficam em estado `draft` até serem submetidos.
 - Envio de materiais de apoio.
 - Acompanhamento do status de aprovação: pendente, aprovado ou rejeitado.
+- Visualização das avaliações recebidas nos cursos aprovados.
 
 ### Administrador
 
@@ -83,7 +88,12 @@ O projeto é organizado como uma aplicação web tradicional:
 EduvFinance/
 ├── assets/
 │   ├── css/
-│   │   └── style.css
+│   │   ├── style.css
+│   │   ├── variables.css
+│   │   ├── layout.css
+│   │   ├── components.css
+│   │   ├── animations.css
+│   │   └── responsive.css
 │   └── js/
 │       ├── admin.js
 │       ├── admin_aprovacoes.js
@@ -91,6 +101,8 @@ EduvFinance/
 │       ├── aluno.js
 │       ├── auth.js
 │       ├── professor.js
+│       ├── professor_reviews.js
+│       ├── reviews.js
 │       ├── trilha.js
 │       └── utils.js
 ├── backend/
@@ -98,7 +110,9 @@ EduvFinance/
 ├── database/
 │   ├── edufinance.sql
 │   └── migrations/
-│       └── 001_professor_approval.sql
+│       ├── 001_professor_approval.sql
+│       ├── 002_course_reviews.sql
+│       └── 003_course_builder.sql
 ├── docker/
 │   ├── apache.conf
 │   └── entrypoint.sh
@@ -106,6 +120,7 @@ EduvFinance/
 │   ├── index.html
 │   ├── student.html
 │   ├── professor.html
+│   ├── professor_builder.html
 │   ├── admin_alunos.html
 │   ├── admin_professores.html
 │   ├── admin_cursos.html
@@ -212,27 +227,30 @@ O schema principal fica em:
 database/edufinance.sql
 ```
 
-A migração adicional do fluxo de professor/aprovação fica em:
+As migrações incrementais ficam em:
 
 ```text
-database/migrations/001_professor_approval.sql
+database/migrations/001_professor_approval.sql   — fluxo de professor e aprovação
+database/migrations/002_course_reviews.sql       — avaliações de cursos por alunos
+database/migrations/003_course_builder.sql       — editor em etapas (draft, campos extras, ordenação de aulas)
 ```
 
 Principais tabelas:
 
 - `users`: usuários do sistema e seus papéis.
-- `courses`: cursos públicos aprovados.
+- `courses`: cursos públicos aprovados (com `subtitulo`, `thumbnail_path`, `categoria`, `preco`, `published_at`).
 - `lessons`: aulas públicas aprovadas.
-- `course_lessons`: vínculo entre cursos e aulas.
+- `course_lessons`: vínculo entre cursos e aulas (com `order_index`).
 - `course_enrollments`: matrículas dos alunos.
 - `progress`: progresso dos alunos nas aulas.
-- `professor_courses`: ofertas de cursos criadas por professores.
-- `professor_lessons`: ofertas de aulas criadas por professores.
-- `professor_course_lessons`: vínculo entre ofertas de cursos e aulas.
+- `course_reviews`: avaliações (nota 1–5 e comentário) de alunos por curso.
+- `professor_courses`: ofertas de cursos criadas por professores (status: `draft` → `pendente` → `aprovado`/`rejeitado`).
+- `professor_lessons`: aulas vinculadas a um curso do professor (com `professor_course_id` e `order_index`).
+- `professor_course_lessons`: vínculo legado entre ofertas de cursos e aulas.
 - `investor_profile`: perfil de investidor do aluno.
 - `investment_simulations`: histórico de simulações de investimento.
 
-O `docker-compose.yml` também monta `database/edufinance.sql` em `/docker-entrypoint-initdb.d/01-schema.sql`, permitindo que o PostgreSQL aplique o schema na primeira criação do volume.
+O `docker-compose.yml` também monta `database/edufinance.sql` em `/docker-entrypoint-initdb.d/01-schema.sql`, permitindo que o PostgreSQL aplique o schema na primeira criação do volume. As migrações devem ser aplicadas manualmente após a criação inicial.
 
 ## Páginas principais
 
@@ -259,7 +277,8 @@ O `docker-compose.yml` também monta `database/edufinance.sql` em `/docker-entry
 
 ### Professor
 
-- `/home/professor.html`: área de ofertas de cursos e aulas.
+- `/home/professor.html`: área de gerenciamento de cursos e aulas.
+- `/home/professor_builder.html`: editor de curso em etapas (Course Builder).
 
 ## Endpoints principais
 
@@ -286,8 +305,31 @@ O `docker-compose.yml` também monta `database/edufinance.sql` em `/docker-entry
 - `php/courses_listar.php`
 - `php/courses_buscar.php`
 - `php/courses_matricular.php`
+- `php/courses_inserir.php`
+- `php/courses_atualizar.php`
+- `php/courses_excluir.php`
 - `php/lessons_listar.php`
 - `php/lessons_buscar.php`
+- `php/lessons_inserir.php`
+- `php/lessons_atualizar.php`
+- `php/lessons_excluir.php`
+
+### Avaliações de cursos
+
+- `php/reviews.php`
+- `php/professor_reviews_listar.php`
+
+### Professor — Course Builder
+
+- `php/professor_course_draft_criar.php`
+- `php/professor_course_buscar.php`
+- `php/professor_course_draft_atualizar.php`
+- `php/professor_course_lessons_inserir.php`
+- `php/professor_course_lessons_atualizar.php`
+- `php/professor_course_lessons_excluir.php`
+- `php/professor_course_lessons_ordenar.php`
+- `php/professor_course_submeter.php`
+- `php/professor_course_excluir.php`
 
 ### Progresso e trilhas
 
@@ -340,21 +382,31 @@ O `docker-compose.yml` também monta `database/edufinance.sql` em `/docker-entry
    - `professor`: `/home/professor.html`
    - `aluno`: `/home/student.html`
 
-### Conteúdo criado por professores
+### Criação de curso pelo professor (Course Builder)
 
-1. O professor cria uma oferta de curso ou aula em `/home/professor.html`.
-2. A oferta fica com status `pendente`.
-3. O administrador analisa a oferta em `/home/admin_cursos.html` ou `/home/admin_aulas.html`.
-4. Ao aprovar, o conteúdo é publicado nas tabelas públicas `courses` ou `lessons`.
-5. Ao rejeitar, o professor pode consultar o status e o comentário de revisão.
+1. O professor acessa `/home/professor_builder.html`.
+2. O curso é criado como rascunho (`draft`) via `professor_course_draft_criar.php`.
+3. No Passo 1, o professor preenche informações gerais (título, subtítulo, categoria, tags, preço, thumbnail).
+4. No Passo 2, o professor adiciona e ordena as aulas dentro do curso.
+5. No Passo 3, o professor revisa e submete o curso (`professor_course_submeter.php`), alterando o status para `pendente`.
+6. O administrador analisa a oferta em `/home/admin_cursos.html`.
+7. Ao aprovar, o conteúdo é publicado nas tabelas públicas `courses` e `lessons`.
+8. Ao rejeitar, o professor pode consultar o status e o comentário de revisão.
+
+### Avaliação de curso pelo aluno
+
+1. Após acessar as aulas de um curso, o aluno pode registrar uma avaliação (nota 1–5 e comentário opcional).
+2. Cada aluno pode enviar uma única avaliação por curso.
+3. O professor pode consultar as avaliações dos seus cursos aprovados.
 
 ### Jornada do aluno
 
 1. O aluno acessa a área de cursos.
 2. Matricula-se em um curso.
-3. Visualiza as aulas vinculadas.
+3. Visualiza as aulas vinculadas na ordem definida pelo professor.
 4. Marca aulas como concluídas.
 5. Acompanha o avanço na trilha de aprendizagem.
+6. Avalia o curso ao final.
 
 ### Simulador de investimentos
 
@@ -433,11 +485,21 @@ Ver logs do banco:
 docker compose logs -f postgres
 ```
 
+## Comandos para aplicar migrações
+
+Após subir o banco pela primeira vez, aplique as migrações manualmente:
+
+```bash
+docker compose exec app psql -U edufinance -d educacao_financeira -f /var/www/html/database/migrations/002_course_reviews.sql
+docker compose exec app psql -U edufinance -d educacao_financeira -f /var/www/html/database/migrations/003_course_builder.sql
+```
+
 ## Observações
 
 - O volume `edufinance_pgdata` mantém os dados do PostgreSQL entre reinicializações.
 - Se quiser recriar o banco do zero, use `docker compose down -v` antes de subir novamente.
-- Algumas rotas antigas de CRUD direto de cursos e aulas pelo administrador permanecem no projeto, mas o fluxo atual prioriza criação por professor e aprovação por administrador.
+- As migrações `002` e `003` não são aplicadas automaticamente pelo Docker — execute-as manualmente após a criação do banco.
+- O fluxo atual de criação de cursos usa o Course Builder (`professor_builder.html`); os endpoints legados de professor permanecem para compatibilidade.
 - A aplicação usa sessão PHP e cookies HTTP-only com `SameSite=Lax`.
 - O simulador usa taxas fixas para fins educacionais; ele não representa recomendação financeira.
 - O projeto não possui scripts npm, Composer ou suíte automatizada de testes configurada.

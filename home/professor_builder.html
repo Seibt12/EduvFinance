@@ -646,16 +646,18 @@ async function salvarAula() {
 
   try {
     const resp = await fetch(endpoint, { method: 'POST', credentials: 'include', body: fd });
-    const data = await resp.json();
+    const text = await resp.text();
+    let data;
+    try { data = JSON.parse(text); } catch { console.error('Resposta inválida do servidor:', text); exibirToast('Erro interno do servidor', 'error'); return; }
     if (!data.success) { exibirToast(data.error || 'Erro ao salvar aula', 'error'); return; }
 
     if (isEdicao) {
       const idx = lessons.findIndex(l => l.id === lessonId);
       if (idx >= 0) {
-        lessons[idx] = { ...lessons[idx], titulo, descricao: document.getElementById('mDescricao').value.trim(), video_link: document.getElementById('mVideoLink').value.trim(), content: document.getElementById('mContent').value.trim(), duracao: parseInt(document.getElementById('mDuracao').value,10)||null };
+        lessons[idx] = { ...lessons[idx], titulo, descricao: document.getElementById('mDescricao').value.trim(), video_link: document.getElementById('mVideoLink').value.trim(), content: document.getElementById('mContent').value.trim(), duracao: parseInt(document.getElementById('mDuracao').value,10)||null, ...(data.attachment_path !== undefined && { attachment_path: data.attachment_path, attachment_name: data.attachment_name }) };
       }
     } else {
-      lessons.push({ id: data.lesson_id, titulo, descricao: document.getElementById('mDescricao').value.trim(), video_link: document.getElementById('mVideoLink').value.trim(), content: document.getElementById('mContent').value.trim(), duracao: parseInt(document.getElementById('mDuracao').value,10)||null, attachment_path: null, order_index: data.order_index });
+      lessons.push({ id: data.lesson_id, titulo, descricao: document.getElementById('mDescricao').value.trim(), video_link: document.getElementById('mVideoLink').value.trim(), content: document.getElementById('mContent').value.trim(), duracao: parseInt(document.getElementById('mDuracao').value,10)||null, attachment_path: data.attachment_path || null, attachment_name: data.attachment_name || null, order_index: data.order_index });
     }
 
     fecharModalAula();

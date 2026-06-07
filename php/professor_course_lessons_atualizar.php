@@ -50,6 +50,7 @@ if (!empty($_FILES['attachment']['name']) && $_FILES['attachment']['error'] === 
         echo json_encode(['success' => false, 'error' => 'Arquivo muito grande (máx. 10MB)']); exit;
     }
     $uploadDir = __DIR__ . '/../uploads/';
+    if (!is_dir($uploadDir)) { mkdir($uploadDir, 0755, true); }
     $safeName  = preg_replace('/[^a-z0-9._-]/i', '_', $_FILES['attachment']['name']);
     $filename  = 'lesson_attach_' . uniqid() . '_' . $safeName;
     move_uploaded_file($_FILES['attachment']['tmp_name'], $uploadDir . $filename);
@@ -71,4 +72,4 @@ $stmt = $conn->prepare("
 ");
 $stmt->execute([$titulo, $descricao, $videoLink ?: null, $content ?: null, $attachmentPath, $attachmentName, $duracao, $lessonId]);
 
-echo json_encode(['success' => true]);
+echo json_encode(['success' => true, 'attachment_path' => $attachmentPath, 'attachment_name' => $attachmentName]);

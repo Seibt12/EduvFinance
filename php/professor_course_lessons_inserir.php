@@ -1,5 +1,7 @@
 <?php
+ob_start();
 require_once __DIR__ . '/valida_professor.php';
+ob_end_clean();
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -48,38 +50,47 @@ if (!empty($_FILES['attachment']['name']) && $_FILES['attachment']['error'] === 
         echo json_encode(['success' => false, 'error' => 'Arquivo muito grande (máx. 10MB)']); exit;
     }
     $uploadDir = __DIR__ . '/../uploads/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
     $safeName  = preg_replace('/[^a-z0-9._-]/i', '_', $_FILES['attachment']['name']);
     $filename  = 'lesson_attach_' . uniqid() . '_' . $safeName;
-    move_uploaded_file($_FILES['attachment']['tmp_name'], $uploadDir . $filename);
+    if (!move_uploaded_file($_FILES['attachment']['tmp_name'], $uploadDir . $filename)) {
+        echo json_encode(['success' => false, 'error' => 'Falha ao salvar o arquivo anexado']); exit;
+    }
     $attachmentPath = 'uploads/' . $filename;
     $attachmentName = $_FILES['attachment']['name'];
 }
 
-// Get next order index for this course
-$stmt = $conn->prepare("SELECT COALESCE(MAX(order_index), 0) + 1 FROM professor_lessons WHERE professor_course_id = ?");
-$stmt->execute([$courseId]);
-$orderIndex = (int)$stmt->fetchColumn();
+try {
+    // Get next order index for this course
+    $stmt = $conn->prepare("SELECT COALESCE(MAX(order_index), 0) + 1 FROM professor_lessons WHERE professor_course_id = ?");
+    $stmt->execute([$courseId]);
+    $orderIndex = (int)$stmt->fetchColumn();
 
-$stmt = $conn->prepare("
-    INSERT INTO professor_lessons
-        (professor_course_id, professor_id, titulo, descricao, nivel, video_link, content,
-         attachment_path, attachment_name, duracao, order_index, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendente')
-    RETURNING id
-");
-$stmt->execute([
-    $courseId,
-    $professorId,
-    $titulo,
-    $descricao,
-    $course['nivel'],
-    $videoLink ?: null,
-    $content ?: null,
-    $attachmentPath,
-    $attachmentName,
-    $duracao,
-    $orderIndex,
-]);
-$lessonId = (int)$stmt->fetchColumn();
+    $stmt = $conn->prepare("
+        INSERT INTO professor_lessons
+            (professor_course_id, professor_id, titulo, descricao, nivel, video_link, content,
+             attachment_path, attachment_name, duracao, order_index, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendente')
+        RETURNING id
+    ");
+    $stmt->execute([
+        $courseId,
+        $professorId,
+        $titulo,
+        $descricao,
+        $course['nivel'],
+        $videoLink ?: null,
+        $content ?: null,
+        $attachmentPath,
+        $attachmentName,
+        $duracao,
+        $orderIndex,
+    ]);
+    $lessonId = (int)$stmt->fetchColumn();
 
-echo json_encode(['success' => true, 'lesson_id' => $lessonId, 'order_index' => $orderIndex]);
+    echo json_encode(['success' => true, 'lesson_id' => $lessonId, 'order_index' => $orderIndex, 'attachment_path' => $attachmentPath, 'attachment_name' => $attachmentName]);
+} catch (Exception $e) {
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+}

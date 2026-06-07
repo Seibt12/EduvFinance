@@ -16,6 +16,9 @@ RUN a2enmod rewrite headers
 # Copia a configuração customizada do Apache
 COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
+# Aumenta limites de upload do PHP (padrão seria 2M)
+COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+
 # Copia o entrypoint (aguarda DB + cria admin + sobe Apache)
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
@@ -30,7 +33,8 @@ COPY backend/ /var/www/html/backend/
 COPY index.html /var/www/html/index.html
 
 # Define permissões
-RUN chown -R www-data:www-data /var/www/html
+RUN mkdir -p /var/www/html/uploads \
+    && chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
 
