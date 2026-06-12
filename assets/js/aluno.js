@@ -167,6 +167,7 @@ async function carregarAulasDoCurso(cursoId) {
             <td>
                 <form method="POST" action="../php/progress_marcar.php">
                     <input type="hidden" name="lesson_id" value="${a.id}">
+                    <input type="hidden" name="course_id" value="${cursoId}">
                     <input type="hidden" name="concluido" value="${concluido ? '0' : '1'}">
                     <input type="hidden" name="redirect" value="aluno_cursos.html?curso=${cursoId}">
                     <button type="submit" class="btn-table ${concluido ? 'btn-table-done' : 'btn-table-primary'}">
@@ -184,7 +185,4 @@ async function carregarAulasDoCurso(cursoId) {
     }
 }
 
-// ── Helpers ────────────────────────────────────────────────
-function escHtml(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+// escHtml and escJs are defined in utils.js

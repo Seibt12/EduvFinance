@@ -20,8 +20,8 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     header('Location: ' . $redir . '?erro=' . urlencode('E-mail inválido.'));
     exit;
 }
-if (strlen($senha) < 3) {
-    header('Location: ' . $redir . '?erro=' . urlencode('A senha deve ter pelo menos 3 caracteres.'));
+if (strlen($senha) < 8) {
+    header('Location: ' . $redir . '?erro=' . urlencode('A senha deve ter pelo menos 8 caracteres.'));
     exit;
 }
 if (!in_array($tipo, ['professor', 'aluno'], true)) {

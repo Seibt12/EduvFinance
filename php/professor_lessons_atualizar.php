@@ -29,7 +29,11 @@ if ($videoLink !== '' && !filter_var($videoLink, FILTER_VALIDATE_URL)) {
 require_once __DIR__ . '/conexao.php';
 $professorId = (int)$_SESSION['user_id'];
 
-$stmt = $conn->prepare("SELECT public_lesson_id, attachment_path FROM professor_lessons WHERE id = ? AND professor_id = ? LIMIT 1");
+$stmt = $conn->prepare("
+    SELECT id, status, public_lesson_id, attachment_path
+    FROM professor_lessons
+    WHERE id = ? AND professor_id = ? LIMIT 1
+");
 $stmt->execute([$id, $professorId]);
 $lesson = $stmt->fetch();
 if (!$lesson) {
@@ -37,8 +41,19 @@ if (!$lesson) {
     exit;
 }
 
-$attachmentPath = null;
+// Block editing lessons in approved or pending state (they belong to a course under review)
+if ($lesson['status'] === 'pendente') {
+    header('Location: ' . $redir . '?erro=' . urlencode('Aulas em análise não podem ser editadas.'));
+    exit;
+}
+if ($lesson['status'] === 'aprovado') {
+    header('Location: ' . $redir . '?erro=' . urlencode('Aulas aprovadas e publicadas não podem ser editadas.'));
+    exit;
+}
+
+$attachmentPath = $lesson['attachment_path'];
 $attachmentName = null;
+
 if (!empty($_FILES['attachment']['name']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
     $allowedExt = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'zip'];
     $originalName = basename($_FILES['attachment']['name']);
@@ -67,25 +82,24 @@ if (!empty($_FILES['attachment']['name']) && $_FILES['attachment']['error'] === 
     $attachmentName = $originalName;
 }
 
-$conn->beginTransaction();
-if (!empty($lesson['public_lesson_id'])) {
-    $conn->prepare("DELETE FROM lessons WHERE id = ?")->execute([(int)$lesson['public_lesson_id']]);
-    $conn->prepare("UPDATE professor_lessons SET public_lesson_id = NULL WHERE id = ?")->execute([$id]);
+if ($attachmentName === null) {
+    $stmt = $conn->prepare("SELECT attachment_name FROM professor_lessons WHERE id=?");
+    $stmt->execute([$id]);
+    $attachmentName = $stmt->fetchColumn() ?: null;
 }
 
-$updateFields = "titulo=?, descricao=?, nivel=?, video_link=?, updated_at=CURRENT_TIMESTAMP, status='pendente', review_comment=NULL";
+$updateFields = "titulo=?, descricao=?, nivel=?, video_link=?, updated_at=CURRENT_TIMESTAMP";
 $params = [$titulo, $descricao, $nivel, $videoLink ?: null];
-if ($attachmentPath !== null) {
+if ($attachmentPath !== $lesson['attachment_path'] || $attachmentPath !== null) {
     $updateFields .= ", attachment_path=?, attachment_name=?";
     $params[] = $attachmentPath;
     $params[] = $attachmentName;
 }
 $params[] = $id;
 $params[] = $professorId;
+
 $conn->prepare("UPDATE professor_lessons SET $updateFields WHERE id = ? AND professor_id = ?")
      ->execute($params);
-
-$conn->commit();
 
 header('Location: ' . $redir . '?sucesso=' . urlencode('Oferta de aula atualizada com sucesso.'));
 exit;

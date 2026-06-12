@@ -1,6 +1,5 @@
 <?php
-session_set_cookie_params(['lifetime' => 86400, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
-session_start();
+require_once __DIR__ . '/session.php';
 header('Content-Type: application/json');
 
 if (empty($_SESSION['user_id']) || $_SESSION['user_tipo'] !== 'admin') {
@@ -15,17 +14,17 @@ if (!in_array($tipo, ['aluno', 'professor'], true)) {
     $tipo = 'aluno';
 }
 
-$totalAulas = (int)$conn->query("SELECT COUNT(*) FROM lessons")->fetchColumn();
-
 if ($tipo === 'aluno') {
     $stmt = $conn->prepare("
         SELECT
             u.id, u.nome, u.email, u.created_at,
-            COUNT(p.id) AS total_concluidas
+            (SELECT COUNT(*) FROM progress p WHERE p.user_id = u.id AND p.concluido = 1) AS total_concluidas,
+            (SELECT COUNT(DISTINCT cl.lesson_id)
+             FROM course_enrollments ce
+             JOIN course_lessons cl ON cl.course_id = ce.course_id
+             WHERE ce.user_id = u.id) AS total_matriculadas
         FROM users u
-        LEFT JOIN progress p ON p.user_id = u.id AND p.concluido = 1
         WHERE u.tipo = ?
-        GROUP BY u.id, u.nome, u.email, u.created_at
         ORDER BY u.created_at DESC
     ");
     $stmt->execute([$tipo]);
@@ -40,4 +39,4 @@ if ($tipo === 'aluno') {
 }
 $users = $stmt->fetchAll();
 
-echo json_encode(['success' => true, 'users' => $users, 'totalAulas' => $totalAulas]);
+echo json_encode(['success' => true, 'users' => $users]);

@@ -32,8 +32,8 @@ if (!$existente) {
     header('Location: ' . $redir . '?erro=' . urlencode('Usuário não encontrado.'));
     exit;
 }
-if ($existente['tipo'] === 'admin' && $existente['email'] === 'admin@email.com') {
-    header('Location: ' . $redir . '?erro=' . urlencode('O administrador padrão não pode ser editado.'));
+if ($existente['tipo'] === 'admin') {
+    header('Location: ' . $redir . '?erro=' . urlencode('Contas de administrador não podem ser editadas por aqui.'));
     exit;
 }
 
@@ -45,8 +45,8 @@ if ($stmt->fetch()) {
 }
 
 if ($senha !== '') {
-    if (strlen($senha) < 3) {
-        header('Location: ' . $redir . '?erro=' . urlencode('A senha deve ter pelo menos 3 caracteres.'));
+    if (strlen($senha) < 8) {
+        header('Location: ' . $redir . '?erro=' . urlencode('A senha deve ter pelo menos 8 caracteres.'));
         exit;
     }
     $hash = password_hash($senha, PASSWORD_BCRYPT);

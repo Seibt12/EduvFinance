@@ -16,3 +16,11 @@ function exibirToast(mensagem, tipo) {
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
 }
+
+function escHtml(str) {
+    return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function escJs(str) {
+    return String(str ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}

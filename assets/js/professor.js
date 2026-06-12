@@ -8,13 +8,6 @@ const labelStatusProf = {
     rejeitado: 'Rejeitado',
 };
 
-function escHtml(str) {
-    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function escJs(str) {
-    return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-}
-
 async function carregarDashboardProfessor() {
     try {
         const resp = await fetch('../php/professor_courses_listar.php', { credentials: 'include' });

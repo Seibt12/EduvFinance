@@ -34,24 +34,26 @@ function syncPublicCourse(PDO $conn, array $oferta): int {
     if ($publicId > 0) {
         $stmt = $conn->prepare("
             UPDATE courses
-            SET nome=?, subtitulo=?, descricao=?, nivel=?, categoria=?, thumbnail_path=?, updated_at=CURRENT_TIMESTAMP
+            SET nome=?, subtitulo=?, descricao=?, nivel=?, categoria=?, thumbnail_path=?, preco=?, updated_at=CURRENT_TIMESTAMP
             WHERE id=?
         ");
         $stmt->execute([
             $oferta['nome'], $oferta['subtitulo'] ?? null, $oferta['descricao'],
             $oferta['nivel'], $oferta['categoria'] ?? null, $oferta['thumbnail_path'] ?? null,
+            $oferta['preco'] ?? 0,
             $publicId
         ]);
         return $publicId;
     }
 
     $stmt = $conn->prepare("
-        INSERT INTO courses (nome, subtitulo, descricao, nivel, categoria, thumbnail_path, published_at)
-        VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP) RETURNING id
+        INSERT INTO courses (nome, subtitulo, descricao, nivel, categoria, thumbnail_path, preco, published_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP) RETURNING id
     ");
     $stmt->execute([
         $oferta['nome'], $oferta['subtitulo'] ?? null, $oferta['descricao'],
         $oferta['nivel'], $oferta['categoria'] ?? null, $oferta['thumbnail_path'] ?? null,
+        $oferta['preco'] ?? 0,
     ]);
     return (int)$stmt->fetchColumn();
 }

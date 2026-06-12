@@ -1,6 +1,5 @@
 <?php
-session_set_cookie_params(['lifetime' => 86400, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
-session_start();
+require_once __DIR__ . '/session.php';
 header('Content-Type: application/json');
 
 if (empty($_SESSION['user_id']) || ($_SESSION['user_tipo'] ?? '') !== 'admin') {
@@ -31,7 +30,7 @@ if (!$course) {
     exit;
 }
 
-// Fetch lessons using new schema (professor_course_id), fall back to old junction table
+// Fetch lessons using new schema (professor_course_id)
 $stmtLessons = $conn->prepare("
     SELECT id, titulo, descricao, video_link, attachment_path, attachment_name, order_index, duracao, content
     FROM professor_lessons
@@ -41,7 +40,7 @@ $stmtLessons = $conn->prepare("
 $stmtLessons->execute([$id]);
 $lessons = $stmtLessons->fetchAll();
 
-// Legacy fallback: if no lessons found via new schema, try old junction table
+// Legacy fallback: try junction table for pre-migration data
 if (empty($lessons)) {
     $stmtLegacy = $conn->prepare("
         SELECT pl.id, pl.titulo, pl.descricao, pl.video_link, pl.attachment_path, pl.attachment_name

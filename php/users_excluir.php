@@ -32,8 +32,8 @@ $label = match($usuario['tipo']) {
     'professor' => 'Professor',
     default     => 'Aluno',
 };
-if ($usuario['tipo'] === 'admin' && $usuario['email'] === 'admin@email.com') {
-    header('Location: ' . $redir . '?erro=' . urlencode('O administrador padrão não pode ser excluído.'));
+if ($usuario['tipo'] === 'admin') {
+    header('Location: ' . $redir . '?erro=' . urlencode('Contas de administrador não podem ser excluídas.'));
     exit;
 }
 if ($id === (int)$_SESSION['user_id']) {
