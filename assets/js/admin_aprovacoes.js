@@ -8,9 +8,7 @@ const labelStatus = {
     rejeitado:'Rejeitado',
 };
 
-function escHtml(str) {
-    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+// escHtml is defined in utils.js
 
 function badgeStatus(status) {
     const cls = status === 'aprovado' ? 'badge-aprovado'
@@ -211,8 +209,3 @@ async function rejeitarCurso() {
         exibirToast('Erro de conexão', 'error');
     }
 }
-
-// ─── Legacy stubs (kept to avoid breaking admin_aulas.html if still loaded) ─
-function carregarOfertasAulasAdmin() {}
-function analisarOfertaAula() {}
-function fecharAnaliseAula() {}

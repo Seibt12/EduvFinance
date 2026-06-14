@@ -2,6 +2,8 @@
 require_once __DIR__ . '/valida_sessao.php';
 require_once __DIR__ . '/conexao.php';
 
+header('Content-Type: application/json; charset=utf-8');
+
 $idUsuario = (int)$_SESSION['user_id'];
 
 $stmt = $conn->prepare("
@@ -27,5 +29,4 @@ foreach ($simulacoes as &$sim) {
 }
 unset($sim);
 
-header('Content-Type: application/json; charset=utf-8');
 echo json_encode(['success' => true, 'simulations' => $simulacoes]);

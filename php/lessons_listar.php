@@ -1,6 +1,5 @@
 <?php
-session_set_cookie_params(['lifetime' => 86400, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
-session_start();
+require_once __DIR__ . '/session.php';
 header('Content-Type: application/json');
 
 if (empty($_SESSION['user_id'])) {
@@ -21,7 +20,7 @@ if ($cursoId > 0) {
         JOIN course_lessons cl ON cl.lesson_id = l.id
         LEFT JOIN progress  p  ON p.lesson_id  = l.id AND p.user_id = ?
         WHERE cl.course_id = ?
-        ORDER BY CASE l.nivel WHEN 'basico' THEN 1 WHEN 'intermediario' THEN 2 WHEN 'avancado' THEN 3 END, l.titulo ASC
+        ORDER BY cl.order_index ASC, l.titulo ASC
     ");
     $stmt->execute([$idUsuario, $cursoId]);
 } else {

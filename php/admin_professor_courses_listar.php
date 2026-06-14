@@ -1,6 +1,5 @@
 <?php
-session_set_cookie_params(['lifetime' => 86400, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
-session_start();
+require_once __DIR__ . '/session.php';
 header('Content-Type: application/json');
 
 if (empty($_SESSION['user_id']) || ($_SESSION['user_tipo'] ?? '') !== 'admin') {
@@ -15,7 +14,6 @@ if (!in_array($status, ['draft', 'pendente', 'aprovado', 'rejeitado', 'todos'], 
 
 require_once __DIR__ . '/conexao.php';
 
-// Count lessons via new schema (professor_course_id) with fallback to old junction table
 $sql = "
     SELECT
         pc.id, pc.nome, pc.subtitulo, pc.descricao, pc.nivel, pc.categoria,

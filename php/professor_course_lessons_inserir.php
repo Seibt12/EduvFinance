@@ -1,7 +1,5 @@
 <?php
-ob_start();
 require_once __DIR__ . '/valida_professor.php';
-ob_end_clean();
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -72,7 +70,7 @@ try {
         INSERT INTO professor_lessons
             (professor_course_id, professor_id, titulo, descricao, nivel, video_link, content,
              attachment_path, attachment_name, duracao, order_index, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendente')
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')
         RETURNING id
     ");
     $stmt->execute([

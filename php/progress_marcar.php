@@ -2,20 +2,19 @@
 require_once __DIR__ . '/valida_sessao.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../home/aluno_cursos.php');
+    header('Location: ../home/aluno_cursos.html');
     exit;
 }
 
 $aulaId    = (int)($_POST['lesson_id'] ?? 0);
+$cursoId   = (int)($_POST['course_id'] ?? 0);
 $concluido = (int)($_POST['concluido'] ?? 1);
-$redirect  = $_POST['redirect'] ?? 'aluno_cursos.php';
+$redirect  = $_POST['redirect'] ?? 'aluno_cursos.html';
 $idUsuario = (int)$_SESSION['user_id'];
 
-// Sanitize redirect to prevent open redirect
 $redirect  = preg_replace('/[^a-zA-Z0-9_.?=&\/]/', '', $redirect);
 $redirBase = '../home/';
 
-// Helper: append query param respecting whether redirect already has a '?'
 function redirUrl(string $base, string $redir, string $key, string $val): string {
     $sep = (strpos($redir, '?') !== false) ? '&' : '?';
     return $base . $redir . $sep . $key . '=' . urlencode($val);
@@ -37,20 +36,32 @@ if (!$aula) {
     exit;
 }
 
-// Descobre o curso ao qual esta aula pertence (para escopo da progressão)
-$stmtCourse = $conn->prepare("SELECT course_id FROM course_lessons WHERE lesson_id = ? LIMIT 1");
-$stmtCourse->execute([$aulaId]);
-$courseRow = $stmtCourse->fetch();
-$courseId  = $courseRow ? (int)$courseRow['course_id'] : 0;
+// Resolve which course to use for progression rules
+if ($cursoId <= 0) {
+    // Fallback: pick the first course this lesson belongs to (legacy path)
+    $stmtCourse = $conn->prepare("SELECT course_id FROM course_lessons WHERE lesson_id = ? LIMIT 1");
+    $stmtCourse->execute([$aulaId]);
+    $courseRow = $stmtCourse->fetch();
+    $cursoId   = $courseRow ? (int)$courseRow['course_id'] : 0;
+}
 
-// Regra de progressão: verifica apenas dentro do mesmo curso
-if ($concluido && $aula['nivel'] !== 'basico' && $courseId > 0) {
+// Verify the lesson actually belongs to the resolved course
+if ($cursoId > 0) {
+    $stmtVerify = $conn->prepare("SELECT 1 FROM course_lessons WHERE course_id = ? AND lesson_id = ? LIMIT 1");
+    $stmtVerify->execute([$cursoId, $aulaId]);
+    if (!$stmtVerify->fetch()) {
+        $cursoId = 0;
+    }
+}
+
+// Progression rules: only when marking as complete and within a known course
+if ($concluido && $aula['nivel'] !== 'basico' && $cursoId > 0) {
     $stmtTot = $conn->prepare("
         SELECT COUNT(*) FROM lessons l
         JOIN course_lessons cl ON cl.lesson_id = l.id
         WHERE cl.course_id = ? AND l.nivel = 'basico'
     ");
-    $stmtTot->execute([$courseId]);
+    $stmtTot->execute([$cursoId]);
     $totalBasico = (int)$stmtTot->fetchColumn();
 
     $stmtDone = $conn->prepare("
@@ -59,7 +70,7 @@ if ($concluido && $aula['nivel'] !== 'basico' && $courseId > 0) {
         JOIN course_lessons cl ON cl.lesson_id = l.id
         WHERE p.user_id = ? AND cl.course_id = ? AND l.nivel = 'basico' AND p.concluido = 1
     ");
-    $stmtDone->execute([$idUsuario, $courseId]);
+    $stmtDone->execute([$idUsuario, $cursoId]);
     $doneBasico = (int)$stmtDone->fetchColumn();
 
     if ($totalBasico > 0 && $doneBasico < $totalBasico) {
@@ -73,7 +84,7 @@ if ($concluido && $aula['nivel'] !== 'basico' && $courseId > 0) {
             JOIN course_lessons cl ON cl.lesson_id = l.id
             WHERE cl.course_id = ? AND l.nivel = 'intermediario'
         ");
-        $stmtTot2->execute([$courseId]);
+        $stmtTot2->execute([$cursoId]);
         $totalInter = (int)$stmtTot2->fetchColumn();
 
         $stmtDone2 = $conn->prepare("
@@ -82,7 +93,7 @@ if ($concluido && $aula['nivel'] !== 'basico' && $courseId > 0) {
             JOIN course_lessons cl ON cl.lesson_id = l.id
             WHERE p.user_id = ? AND cl.course_id = ? AND l.nivel = 'intermediario' AND p.concluido = 1
         ");
-        $stmtDone2->execute([$idUsuario, $courseId]);
+        $stmtDone2->execute([$idUsuario, $cursoId]);
         $doneInter = (int)$stmtDone2->fetchColumn();
 
         if ($totalInter > 0 && $doneInter < $totalInter) {
