@@ -21,7 +21,7 @@ require_once __DIR__ . '/conexao.php';
 $professorId = (int)$_SESSION['user_id'];
 
 // Verify ownership and editable state
-$stmt = $conn->prepare("SELECT id, nivel, status FROM professor_courses WHERE id = ? AND professor_id = ?");
+$stmt = $conn->prepare("SELECT id, nivel, status, public_course_id FROM professor_courses WHERE id = ? AND professor_id = ?");
 $stmt->execute([$courseId, $professorId]);
 $course = $stmt->fetch();
 
@@ -30,9 +30,6 @@ if (!$course) {
 }
 if ($course['status'] === 'pendente') {
     echo json_encode(['success' => false, 'error' => 'Não é possível adicionar aulas a cursos que estão em análise']); exit;
-}
-if ($course['status'] === 'aprovado') {
-    echo json_encode(['success' => false, 'error' => 'Não é possível adicionar aulas a cursos aprovados']); exit;
 }
 
 // File upload
@@ -87,6 +84,12 @@ try {
         $orderIndex,
     ]);
     $lessonId = (int)$stmt->fetchColumn();
+
+    // If course is published, sync new lesson to public immediately
+    if ($course['status'] === 'aprovado' && !empty($course['public_course_id'])) {
+        require_once __DIR__ . '/aprovacao_utils.php';
+        syncAllCourseLessons($conn, $courseId, (int)$course['public_course_id']);
+    }
 
     echo json_encode(['success' => true, 'lesson_id' => $lessonId, 'order_index' => $orderIndex, 'attachment_path' => $attachmentPath, 'attachment_name' => $attachmentName]);
 } catch (Exception $e) {

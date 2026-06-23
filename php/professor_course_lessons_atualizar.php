@@ -22,7 +22,8 @@ $professorId = (int)$_SESSION['user_id'];
 
 // Verify lesson ownership via course
 $stmt = $conn->prepare("
-    SELECT pl.id, pl.attachment_path, pc.status AS course_status
+    SELECT pl.id, pl.attachment_path, pl.public_lesson_id, pl.nivel,
+           pc.status AS course_status
     FROM professor_lessons pl
     JOIN professor_courses pc ON pc.id = pl.professor_course_id
     WHERE pl.id = ? AND pl.professor_id = ?
@@ -71,5 +72,19 @@ $stmt = $conn->prepare("
     WHERE id=?
 ");
 $stmt->execute([$titulo, $descricao, $videoLink ?: null, $content ?: null, $attachmentPath, $attachmentName, $duracao, $lessonId]);
+
+// If course is published, sync lesson changes to public immediately
+if ($lesson['course_status'] === 'aprovado' && !empty($lesson['public_lesson_id'])) {
+    require_once __DIR__ . '/aprovacao_utils.php';
+    syncPublicLesson($conn, [
+        'public_lesson_id' => (int)$lesson['public_lesson_id'],
+        'titulo'           => $titulo,
+        'descricao'        => $descricao,
+        'nivel'            => $lesson['nivel'],
+        'video_link'       => $videoLink ?: null,
+        'attachment_path'  => $attachmentPath,
+        'attachment_name'  => $attachmentName,
+    ]);
+}
 
 echo json_encode(['success' => true, 'attachment_path' => $attachmentPath, 'attachment_name' => $attachmentName]);

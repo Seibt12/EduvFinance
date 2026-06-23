@@ -41,7 +41,27 @@ if ($id === (int)$_SESSION['user_id']) {
     exit;
 }
 
-$conn->prepare("DELETE FROM users WHERE id = ?")->execute([$id]);
+try {
+    $conn->beginTransaction();
+
+    // A professor's PUBLIC courses/lessons are not linked back by a foreign key,
+    // so the users-row cascade would leave them (and their reviews, enrollments
+    // and student progress) orphaned in the catalog. Purge them explicitly first.
+    if ($usuario['tipo'] === 'professor') {
+        require_once __DIR__ . '/aprovacao_utils.php';
+        removeProfessorPublicArtifacts($conn, $id);
+    }
+
+    // Deleting the user cascades professor_courses + professor_lessons (and, for
+    // students, their own progress/enrollments/reviews via user_id FKs).
+    $conn->prepare("DELETE FROM users WHERE id = ?")->execute([$id]);
+
+    $conn->commit();
+} catch (Throwable $e) {
+    if ($conn->inTransaction()) { $conn->rollBack(); }
+    header('Location: ' . $redir . '?erro=' . urlencode('Erro ao excluir. Tente novamente.'));
+    exit;
+}
 
 header('Location: ' . $redir . '?sucesso=' . urlencode($label . ' excluído com sucesso.'));
 exit;

@@ -6,11 +6,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false]); exit;
 }
 
-$nome      = trim($_POST['nome'] ?? '');
-$descricao = trim($_POST['descricao'] ?? '');
-$nivel     = trim($_POST['nivel'] ?? '');
-$subtitulo = trim($_POST['subtitulo'] ?? '');
-$categoria = trim($_POST['categoria'] ?? '');
+$nome              = trim($_POST['nome'] ?? '');
+$descricao         = trim($_POST['descricao'] ?? '');
+$nivel             = trim($_POST['nivel'] ?? '');
+$subtitulo         = trim($_POST['subtitulo'] ?? '');
+$categoria         = trim($_POST['categoria'] ?? '');
+$perfilRecomendado = trim($_POST['perfil_recomendado'] ?? 'todos');
 
 if ($nome === '' || $nivel === '') {
     echo json_encode(['success' => false, 'error' => 'Nome e nível são obrigatórios']);
@@ -18,6 +19,9 @@ if ($nome === '' || $nivel === '') {
 }
 if (!in_array($nivel, ['basico', 'intermediario', 'avancado'], true)) {
     echo json_encode(['success' => false, 'error' => 'Nível inválido']); exit;
+}
+if (!in_array($perfilRecomendado, ['todos', 'conservador', 'moderado', 'agressivo'], true)) {
+    $perfilRecomendado = 'todos';
 }
 
 require_once __DIR__ . '/conexao.php';
@@ -43,8 +47,8 @@ if (!empty($_FILES['thumbnail']['name']) && $_FILES['thumbnail']['error'] === UP
 
 $stmt = $conn->prepare("
     INSERT INTO professor_courses
-        (professor_id, nome, subtitulo, descricao, nivel, categoria, thumbnail_path, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 'draft')
+        (professor_id, nome, subtitulo, descricao, nivel, categoria, thumbnail_path, perfil_recomendado, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft')
     RETURNING id
 ");
 $stmt->execute([
@@ -55,6 +59,7 @@ $stmt->execute([
     $nivel,
     $categoria ?: null,
     $thumbnailPath,
+    $perfilRecomendado,
 ]);
 $courseId = (int)$stmt->fetchColumn();
 

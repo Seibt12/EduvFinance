@@ -18,7 +18,7 @@ require_once __DIR__ . '/conexao.php';
 $professorId = (int)$_SESSION['user_id'];
 
 // Verify course ownership
-$stmt = $conn->prepare("SELECT id, status FROM professor_courses WHERE id = ? AND professor_id = ?");
+$stmt = $conn->prepare("SELECT id, status, public_course_id FROM professor_courses WHERE id = ? AND professor_id = ?");
 $stmt->execute([$courseId, $professorId]);
 $course = $stmt->fetch();
 
@@ -37,5 +37,11 @@ foreach ($orderedIds as $index => $lessonId) {
     $stmt->execute([(int)$index + 1, (int)$lessonId, $courseId, $professorId]);
 }
 $conn->commit();
+
+// If course is published, sync new order to public course_lessons immediately
+if ($course['status'] === 'aprovado' && !empty($course['public_course_id'])) {
+    require_once __DIR__ . '/aprovacao_utils.php';
+    syncAllCourseLessons($conn, $courseId, (int)$course['public_course_id']);
+}
 
 echo json_encode(['success' => true]);

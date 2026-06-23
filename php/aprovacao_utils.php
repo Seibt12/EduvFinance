@@ -31,29 +31,31 @@ function syncPublicLesson(PDO $conn, array $oferta): int {
 function syncPublicCourse(PDO $conn, array $oferta): int {
     $publicId = !empty($oferta['public_course_id']) ? (int)$oferta['public_course_id'] : 0;
 
+    $perfilRecomendado = $oferta['perfil_recomendado'] ?? 'todos';
+
     if ($publicId > 0) {
         $stmt = $conn->prepare("
             UPDATE courses
-            SET nome=?, subtitulo=?, descricao=?, nivel=?, categoria=?, thumbnail_path=?, preco=?, updated_at=CURRENT_TIMESTAMP
+            SET nome=?, subtitulo=?, descricao=?, nivel=?, categoria=?, thumbnail_path=?, preco=?, perfil_recomendado=?, updated_at=CURRENT_TIMESTAMP
             WHERE id=?
         ");
         $stmt->execute([
             $oferta['nome'], $oferta['subtitulo'] ?? null, $oferta['descricao'],
             $oferta['nivel'], $oferta['categoria'] ?? null, $oferta['thumbnail_path'] ?? null,
-            $oferta['preco'] ?? 0,
+            $oferta['preco'] ?? 0, $perfilRecomendado,
             $publicId
         ]);
         return $publicId;
     }
 
     $stmt = $conn->prepare("
-        INSERT INTO courses (nome, subtitulo, descricao, nivel, categoria, thumbnail_path, preco, published_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP) RETURNING id
+        INSERT INTO courses (nome, subtitulo, descricao, nivel, categoria, thumbnail_path, preco, perfil_recomendado, published_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP) RETURNING id
     ");
     $stmt->execute([
         $oferta['nome'], $oferta['subtitulo'] ?? null, $oferta['descricao'],
         $oferta['nivel'], $oferta['categoria'] ?? null, $oferta['thumbnail_path'] ?? null,
-        $oferta['preco'] ?? 0,
+        $oferta['preco'] ?? 0, $perfilRecomendado,
     ]);
     return (int)$stmt->fetchColumn();
 }
@@ -149,5 +151,60 @@ function removePublicLesson(PDO $conn, ?int $publicLessonId): void {
 function removePublicCourse(PDO $conn, ?int $publicCourseId): void {
     if ($publicCourseId && $publicCourseId > 0) {
         $conn->prepare("DELETE FROM courses WHERE id = ?")->execute([$publicCourseId]);
+    }
+}
+
+/**
+ * Deletes every public lesson published from a professor_course.
+ * Deleting each `lessons` row cascades to `course_lessons` and `progress`,
+ * so any student progress on those lessons is removed as well.
+ */
+function removePublicCourseLessons(PDO $conn, int $professorCourseId): void {
+    $stmt = $conn->prepare("
+        SELECT public_lesson_id
+        FROM professor_lessons
+        WHERE professor_course_id = ? AND public_lesson_id IS NOT NULL
+    ");
+    $stmt->execute([$professorCourseId]);
+    $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    $del = $conn->prepare("DELETE FROM lessons WHERE id = ?");
+    foreach ($ids as $publicLessonId) {
+        if ((int)$publicLessonId > 0) {
+            $del->execute([(int)$publicLessonId]);
+        }
+    }
+}
+
+/**
+ * Purges every PUBLIC course and lesson ever published by a professor.
+ * Public catalog tables (courses/lessons) hold no foreign key back to the
+ * professor, so deleting the users row alone leaves them orphaned. Call this
+ * BEFORE deleting the user. Cascades then remove course_lessons,
+ * course_enrollments (enrollments), course_reviews (ratings) and progress.
+ */
+function removeProfessorPublicArtifacts(PDO $conn, int $professorId): void {
+    // Public courses → cascades course_lessons + course_enrollments + course_reviews
+    $stmt = $conn->prepare("
+        SELECT public_course_id FROM professor_courses
+        WHERE professor_id = ? AND public_course_id IS NOT NULL
+    ");
+    $stmt->execute([$professorId]);
+    foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $publicCourseId) {
+        removePublicCourse($conn, (int)$publicCourseId);
+    }
+
+    // Public lessons → cascades course_lessons + progress (covers course-bound
+    // lessons and any legacy lesson without a course link).
+    $stmt = $conn->prepare("
+        SELECT public_lesson_id FROM professor_lessons
+        WHERE professor_id = ? AND public_lesson_id IS NOT NULL
+    ");
+    $stmt->execute([$professorId]);
+    $del = $conn->prepare("DELETE FROM lessons WHERE id = ?");
+    foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $publicLessonId) {
+        if ((int)$publicLessonId > 0) {
+            $del->execute([(int)$publicLessonId]);
+        }
     }
 }

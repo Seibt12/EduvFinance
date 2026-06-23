@@ -504,7 +504,144 @@ body {
 }
 .btn-action-review:hover { background: var(--warning); color: #fff; }
 
+/* ── Tabs Navigation ──────────────────────────────────────── */
+.tabs-nav {
+  display: flex;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 4px;
+  gap: 4px;
+  width: fit-content;
+}
+.tab-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border-radius: var(--radius-lg);
+  font-family: var(--font-sans); font-size: var(--text-sm);
+  font-weight: var(--weight-medium); color: var(--text-secondary);
+  background: none; border: none; cursor: pointer;
+  transition: var(--transition-smooth); white-space: nowrap;
+}
+.tab-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+.tab-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+.tab-btn.active {
+  background: var(--bg-surface); color: var(--primary);
+  font-weight: var(--weight-semibold);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.tab-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: var(--radius-full);
+  background: var(--primary); color: #fff;
+  font-size: 11px; font-weight: var(--weight-bold); line-height: 1;
+}
+
+/* ── Tab Panel ────────────────────────────────────────────── */
+.tab-panel { display: flex; flex-direction: column; gap: 18px; }
+
+/* ── Profile Card ─────────────────────────────────────────── */
+.profile-card {
+  display: flex; align-items: center; gap: 18px;
+  padding: 18px 22px;
+  background: linear-gradient(135deg, var(--primary-subtle) 0%, var(--bg-elevated) 100%);
+  border: 1px solid var(--primary-border); border-radius: var(--radius-xl);
+}
+.profile-card-badge {
+  width: 54px; height: 54px; border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: var(--weight-bold); color: #fff;
+  flex-shrink: 0; box-shadow: var(--shadow-primary);
+}
+.profile-card-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.profile-card-name { font-size: var(--text-md); font-weight: var(--weight-semibold); color: var(--primary); letter-spacing: -0.01em; }
+.profile-card-desc { font-size: var(--text-sm); color: var(--text-secondary); }
+.profile-card-rec {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: var(--text-xs); color: var(--text-muted); margin-top: 3px;
+}
+.profile-card-rec svg { width: 13px; height: 13px; color: var(--warning); flex-shrink: 0; }
+
+/* ── Course Cover ─────────────────────────────────────────── */
+.course-cover { width: 100%; height: 140px; overflow: hidden; flex-shrink: 0; }
+.course-cover-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 52px; font-weight: var(--weight-bold);
+  color: rgba(255,255,255,0.22); letter-spacing: -2px; user-select: none;
+}
+
+/* ── Enrolled Card ────────────────────────────────────────── */
+.course-card.enrolled-card { padding: 0; gap: 0; }
+.enrolled-card .course-cover { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+.enrolled-card-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+/* ── Explore Card ─────────────────────────────────────────── */
+.course-card.explore-card { padding: 0; gap: 0; }
+.explore-card .course-cover { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+.explore-card-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+/* ── Progress Section ─────────────────────────────────────── */
+.course-progress-section { display: flex; flex-direction: column; gap: 6px; }
+.progress-header { display: flex; align-items: center; justify-content: space-between; }
+.progress-label {
+  font-size: var(--text-xs); color: var(--text-muted);
+  font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: 0.06em;
+}
+.progress-pct { font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--primary); }
+.enrolled-card .progress-bar { height: 8px; }
+
+/* ── Next Lesson ──────────────────────────────────────────── */
+.next-lesson {
+  display: flex; align-items: center; gap: 7px;
+  font-size: var(--text-xs); color: var(--text-secondary);
+  padding: 7px 10px; background: var(--bg-hover); border-radius: var(--radius-md);
+}
+.next-lesson svg { width: 13px; height: 13px; color: var(--primary); flex-shrink: 0; }
+
+/* ── Dropdown ─────────────────────────────────────────────── */
+.dropdown { position: relative; }
+.dropdown-menu {
+  position: absolute; bottom: calc(100% + 6px); right: 0;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+  z-index: 50; min-width: 190px; overflow: hidden;
+  opacity: 0; pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.dropdown.open .dropdown-menu { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.dropdown-item {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 10px 14px; background: none; border: none;
+  font-family: var(--font-sans); font-size: var(--text-sm);
+  color: var(--text-secondary); cursor: pointer; text-align: left;
+  transition: var(--transition-fast);
+}
+.dropdown-item svg { width: 14px; height: 14px; flex-shrink: 0; }
+.dropdown-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.dropdown-item-danger:hover { background: var(--danger-subtle); color: var(--danger); }
+
+/* ── Extra button variants ────────────────────────────────── */
+.btn-action-secondary {
+  background: var(--bg-elevated); color: var(--text-secondary); border: 1px solid var(--border);
+}
+.btn-action-secondary:hover { background: var(--bg-overlay); color: var(--text-primary); border-color: var(--border-strong); }
+.btn-action-full { width: 100%; justify-content: center; }
+
+/* ── Filters bar ──────────────────────────────────────────── */
+.filters-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.filters-bar select,
+.filters-bar button { width: auto; flex-shrink: 0; }
+
+/* ── Grid variants ────────────────────────────────────────── */
+.enrolled-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+
 /* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .enrolled-grid,
+  .course-grid   { grid-template-columns: repeat(2, 1fr); }
+}
 @media (max-width: 900px) {
   .sidebar {
     position: fixed; left: 0; top: 0; bottom: 0;
@@ -514,9 +651,14 @@ body {
   .sidebar-toggle { display: flex; }
   .content { padding: 16px; padding-top: 68px; }
 }
-@media (max-width: 600px) {
+@media (max-width: 640px) {
+  .enrolled-grid,
   .course-grid { grid-template-columns: 1fr; }
   .card-body { padding: 16px; }
+  .tabs-nav { width: 100%; }
+  .tab-btn { flex: 1; justify-content: center; padding: 10px 10px; }
+  .profile-card { flex-direction: column; text-align: center; gap: 12px; }
+  .profile-card-rec { justify-content: center; }
 }
 </style>
 </head>
@@ -585,20 +727,78 @@ body {
     <div class="page-header" style="margin-bottom:0">
       <div class="page-header-left">
         <h1>Cursos</h1>
-        <p>Explore e matricule-se nos cursos disponíveis</p>
+        <p>Gerencie sua jornada de aprendizado financeiro</p>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-body">
-        <!-- skeleton enquanto carrega -->
-        <div class="skeleton-grid" id="cursosLoading">
-          <div class="skeleton-card"><div class="skeleton-line short"></div><div class="skeleton-line tall"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
-          <div class="skeleton-card"><div class="skeleton-line short"></div><div class="skeleton-line tall"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
-          <div class="skeleton-card"><div class="skeleton-line short"></div><div class="skeleton-line tall"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
+    <!-- Investor Profile Card -->
+    <div id="profileCard" class="profile-card" style="display:none">
+      <div class="profile-card-badge" id="profileCardBadge"></div>
+      <div class="profile-card-info">
+        <div class="profile-card-name" id="profileCardName"></div>
+        <div class="profile-card-desc" id="profileCardDesc"></div>
+        <div class="profile-card-rec">
+          <i data-lucide="sparkles"></i>
+          Cursos recomendados são destacados automaticamente.
         </div>
-        <div class="course-grid" id="cursosGrid" style="display:none"></div>
       </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" id="tabBtnMatriculados" onclick="switchTab('matriculados')">
+        <i data-lucide="graduation-cap"></i>
+        <span>Matriculados</span>
+        <span class="tab-badge" id="tabBadgeMatriculados" style="display:none">0</span>
+      </button>
+      <button class="tab-btn" id="tabBtnExplorar" onclick="switchTab('explorar')">
+        <i data-lucide="compass"></i>
+        <span>Explorar Cursos</span>
+      </button>
+    </div>
+
+    <!-- Tab 1: Matriculados -->
+    <div class="tab-panel" id="tabMatriculados">
+      <div class="skeleton-grid" id="matriculadosLoading">
+        <div class="skeleton-card"><div class="skeleton-line tall"></div><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
+        <div class="skeleton-card"><div class="skeleton-line tall"></div><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
+        <div class="skeleton-card"><div class="skeleton-line tall"></div><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
+      </div>
+      <div class="course-grid enrolled-grid" id="gridMatriculados" style="display:none"></div>
+      <div class="empty-state" id="emptyMatriculados" style="display:none">
+        <div class="empty-icon"><i data-lucide="book-open"></i></div>
+        <p>Você ainda não está matriculado em nenhum curso.</p>
+        <button onclick="switchTab('explorar')" class="btn-action btn-action-enroll" style="margin-top:8px">
+          <i data-lucide="compass"></i> Explorar cursos
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab 2: Explorar Cursos -->
+    <div class="tab-panel" id="tabExplorar" style="display:none">
+      <div class="filters-bar">
+        <select id="filtroNivel" onchange="aplicarFiltros()" style="padding:7px 12px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--bg-elevated);color:var(--text-primary);font-family:var(--font-sans);font-size:var(--text-sm);cursor:pointer">
+          <option value="">Todos os níveis</option>
+          <option value="basico">Básico</option>
+          <option value="intermediario">Intermediário</option>
+          <option value="avancado">Avançado</option>
+        </select>
+        <select id="filtroPerfil" onchange="aplicarFiltros()" style="padding:7px 12px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--bg-elevated);color:var(--text-primary);font-family:var(--font-sans);font-size:var(--text-sm);cursor:pointer">
+          <option value="">Todos os perfis</option>
+          <option value="conservador">Conservador</option>
+          <option value="moderado">Moderado</option>
+          <option value="agressivo">Agressivo</option>
+        </select>
+        <button onclick="limparFiltros()" style="padding:7px 14px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--bg-elevated);color:var(--text-secondary);font-family:var(--font-sans);font-size:var(--text-sm);cursor:pointer;transition:var(--transition-base)">
+          Limpar filtros
+        </button>
+      </div>
+      <div class="skeleton-grid" id="cursosLoading">
+        <div class="skeleton-card"><div class="skeleton-line tall"></div><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
+        <div class="skeleton-card"><div class="skeleton-line tall"></div><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
+        <div class="skeleton-card"><div class="skeleton-line tall"></div><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
+      </div>
+      <div class="course-grid" id="cursosGrid" style="display:none"></div>
     </div>
   </div>
 
@@ -727,11 +927,14 @@ verificarSessao('aluno', usuario => {
     document.getElementById('viewAulas').style.display  = 'block';
     carregarAulasDoCurso(parseInt(cursoId));
   } else {
-    carregarCursos().then(() => {
-      document.getElementById('cursosLoading').style.display = 'none';
-      document.getElementById('cursosGrid').style.display    = 'grid';
-      lucide.createIcons();
-    });
+    carregarCursos().then(() => lucide.createIcons());
+  }
+});
+
+/* Close dropdowns when clicking outside */
+document.addEventListener('click', e => {
+  if (!e.target.closest('.dropdown')) {
+    document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
   }
 });
 </script>
