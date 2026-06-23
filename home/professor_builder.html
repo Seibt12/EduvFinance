@@ -272,6 +272,17 @@ body { font-family: var(--font-sans); background: var(--bg-base); color: var(--t
               </select>
             </div>
           </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Perfil recomendado</label>
+              <select id="fPerfilRecomendado">
+                <option value="todos">Todos os perfis</option>
+                <option value="conservador">Conservador</option>
+                <option value="moderado">Moderado</option>
+                <option value="agressivo">Agressivo</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -437,11 +448,12 @@ async function carregarCurso() {
 }
 
 function preencherFormulario(c) {
-  document.getElementById('fNome').value      = c.nome || '';
-  document.getElementById('fSubtitulo').value = c.subtitulo || '';
-  document.getElementById('fDescricao').value = c.descricao || '';
-  document.getElementById('fNivel').value     = c.nivel || '';
-  document.getElementById('fCategoria').value = c.categoria || '';
+  document.getElementById('fNome').value             = c.nome || '';
+  document.getElementById('fSubtitulo').value        = c.subtitulo || '';
+  document.getElementById('fDescricao').value        = c.descricao || '';
+  document.getElementById('fNivel').value            = c.nivel || '';
+  document.getElementById('fCategoria').value        = c.categoria || '';
+  document.getElementById('fPerfilRecomendado').value = c.perfil_recomendado || 'todos';
 }
 
 // ─── Stepper ──────────────────────────────────────────────────────────────
@@ -483,7 +495,8 @@ async function salvarInformacoes() {
   fd.append('subtitulo', document.getElementById('fSubtitulo').value.trim());
   fd.append('descricao', descricao);
   fd.append('nivel',     nivel);
-  fd.append('categoria', document.getElementById('fCategoria').value);
+  fd.append('categoria',          document.getElementById('fCategoria').value);
+  fd.append('perfil_recomendado', document.getElementById('fPerfilRecomendado').value);
 
   const endpoint = courseId
     ? (fd.append('id', courseId), '../php/professor_course_draft_atualizar.php')
@@ -498,7 +511,9 @@ async function salvarInformacoes() {
       history.replaceState(null, '', '?id=' + courseId);
     }
     document.getElementById('builderTitleBar').textContent = nome;
-    exibirToast('Informações salvas!', 'success');
+    const isPublished = courseData && courseData.status === 'aprovado';
+    exibirToast(isPublished ? 'Alterações publicadas imediatamente!' : 'Informações salvas!', 'success');
+    if (courseData) courseData.nome = nome;
     atualizarStepper(2);
   } catch (e) {
     exibirToast('Erro de conexão', 'error');
@@ -514,7 +529,7 @@ function renderizarAulas() {
   const list  = document.getElementById('lessonsList');
   const empty = document.getElementById('lessonsEmpty');
   const count = document.getElementById('lessonsCount');
-  const locked = courseData && (courseData.status === 'pendente' || courseData.status === 'aprovado');
+  const locked = courseData && courseData.status === 'pendente';
 
   document.getElementById('lockedNotice').style.display = locked ? 'flex' : 'none';
   document.getElementById('btnAddLesson').style.display = locked ? 'none' : 'inline-flex';
@@ -662,7 +677,11 @@ async function salvarAula() {
 
     fecharModalAula();
     renderizarAulas();
-    exibirToast(isEdicao ? 'Aula atualizada!' : 'Aula adicionada!', 'success');
+    const publishedToast = courseData && courseData.status === 'aprovado';
+    exibirToast(isEdicao
+      ? (publishedToast ? 'Aula atualizada e publicada!' : 'Aula atualizada!')
+      : (publishedToast ? 'Aula adicionada e publicada!' : 'Aula adicionada!'),
+      'success');
   } catch (e) {
     exibirToast('Erro de conexão', 'error');
   }
@@ -714,7 +733,7 @@ function construirChecklist() {
   if (isPending) {
     submitBox.innerHTML = `<div class="locked-notice" style="text-align:left"><i data-lucide="clock"></i><div><p style="font-weight:var(--weight-semibold);color:var(--warning)">Em análise</p><p style="font-size:var(--text-xs);color:var(--warning);margin-top:4px">Seu curso foi enviado e está aguardando revisão do administrador. Você será notificado quando houver uma resposta.</p></div></div>`;
   } else if (isApproved) {
-    submitBox.innerHTML = `<div class="check-item ok" style="justify-content:center;gap:16px"><div class="check-icon" style="background:var(--success)"><i data-lucide="check"></i></div><div><p style="font-weight:var(--weight-semibold);color:var(--success)">Publicado!</p><p style="font-size:var(--text-xs);color:var(--text-muted);margin-top:2px">Este curso está visível para os alunos na plataforma.</p></div></div>`;
+    submitBox.innerHTML = `<div style="display:flex;flex-direction:column;gap:12px"><div class="check-item ok" style="justify-content:flex-start;gap:16px"><div class="check-icon" style="background:var(--success)"><i data-lucide="check"></i></div><div><p style="font-weight:var(--weight-semibold);color:var(--success)">Publicado</p><p style="font-size:var(--text-xs);color:var(--text-muted);margin-top:2px">Este curso está visível para os alunos na plataforma.</p></div></div><div class="locked-notice" style="background:var(--info-subtle,#EFF6FF);border-color:var(--info-border,#BFDBFE)"><i data-lucide="zap" style="color:var(--info,#3B82F6)"></i><p style="color:var(--info,#3B82F6)">Você está no modo de edição de curso publicado. Todas as alterações — informações, aulas e ordem — são aplicadas <strong>imediatamente</strong> para os alunos.</p></div></div>`;
   } else {
     btn.disabled = !allOk;
   }

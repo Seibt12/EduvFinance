@@ -490,6 +490,40 @@ body {
   gap: 20px;
 }
 
+.profile-result {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-badge {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-black);
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-md);
+}
+
+.profile-result-text strong {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.profile-result-text p {
+  font-size: var(--text-md);
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+}
+
 .profile-cta-text p {
   font-size: var(--text-md);
   color: var(--text-secondary);
@@ -692,18 +726,38 @@ body {
       <h2>Perfil de Investidor</h2>
     </div>
     <div class="card-body">
-      <div class="profile-cta">
-        <div class="profile-cta-text">
-          <p>Descubra seu perfil de investidor respondendo ao nosso questionário e receba recomendações personalizadas de cursos e trilhas.</p>
-          <a href="aluno_simulador.html#perfil" class="btn-primary-cta">
-            <i data-lucide="clipboard-list"></i>
-            Fazer o teste agora
-          </a>
-        </div>
-        <div class="profile-cta-visual">
-          <i data-lucide="pie-chart"></i>
+
+      <!-- estado: perfil já definido -->
+      <div id="perfilResult" style="display:none">
+        <div class="profile-result">
+          <div class="profile-badge" id="perfilBadge"></div>
+          <div class="profile-result-text">
+            <strong id="perfilNome"></strong>
+            <p id="perfilDesc"></p>
+            <a href="aluno_simulador.html#perfil" class="btn-sm-link">
+              <i data-lucide="refresh-cw"></i>
+              Refazer teste
+            </a>
+          </div>
         </div>
       </div>
+
+      <!-- estado: sem perfil (CTA) -->
+      <div id="perfilCta" style="display:none">
+        <div class="profile-cta">
+          <div class="profile-cta-text">
+            <p>Descubra seu perfil de investidor respondendo ao nosso questionário e receba recomendações personalizadas de cursos e trilhas.</p>
+            <a href="aluno_simulador.html#perfil" class="btn-primary-cta">
+              <i data-lucide="clipboard-list"></i>
+              Fazer o teste agora
+            </a>
+          </div>
+          <div class="profile-cta-visual">
+            <i data-lucide="pie-chart"></i>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -776,13 +830,6 @@ verificarSessao('aluno', async usuario => {
     const val = el.textContent;
     if (val && val !== '—') animateCounter(el, val, val.includes('%') ? '%' : '');
   });
-
-  /* verificar perfil investidor */
-  try {
-    await fetch('../php/sessao_check.php', { credentials: 'include' });
-  } catch {}
-
-  document.getElementById('cardPerfil').style.display = 'block';
 
   /* re-render ícones após o JS dinâmico */
   lucide.createIcons();

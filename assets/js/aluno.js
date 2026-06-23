@@ -27,6 +27,27 @@ async function carregarDashboardAluno(usuario) {
     }
     document.getElementById('statCursos').textContent = cursosMatriculados.length;
 
+    // Perfil de investidor na dashboard
+    const perfilUsuario = (dataCursos.success && dataCursos.perfil_usuario) ? dataCursos.perfil_usuario : null;
+    const cardPerfil    = document.getElementById('cardPerfil');
+    const perfilResult  = document.getElementById('perfilResult');
+    const perfilCta     = document.getElementById('perfilCta');
+    if (cardPerfil) {
+        cardPerfil.style.display = 'block';
+        if (perfilUsuario && profileConfig[perfilUsuario]) {
+            const cfg = profileConfig[perfilUsuario];
+            const badge = document.getElementById('perfilBadge');
+            badge.textContent      = cfg.letter;
+            badge.style.background = cfg.gradient;
+            document.getElementById('perfilNome').textContent = cfg.name;
+            document.getElementById('perfilDesc').textContent = cfg.desc;
+            if (perfilResult) perfilResult.style.display = 'block';
+            if (perfilCta)    perfilCta.style.display    = 'none';
+        } else {
+            if (perfilResult) perfilResult.style.display = 'none';
+            if (perfilCta)    perfilCta.style.display    = 'block';
+        }
+    }
 
     // Grid de cursos matriculados
     const grid = document.getElementById('cursosGrid');
@@ -59,66 +80,232 @@ async function carregarDashboardAluno(usuario) {
     }
 }
 
+// ── Tab switching ───────────────────────────────────────────
+function switchTab(tabId) {
+    const panelMap = { matriculados: 'tabMatriculados', explorar: 'tabExplorar' };
+    const btnMap   = { matriculados: 'tabBtnMatriculados', explorar: 'tabBtnExplorar' };
+    Object.keys(panelMap).forEach(t => {
+        document.getElementById(panelMap[t]).style.display = 'none';
+        document.getElementById(btnMap[t]).classList.remove('active');
+    });
+    document.getElementById(panelMap[tabId]).style.display = 'flex';
+    document.getElementById(btnMap[tabId]).classList.add('active');
+    lucide.createIcons();
+}
+
+// ── Dropdown toggle ────────────────────────────────────────
+function toggleDropdown(btn) {
+    const dd = btn.closest('.dropdown');
+    const wasOpen = dd.classList.contains('open');
+    document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+    if (!wasOpen) dd.classList.add('open');
+}
+
+// ── Investor profile config ────────────────────────────────
+const profileConfig = {
+    conservador: {
+        letter: 'C',
+        name: 'Perfil Conservador',
+        desc: 'Foco em segurança e preservação de capital.',
+        gradient: 'linear-gradient(135deg,#10b981,#059669)',
+    },
+    moderado: {
+        letter: 'M',
+        name: 'Perfil Moderado',
+        desc: 'Equilíbrio entre crescimento e segurança.',
+        gradient: 'linear-gradient(135deg,#4f7cff,#9b6dff)',
+    },
+    agressivo: {
+        letter: 'A',
+        name: 'Perfil Agressivo',
+        desc: 'Foco em crescimento e altos retornos.',
+        gradient: 'linear-gradient(135deg,#f59e0b,#ef4444)',
+    },
+};
+
+// ── Deterministic cover gradient by course name ────────────
+function coverGradient(nome) {
+    const palette = [
+        'linear-gradient(135deg,#4f7cff,#9b6dff)',
+        'linear-gradient(135deg,#10b981,#3b82f6)',
+        'linear-gradient(135deg,#f59e0b,#ef4444)',
+        'linear-gradient(135deg,#6366f1,#8b5cf6)',
+        'linear-gradient(135deg,#14b8a6,#06b6d4)',
+        'linear-gradient(135deg,#ec4899,#8b5cf6)',
+    ];
+    let hash = 0;
+    for (let i = 0; i < nome.length; i++) hash += nome.charCodeAt(i);
+    return palette[hash % palette.length];
+}
+
 // ── Cursos do aluno ────────────────────────────────────────
 async function carregarCursos() {
-    const resp = await fetch('../php/courses_listar.php', { credentials: 'include' });
+    const nivel  = (document.getElementById('filtroNivel')  || {}).value || '';
+    const perfil = (document.getElementById('filtroPerfil') || {}).value || '';
+    const qs = new URLSearchParams();
+    if (nivel)  qs.set('nivel',  nivel);
+    if (perfil) qs.set('perfil', perfil);
+
+    const url = '../php/courses_listar.php' + (qs.toString() ? '?' + qs.toString() : '');
+    const resp = await fetch(url, { credentials: 'include' });
     const data = await resp.json();
     if (!data.success) return;
 
-    const grid = document.getElementById('cursosGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
+    // Investor profile card
+    const perfilUsuario = data.perfil_usuario || null;
+    const profileCard = document.getElementById('profileCard');
+    if (profileCard && perfilUsuario && profileConfig[perfilUsuario]) {
+        const cfg = profileConfig[perfilUsuario];
+        const badge = document.getElementById('profileCardBadge');
+        badge.textContent = cfg.letter;
+        badge.style.background = cfg.gradient;
+        document.getElementById('profileCardName').textContent = cfg.name;
+        document.getElementById('profileCardDesc').textContent = cfg.desc;
+        profileCard.style.display = 'flex';
+    } else if (profileCard) {
+        profileCard.style.display = 'none';
+    }
 
+    const gridCatalogo      = document.getElementById('cursosGrid');
+    const gridMatriculados  = document.getElementById('gridMatriculados');
+    const emptyMatriculados = document.getElementById('emptyMatriculados');
+    const matLoading        = document.getElementById('matriculadosLoading');
+    if (!gridCatalogo) return;
+
+    gridCatalogo.innerHTML = '';
+    if (gridMatriculados) gridMatriculados.innerHTML = '';
 
     const labelNivel = { basico: 'Básico', intermediario: 'Intermediário', avancado: 'Avançado' };
+    let totalMatriculados = 0;
+
     for (const c of data.courses) {
         const totalC = parseInt(c.total_aulas);
         const conclC = parseInt(c.concluidas || 0);
         const pct = totalC > 0 ? Math.round((conclC / totalC) * 100) : 0;
         const matriculado = parseInt(c.matriculado) === 1;
+        const cover   = coverGradient(c.nome);
+        const inicial = escHtml(c.nome.charAt(0).toUpperCase());
 
-        let progressHtml = '';
-        let actionsHtml  = '';
+        const recomendado = perfilUsuario &&
+            (c.perfil_recomendado === perfilUsuario || c.perfil_recomendado === 'todos');
+        const badgeRec = recomendado ? '<span class="badge badge-success">Recomendado</span>' : '';
+
         if (matriculado) {
-            progressHtml = `<div class="progress-bar">
-                <div class="progress-fill" style="width:${pct}%"></div>
-            </div>
-            <small>${conclC}/${totalC} aulas &mdash; ${pct}%</small>`;
-            actionsHtml = `<div class="course-actions">
-                <a href="aluno_cursos.html?curso=${c.id}" class="btn-action btn-action-primary">Ver aulas</a>
-                <form method="POST" action="../php/courses_matricular.php" style="display:inline">
-                    <input type="hidden" name="course_id" value="${c.id}">
-                    <input type="hidden" name="action" value="unenroll">
-                    <button type="submit" class="btn-action btn-action-danger"
-                            onclick="return confirm('Cancelar matrícula?')">Cancelar matrícula</button>
-                </form>
-            </div>`;
+            totalMatriculados++;
+            const proximaAula = c.proxima_aula
+                ? `<div class="next-lesson"><i data-lucide="play-circle"></i><span>Próxima: ${escHtml(c.proxima_aula)}</span></div>`
+                : '';
+            if (gridMatriculados) gridMatriculados.innerHTML += `
+<div class="course-card enrolled-card" data-curso-id="${c.id}">
+  <div class="course-cover">
+    <div class="course-cover-placeholder" style="background:${cover}">${inicial}</div>
+  </div>
+  <div class="enrolled-card-body">
+    <div class="course-nivel"><span class="badge badge-${c.nivel}">${labelNivel[c.nivel] || c.nivel}</span></div>
+    <h3>${escHtml(c.nome)}</h3>
+    <div class="course-progress-section">
+      <div class="progress-header">
+        <span class="progress-label">Progresso</span>
+        <span class="progress-pct">${pct}%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <small>${conclC} de ${totalC} aulas concluídas</small>
+    </div>
+    ${proximaAula}
+    <div class="course-actions">
+      <a href="aluno_cursos.html?curso=${c.id}" class="btn-action btn-action-primary" style="flex:1;justify-content:center">
+        <i data-lucide="play"></i> Continuar
+      </a>
+      <div class="dropdown">
+        <button class="btn-action btn-action-secondary" onclick="toggleDropdown(this)" aria-label="Mais opções">
+          <i data-lucide="more-horizontal"></i>
+        </button>
+        <div class="dropdown-menu">
+          <form method="POST" action="../php/courses_matricular.php">
+            <input type="hidden" name="course_id" value="${c.id}">
+            <input type="hidden" name="action" value="unenroll">
+            <button type="submit" class="dropdown-item dropdown-item-danger"
+                    onclick="return confirm('Cancelar matrícula em ${escJs(c.nome)}?')">
+              <i data-lucide="x-circle"></i> Cancelar matrícula
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="course-rating-placeholder"></div>
+  </div>
+</div>`;
         } else {
-            actionsHtml = `<div class="course-actions">
-                <form method="POST" action="../php/courses_matricular.php">
-                    <input type="hidden" name="course_id" value="${c.id}">
-                    <input type="hidden" name="action" value="enroll">
-                    <button type="submit" class="btn-action btn-action-enroll">Matricular-se</button>
-                </form>
-            </div>`;
+            gridCatalogo.innerHTML += `
+<div class="course-card explore-card" data-curso-id="${c.id}">
+  <div class="course-cover">
+    <div class="course-cover-placeholder" style="background:${cover}">${inicial}</div>
+  </div>
+  <div class="explore-card-body">
+    <div class="course-nivel">
+      <span class="badge badge-${c.nivel}">${labelNivel[c.nivel] || c.nivel}</span>
+      ${badgeRec}
+    </div>
+    <h3>${escHtml(c.nome)}</h3>
+    <p>${escHtml(c.descricao)}</p>
+    <div class="course-rating-placeholder"></div>
+    <small><i data-lucide="book" style="width:12px;height:12px;vertical-align:-2px"></i> ${totalC} aula(s)</small>
+    <div class="course-actions">
+      <form method="POST" action="../php/courses_matricular.php" style="width:100%">
+        <input type="hidden" name="course_id" value="${c.id}">
+        <input type="hidden" name="action" value="enroll">
+        <button type="submit" class="btn-action btn-action-enroll btn-action-full">
+          <i data-lucide="plus-circle"></i> Matricular-se
+        </button>
+      </form>
+    </div>
+  </div>
+</div>`;
         }
+    }
 
-        grid.innerHTML += `<div class="course-card" data-curso-id="${c.id}">
-            <div class="course-nivel">
-                <span class="badge badge-${c.nivel}">${labelNivel[c.nivel] || c.nivel}</span>
-                ${matriculado ? '<span class="badge badge-success">Matriculado</span>' : ''}
-            </div>
-            <h3>${escHtml(c.nome)}</h3>
-            <p>${escHtml(c.descricao)}</p>
-            <div class="course-rating-placeholder"></div>
-            <small>${totalC} aula(s)</small>
-            ${progressHtml}
-            ${actionsHtml}
+    // Tab badge
+    const tabBadge = document.getElementById('tabBadgeMatriculados');
+    if (tabBadge) {
+        tabBadge.textContent = totalMatriculados;
+        tabBadge.style.display = totalMatriculados > 0 ? 'inline-flex' : 'none';
+    }
+
+    // Enrolled tab visibility
+    if (gridMatriculados) gridMatriculados.style.display  = totalMatriculados > 0 ? 'grid' : 'none';
+    if (emptyMatriculados) emptyMatriculados.style.display = totalMatriculados > 0 ? 'none' : 'flex';
+    if (matLoading) matLoading.style.display = 'none';
+
+    // Catalog tab visibility
+    const cursosLoading = document.getElementById('cursosLoading');
+    if (cursosLoading) cursosLoading.style.display = 'none';
+    gridCatalogo.style.display = 'grid';
+
+    if (gridCatalogo.innerHTML === '') {
+        gridCatalogo.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+            <div class="empty-icon"><i data-lucide="search"></i></div>
+            <p>Nenhum curso encontrado para os filtros selecionados.</p>
         </div>`;
     }
 
-    // Inject average ratings into grid cards
     if (typeof injectMediasNaGrade === 'function') injectMediasNaGrade();
+}
+
+async function aplicarFiltros() {
+    const grid    = document.getElementById('cursosGrid');
+    const loading = document.getElementById('cursosLoading');
+    if (grid)    grid.style.display    = 'none';
+    if (loading) loading.style.display = 'grid';
+    await carregarCursos();
+    lucide.createIcons();
+}
+
+function limparFiltros() {
+    const n = document.getElementById('filtroNivel');
+    const p = document.getElementById('filtroPerfil');
+    if (n) n.value = '';
+    if (p) p.value = '';
+    aplicarFiltros();
 }
 
 async function carregarAulasDoCurso(cursoId) {

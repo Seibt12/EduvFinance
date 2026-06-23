@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curso — EduvFinance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); background: var(--bg-base); color: var(--text-primary); min-height: 100vh; display: flex; overflow-x: hidden; }
+
+/* ── Sidebar ── */
+.sidebar { width: var(--sidebar-width); flex-shrink: 0; height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column; background: var(--bg-surface); border-right: 1px solid var(--border); overflow-y: auto; z-index: 40; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+.sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid var(--border); }
+.sidebar-logo h2 { font-size: var(--text-lg); font-weight: var(--weight-bold); background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; }
+.sidebar-logo .site-sub { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
+.sidebar-user { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.user-avatar { width: 36px; height: 36px; border-radius: var(--radius-full); background: linear-gradient(135deg,#22C55E,#16A34A); display: flex; align-items: center; justify-content: center; font-size: var(--text-sm); font-weight: var(--weight-bold); color: #fff; flex-shrink: 0; }
+.sidebar-user-info { min-width: 0; }
+.user-name { font-size: var(--text-sm); font-weight: var(--weight-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-role { font-size: var(--text-xs); color: var(--text-muted); margin-top: 1px; }
+.role-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-full); font-size: 10px; font-weight: var(--weight-semibold); text-transform: uppercase; background: var(--success-subtle); color: var(--success); border: 1px solid var(--success-border); }
+.sidebar-menu { list-style: none; padding: 12px 10px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.sidebar-menu li a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-secondary); text-decoration: none; transition: var(--transition-base); }
+.sidebar-menu li a:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sidebar-footer { padding: 12px 10px 16px; border-top: 1px solid var(--border); }
+.btn-logout { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md); background: none; border: none; cursor: pointer; font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-muted); transition: var(--transition-base); text-align: left; }
+.btn-logout:hover { background: var(--danger-subtle); color: var(--danger); }
+.sidebar-toggle { display: none; position: fixed; top: 14px; left: 14px; z-index: 60; width: 40px; height: 40px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; align-items: center; justify-content: center; color: var(--text-secondary); }
+.sidebar-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 39; backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+.sidebar-backdrop.visible { opacity: 1; pointer-events: auto; }
+
+/* ── Page wrap ── */
+.page-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+/* ── Topbar ── */
+.topbar { background: var(--bg-surface); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; position: sticky; top: 0; z-index: 30; }
+.topbar-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.back-link { display: inline-flex; align-items: center; gap: 7px; font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-secondary); text-decoration: none; transition: var(--transition-base); white-space: nowrap; }
+.back-link:hover { color: var(--text-primary); }
+.back-link svg { width: 15px; height: 15px; }
+.topbar-title { font-size: var(--text-base); font-weight: var(--weight-semibold); color: var(--text-primary); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+/* ── Content ── */
+.page-content { flex: 1; padding: 32px; max-width: 1000px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+/* ── Course info card ── */
+.course-info-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; }
+.course-info-body { display: grid; grid-template-columns: 280px 1fr; }
+.course-thumb-wrap { flex-shrink: 0; }
+.course-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+.course-thumb-placeholder { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg, var(--bg-elevated), var(--bg-overlay)); display: flex; align-items: center; justify-content: center; }
+.course-thumb-placeholder svg { width: 48px; height: 48px; color: var(--text-muted); opacity: .4; }
+.course-meta-wrap { padding: 24px 28px; display: flex; flex-direction: column; gap: 12px; border-left: 1px solid var(--border); min-width: 0; }
+.course-title { font-size: var(--text-xl); font-weight: var(--weight-bold); letter-spacing: -0.02em; color: var(--text-primary); line-height: 1.3; }
+.course-subtitle { font-size: var(--text-sm); color: var(--text-muted); line-height: 1.5; }
+.course-badges { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.course-desc { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.65; }
+.course-perfil { font-size: var(--text-xs); color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+
+/* ── Rejection box ── */
+.rejection-box { padding: 14px 18px; background: var(--danger-subtle); border: 1px solid var(--danger-border); border-radius: var(--radius-lg); }
+.rejection-box strong { display: block; font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--danger); margin-bottom: 4px; }
+.rejection-box p { font-size: var(--text-sm); color: var(--danger); line-height: 1.5; }
+
+/* ── Notices ── */
+.published-notice { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); border-radius: var(--radius-md); }
+.published-notice svg { width: 16px; height: 16px; color: #3B82F6; flex-shrink: 0; }
+.published-notice span { font-size: var(--text-xs); color: #3B82F6; font-weight: var(--weight-medium); }
+.locked-notice { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--warning-subtle); border: 1px solid var(--warning-border); border-radius: var(--radius-lg); }
+.locked-notice svg { width: 18px; height: 18px; color: var(--warning); flex-shrink: 0; }
+.locked-notice p { font-size: var(--text-sm); color: var(--warning); font-weight: var(--weight-medium); }
+
+/* ── Lessons card ── */
+.lessons-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; }
+.lessons-card-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.lessons-card-header h2 { font-size: var(--text-base); font-weight: var(--weight-semibold); color: var(--text-primary); }
+.lessons-card-body { padding: 16px 24px; display: flex; flex-direction: column; gap: 12px; }
+.lessons-list { display: flex; flex-direction: column; gap: 8px; }
+.lesson-item { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; display: flex; align-items: center; gap: 12px; transition: var(--transition-base); }
+.lesson-item:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+.lesson-item.dragging { opacity: .5; border-style: dashed; }
+.lesson-item.drag-over { border-color: var(--primary); background: var(--primary-subtle); }
+.lesson-drag { cursor: grab; color: var(--text-muted); flex-shrink: 0; display: flex; padding: 2px; border-radius: var(--radius-sm); }
+.lesson-drag:hover { color: var(--text-secondary); background: var(--bg-hover); }
+.lesson-drag svg { width: 16px; height: 16px; }
+.lesson-num { width: 26px; height: 26px; border-radius: var(--radius-full); background: var(--bg-overlay); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: var(--weight-bold); color: var(--text-muted); flex-shrink: 0; }
+.lesson-info { flex: 1; min-width: 0; }
+.lesson-title { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lesson-meta { font-size: var(--text-xs); color: var(--text-muted); display: flex; gap: 8px; margin-top: 3px; flex-wrap: wrap; }
+.lesson-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.btn-icon { width: 30px; height: 30px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-surface); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-base); color: var(--text-muted); }
+.btn-icon:hover { background: var(--bg-overlay); color: var(--text-primary); }
+.btn-icon.danger:hover { background: var(--danger-subtle); color: var(--danger); border-color: var(--danger-border); }
+.btn-icon svg { width: 14px; height: 14px; }
+.lessons-empty { padding: 40px 24px; text-align: center; border: 2px dashed var(--border); border-radius: var(--radius-xl); }
+.lessons-empty svg { width: 36px; height: 36px; color: var(--text-muted); opacity: .4; margin-bottom: 10px; }
+.lessons-empty p { font-size: var(--text-sm); color: var(--text-muted); }
+
+/* ── Badges ── */
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: .03em; }
+.badge-draft     { background: rgba(148,163,184,.15); color: var(--text-muted); border: 1px solid rgba(148,163,184,.3); }
+.badge-pendente  { background: var(--warning-subtle); color: var(--warning); border: 1px solid var(--warning-border); }
+.badge-aprovado  { background: var(--success-subtle); color: var(--success); border: 1px solid var(--success-border); }
+.badge-rejeitado { background: var(--danger-subtle); color: var(--danger); border: 1px solid var(--danger-border); }
+.badge-basico        { background: var(--info-subtle); color: var(--info); border: 1px solid var(--info-border); }
+.badge-intermediario { background: var(--warning-subtle); color: var(--warning); border: 1px solid var(--warning-border); }
+.badge-avancado      { background: var(--danger-subtle); color: var(--danger); border: 1px solid var(--danger-border); }
+
+/* ── Buttons ── */
+.btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--gradient-primary); border: none; border-radius: var(--radius-md); color: #fff; font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-semibold); cursor: pointer; box-shadow: var(--shadow-primary); transition: var(--transition-smooth); }
+.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.btn-primary svg { width: 15px; height: 15px; }
+.btn-secondary { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-secondary); font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-medium); cursor: pointer; transition: var(--transition-base); text-decoration: none; }
+.btn-secondary:hover { background: var(--bg-overlay); color: var(--text-primary); }
+.btn-secondary svg { width: 15px; height: 15px; }
+
+/* ── Form ── */
+.form-group { display: flex; flex-direction: column; gap: 7px; }
+.form-group label { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-secondary); }
+.form-group label .req { color: var(--danger); margin-left: 2px; }
+.form-group input, .form-group textarea, .form-group select {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md);
+  color: var(--text-primary); font-family: var(--font-sans); font-size: var(--text-base);
+  padding: 11px 14px; transition: var(--transition-base); outline: none; width: 100%;
+}
+.form-group input::placeholder, .form-group textarea::placeholder { color: var(--text-muted); }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--border-focus); background: var(--bg-overlay); box-shadow: 0 0 0 3px var(--primary-glow); }
+.form-group textarea { resize: vertical; min-height: 100px; }
+.form-group select option { background: var(--bg-elevated); }
+.form-hint { font-size: var(--text-xs); color: var(--text-muted); }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* ── Modals ── */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; }
+.modal-backdrop.open { display: flex; }
+.modal-box { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg-surface); z-index: 1; }
+.modal-header h2 { font-size: var(--text-lg); font-weight: var(--weight-semibold); }
+.modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ── Thumb preview ── */
+.thumb-preview-wrap { width: 100%; max-width: 280px; aspect-ratio: 16/9; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; }
+.thumb-preview-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb-preview-placeholder svg { width: 36px; height: 36px; color: var(--text-muted); opacity: .4; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); box-shadow: var(--shadow-xl); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-toggle { display: flex; }
+  .topbar { padding: 14px 16px; padding-left: 64px; }
+  .page-content { padding: 20px 16px; }
+  .course-info-body { grid-template-columns: 1fr; }
+  .course-meta-wrap { border-left: none; border-top: 1px solid var(--border); }
+}
+@media (max-width: 600px) { .form-grid-2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<button class="sidebar-toggle" id="sidebarToggle"><i data-lucide="menu"></i></button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><h2>EduvFinance</h2><p class="site-sub">Educação Financeira</p></div>
+  <div class="sidebar-user">
+    <div class="user-avatar" id="userAvatar">P</div>
+    <div class="sidebar-user-info">
+      <div class="user-name" id="userName"></div>
+      <div class="user-role"><span class="role-badge">Professor</span></div>
+    </div>
+  </div>
+  <ul class="sidebar-menu">
+    <li><a href="professor.html"><i data-lucide="layout-dashboard"></i><span>Meus Cursos</span></a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <button onclick="logout()" class="btn-logout"><i data-lucide="log-out"></i><span>Sair</span></button>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="professor.html" class="back-link"><i data-lucide="arrow-left"></i> Meus Cursos</a>
+      <span style="color:var(--border);font-size:var(--text-lg);flex-shrink:0">|</span>
+      <span class="topbar-title" id="topbarTitle">Carregando...</span>
+      <span class="badge" id="statusBadge" style="display:none"></span>
+    </div>
+    <div class="topbar-right" id="topbarActions"></div>
+  </div>
+
+  <!-- Main content -->
+  <div class="page-content">
+
+    <!-- Course info card -->
+    <div class="course-info-card">
+      <div class="course-info-body">
+        <div class="course-thumb-wrap" id="thumbWrap">
+          <div class="course-thumb-placeholder"><i data-lucide="image"></i></div>
+        </div>
+        <div class="course-meta-wrap" id="metaWrap">
+          <div style="height:80px;background:var(--bg-elevated);border-radius:var(--radius-md)"></div>
+          <div style="height:40px;background:var(--bg-elevated);border-radius:var(--radius-md);width:60%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rejection notice -->
+    <div class="rejection-box" id="rejectionBox" style="display:none">
+      <strong>Feedback do Administrador:</strong>
+      <p id="rejectionText"></p>
+    </div>
+
+    <!-- Lessons -->
+    <div class="lessons-card">
+      <div class="lessons-card-header">
+        <h2>Aulas (<span id="lessonsCount">0</span>)</h2>
+        <button class="btn-primary" id="btnAddLesson" onclick="abrirModalAula(null)" style="display:none;padding:8px 16px;font-size:var(--text-xs)">
+          <i data-lucide="plus"></i> Adicionar Aula
+        </button>
+      </div>
+      <div class="lessons-card-body">
+        <div id="lockedNotice" style="display:none" class="locked-notice">
+          <i data-lucide="lock"></i>
+          <p>Este curso está em análise. Não é possível editar as aulas até o resultado da revisão.</p>
+        </div>
+        <div id="lessonsList" class="lessons-list"></div>
+        <div id="lessonsEmpty" class="lessons-empty" style="display:none">
+          <i data-lucide="video"></i>
+          <p style="font-weight:var(--weight-semibold);color:var(--text-primary);margin-bottom:4px">Nenhuma aula ainda</p>
+          <p>Adicione a primeira aula ao seu curso usando o botão acima.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Modal: Editar Curso ── -->
+<div class="modal-backdrop" id="modalCurso">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Editar Informações do Curso</h2>
+      <button class="btn-icon" onclick="fecharModalCurso()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="modalCursoNotice" style="display:none" class="published-notice">
+        <i data-lucide="zap"></i>
+        <span>Curso publicado — as alterações serão aplicadas imediatamente para os alunos.</span>
+      </div>
+      <div class="form-group">
+        <label>Título <span class="req">*</span></label>
+        <input type="text" id="cNome" placeholder="Ex: Investimentos para Iniciantes" maxlength="200">
+      </div>
+      <div class="form-group">
+        <label>Subtítulo</label>
+        <input type="text" id="cSubtitulo" placeholder="Uma frase que resume o valor do curso" maxlength="300">
+      </div>
+      <div class="form-group">
+        <label>Descrição <span class="req">*</span></label>
+        <textarea id="cDescricao" rows="4" placeholder="Descreva o que o aluno irá aprender..."></textarea>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label>Nível <span class="req">*</span></label>
+          <select id="cNivel">
+            <option value="">Selecione...</option>
+            <option value="basico">Básico</option>
+            <option value="intermediario">Intermediário</option>
+            <option value="avancado">Avançado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Categoria</label>
+          <select id="cCategoria">
+            <option value="">Selecione...</option>
+            <option value="investimentos">Investimentos</option>
+            <option value="planejamento">Planejamento Financeiro</option>
+            <option value="renda_fixa">Renda Fixa</option>
+            <option value="renda_variavel">Renda Variável</option>
+            <option value="criptomoedas">Criptomoedas</option>
+            <option value="previdencia">Previdência</option>
+            <option value="impostos">Impostos</option>
+            <option value="empreendedorismo">Empreendedorismo</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Perfil Recomendado</label>
+        <select id="cPerfilRecomendado">
+          <option value="todos">Todos os perfis</option>
+          <option value="conservador">Conservador</option>
+          <option value="moderado">Moderado</option>
+          <option value="agressivo">Agressivo</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Thumbnail <span style="font-weight:400;color:var(--text-muted)">(JPG, PNG, WEBP · Máx. 5MB)</span></label>
+        <div class="thumb-preview-wrap" id="thumbPreviewWrap" style="margin-bottom:8px">
+          <div class="thumb-preview-placeholder"><i data-lucide="image"></i></div>
+        </div>
+        <input type="file" id="cThumbnail" accept="image/jpeg,image/png,image/webp">
+        <span class="form-hint">Proporção recomendada: 16:9</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModalCurso()">Cancelar</button>
+      <button class="btn-primary" id="btnSalvarCurso" onclick="salvarCurso()"><i data-lucide="save"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Aula ── -->
+<div class="modal-backdrop" id="modalAula">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="modalAulaTitulo">Nova Aula</h2>
+      <button class="btn-icon" onclick="fecharModalAula()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="mLessonId">
+      <div class="form-group">
+        <label>Título <span class="req" style="color:var(--danger)">*</span></label>
+        <input type="text" id="mTitulo" placeholder="Título da aula" maxlength="200">
+      </div>
+      <div class="form-group">
+        <label>Descrição</label>
+        <textarea id="mDescricao" rows="3" placeholder="Do que se trata essa aula..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Link do Vídeo <span style="font-weight:400;color:var(--text-muted)">(YouTube, Vimeo…)</span></label>
+        <input type="url" id="mVideoLink" placeholder="https://www.youtube.com/watch?v=...">
+      </div>
+      <div class="form-group">
+        <label>Conteúdo Textual</label>
+        <textarea id="mContent" rows="4" placeholder="Texto complementar, roteiro, resumo..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Material de Apoio <span style="font-weight:400;color:var(--text-muted)">(PDF, DOCX, PPT, ZIP · Máx. 10MB)</span></label>
+        <input type="file" id="mAttachment" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip">
+        <span class="form-hint" id="mAttachmentHint" style="display:none"></span>
+      </div>
+      <div class="form-group">
+        <label>Duração Estimada <span style="font-weight:400;color:var(--text-muted)">(minutos)</span></label>
+        <input type="number" id="mDuracao" placeholder="Ex: 15" min="1" max="600">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModalAula()">Cancelar</button>
+      <button class="btn-primary" onclick="salvarAula()"><i data-lucide="save"></i> Salvar Aula</button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script>
+lucide.createIcons();
+
+const sidebarToggle   = document.getElementById('sidebarToggle');
+const sidebar         = document.getElementById('sidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+sidebarToggle.addEventListener('click', () => { sidebar.classList.toggle('open'); sidebarBackdrop.classList.toggle('visible'); });
+sidebarBackdrop.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarBackdrop.classList.remove('visible'); });
+
+// ─── State ────────────────────────────────────────────────────────────────
+let courseId   = null;
+let courseData = null;
+let lessons    = [];
+
+const labelNivel  = { basico: 'Básico', intermediario: 'Intermediário', avancado: 'Avançado' };
+const labelStatus = { draft: 'Rascunho', pendente: 'Em Análise', aprovado: 'Publicado', rejeitado: 'Rejeitado' };
+const labelPerfil = { todos: 'Todos os perfis', conservador: 'Conservador', moderado: 'Moderado', agressivo: 'Agressivo' };
+
+const params = new URLSearchParams(window.location.search);
+courseId = parseInt(params.get('id'), 10) || null;
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+verificarSessao('professor', usuario => {
+  document.getElementById('userName').textContent   = usuario.nome;
+  document.getElementById('userAvatar').textContent = usuario.nome ? usuario.nome.charAt(0).toUpperCase() : 'P';
+  if (!courseId) { exibirToast('Curso não especificado.', 'error'); return; }
+  carregarCurso();
+});
+
+async function carregarCurso() {
+  try {
+    const resp = await fetch('../php/professor_course_buscar.php?id=' + courseId, { credentials: 'include' });
+    const data = await resp.json();
+    if (!data.success) { exibirToast('Curso não encontrado.', 'error'); return; }
+    courseData = data.course;
+    lessons    = data.course.lessons || [];
+    renderizarCurso();
+  } catch {
+    exibirToast('Erro ao carregar curso.', 'error');
+  }
+}
+
+function renderizarCurso() {
+  const status  = courseData.status || 'draft';
+  const canEdit = status !== 'pendente';
+
+  // Topbar
+  document.getElementById('topbarTitle').textContent = courseData.nome || 'Sem título';
+  document.title = (courseData.nome || 'Curso') + ' — EduvFinance';
+  const badge = document.getElementById('statusBadge');
+  badge.textContent   = labelStatus[status] || status;
+  badge.className     = 'badge badge-' + status;
+  badge.style.display = 'inline-flex';
+
+  // Topbar action button
+  const actionsEl = document.getElementById('topbarActions');
+  actionsEl.innerHTML = canEdit
+    ? `<button class="btn-secondary" onclick="abrirModalCurso()"><i data-lucide="edit-2"></i> Editar Informações</button>`
+    : '';
+
+  // Thumbnail
+  const thumbWrap = document.getElementById('thumbWrap');
+  thumbWrap.innerHTML = courseData.thumbnail_path
+    ? `<img class="course-thumb" src="../${escHtml(courseData.thumbnail_path)}" alt="Thumbnail">`
+    : `<div class="course-thumb-placeholder"><i data-lucide="image"></i></div>`;
+
+  // Metadata
+  const nivelBadge = courseData.nivel
+    ? `<span class="badge badge-${courseData.nivel}">${labelNivel[courseData.nivel] || courseData.nivel}</span>` : '';
+  const catText = courseData.categoria
+    ? `<span style="font-size:var(--text-xs);color:var(--text-muted)">${escHtml(courseData.categoria)}</span>` : '';
+  const perfilText = (courseData.perfil_recomendado && courseData.perfil_recomendado !== 'todos')
+    ? `<div class="course-perfil"><i data-lucide="user" style="width:13px;height:13px"></i> Perfil recomendado: ${escHtml(labelPerfil[courseData.perfil_recomendado] || courseData.perfil_recomendado)}</div>` : '';
+  const publishedNotice = status === 'aprovado'
+    ? `<div class="published-notice"><i data-lucide="zap"></i><span>Curso publicado — alterações são aplicadas imediatamente para os alunos.</span></div>` : '';
+
+  document.getElementById('metaWrap').innerHTML = `
+    <div class="course-title">${escHtml(courseData.nome || 'Sem título')}</div>
+    ${courseData.subtitulo ? `<div class="course-subtitle">${escHtml(courseData.subtitulo)}</div>` : ''}
+    <div class="course-badges">${nivelBadge}${catText}</div>
+    ${perfilText}
+    ${courseData.descricao ? `<div class="course-desc">${escHtml(courseData.descricao)}</div>` : ''}
+    ${publishedNotice}
+  `;
+
+  // Rejection box
+  const rejBox = document.getElementById('rejectionBox');
+  if (status === 'rejeitado' && courseData.review_comment) {
+    document.getElementById('rejectionText').textContent = courseData.review_comment;
+    rejBox.style.display = 'block';
+  } else {
+    rejBox.style.display = 'none';
+  }
+
+  renderizarAulas();
+  lucide.createIcons();
+}
+
+// ─── Lessons ──────────────────────────────────────────────────────────────
+function renderizarAulas() {
+  const locked = courseData?.status === 'pendente';
+
+  document.getElementById('lockedNotice').style.display = locked ? 'flex' : 'none';
+  document.getElementById('btnAddLesson').style.display = locked ? 'none' : 'inline-flex';
+  document.getElementById('lessonsCount').textContent   = lessons.length;
+
+  const list  = document.getElementById('lessonsList');
+  const empty = document.getElementById('lessonsEmpty');
+
+  if (lessons.length === 0) {
+    list.innerHTML      = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = '';
+
+  lessons.forEach((l, i) => {
+    const div = document.createElement('div');
+    div.className = 'lesson-item';
+    div.setAttribute('draggable', !locked);
+    div.dataset.id = l.id;
+    div.innerHTML = `
+      ${!locked ? `<div class="lesson-drag" title="Arrastar para reordenar"><i data-lucide="grip-vertical"></i></div>` : ''}
+      <div class="lesson-num">${i + 1}</div>
+      <div class="lesson-info">
+        <div class="lesson-title">${escHtml(l.titulo)}</div>
+        <div class="lesson-meta">
+          ${l.video_link      ? '<span>🎬 Vídeo</span>'    : ''}
+          ${l.attachment_path ? '<span>📎 Material</span>' : ''}
+          ${l.duracao         ? `<span>⏱ ${l.duracao} min</span>` : ''}
+        </div>
+      </div>
+      ${!locked ? `
+      <div class="lesson-actions">
+        <button class="btn-icon" title="Editar" onclick="abrirModalAula(${l.id})"><i data-lucide="edit-2"></i></button>
+        <button class="btn-icon danger" title="Excluir" onclick="excluirAula(${l.id})"><i data-lucide="trash-2"></i></button>
+      </div>` : ''}
+    `;
+    list.appendChild(div);
+  });
+
+  if (!locked) ativarDragDrop();
+  lucide.createIcons();
+}
+
+// ─── Drag & Drop ──────────────────────────────────────────────────────────
+let dragSrc = null;
+
+function ativarDragDrop() {
+  document.querySelectorAll('#lessonsList .lesson-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragSrc = item; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      document.querySelectorAll('#lessonsList .lesson-item').forEach(i => i.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover', e => {
+      e.preventDefault(); e.dataTransfer.dropEffect = 'move'; item.classList.add('drag-over');
+    });
+    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    item.addEventListener('drop', async e => {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      if (!dragSrc || dragSrc === item) return;
+      const list = document.getElementById('lessonsList');
+      const fromIdx = [...list.children].indexOf(dragSrc);
+      const toIdx   = [...list.children].indexOf(item);
+      if (fromIdx < toIdx) list.insertBefore(dragSrc, item.nextSibling);
+      else                 list.insertBefore(dragSrc, item);
+      const newOrder = [...list.children].map(el => parseInt(el.dataset.id, 10));
+      lessons = newOrder.map(id => lessons.find(l => l.id === id)).filter(Boolean);
+      renderizarAulas();
+      await salvarOrdem(newOrder);
+    });
+  });
+}
+
+async function salvarOrdem(orderedIds) {
+  const fd = new FormData();
+  fd.append('course_id',   courseId);
+  fd.append('ordered_ids', JSON.stringify(orderedIds));
+  await fetch('../php/professor_course_lessons_ordenar.php', { method: 'POST', credentials: 'include', body: fd });
+}
+
+// ─── Modal: Curso ─────────────────────────────────────────────────────────
+function abrirModalCurso() {
+  document.getElementById('cNome').value              = courseData?.nome || '';
+  document.getElementById('cSubtitulo').value         = courseData?.subtitulo || '';
+  document.getElementById('cDescricao').value         = courseData?.descricao || '';
+  document.getElementById('cNivel').value             = courseData?.nivel || '';
+  document.getElementById('cCategoria').value         = courseData?.categoria || '';
+  document.getElementById('cPerfilRecomendado').value = courseData?.perfil_recomendado || 'todos';
+  document.getElementById('cThumbnail').value         = '';
+
+  const prevWrap = document.getElementById('thumbPreviewWrap');
+  prevWrap.innerHTML = courseData?.thumbnail_path
+    ? `<img src="../${escHtml(courseData.thumbnail_path)}" alt="Thumbnail" style="width:100%;height:100%;object-fit:cover">`
+    : `<div class="thumb-preview-placeholder"><i data-lucide="image"></i></div>`;
+
+  document.getElementById('cThumbnail').onchange = function() {
+    const file = this.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    prevWrap.innerHTML = `<img src="${url}" alt="Preview" style="width:100%;height:100%;object-fit:cover">`;
+  };
+
+  document.getElementById('modalCursoNotice').style.display =
+    courseData?.status === 'aprovado' ? 'flex' : 'none';
+  document.getElementById('modalCurso').classList.add('open');
+  lucide.createIcons();
+}
+
+function fecharModalCurso() {
+  document.getElementById('modalCurso').classList.remove('open');
+}
+
+async function salvarCurso() {
+  const nome     = document.getElementById('cNome').value.trim();
+  const nivel    = document.getElementById('cNivel').value;
+  if (!nome)  { exibirToast('Informe o título do curso', 'error'); return; }
+  if (!nivel) { exibirToast('Selecione o nível do curso', 'error'); return; }
+
+  const btn = document.getElementById('btnSalvarCurso');
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader"></i> Salvando...';
+  lucide.createIcons();
+
+  const fd = new FormData();
+  fd.append('id',                 courseId);
+  fd.append('nome',               nome);
+  fd.append('subtitulo',          document.getElementById('cSubtitulo').value.trim());
+  fd.append('descricao',          document.getElementById('cDescricao').value.trim());
+  fd.append('nivel',              nivel);
+  fd.append('categoria',          document.getElementById('cCategoria').value);
+  fd.append('perfil_recomendado', document.getElementById('cPerfilRecomendado').value);
+  const file = document.getElementById('cThumbnail').files[0];
+  if (file) fd.append('thumbnail', file);
+
+  try {
+    const resp = await fetch('../php/professor_course_draft_atualizar.php', { method: 'POST', credentials: 'include', body: fd });
+    const data = await resp.json();
+    if (!data.success) { exibirToast(data.error || 'Erro ao salvar', 'error'); return; }
+
+    // Update local state
+    courseData.nome              = nome;
+    courseData.subtitulo         = document.getElementById('cSubtitulo').value.trim();
+    courseData.descricao         = document.getElementById('cDescricao').value.trim();
+    courseData.nivel             = nivel;
+    courseData.categoria         = document.getElementById('cCategoria').value;
+    courseData.perfil_recomendado = document.getElementById('cPerfilRecomendado').value;
+
+    if (file) {
+      const refetch = await fetch('../php/professor_course_buscar.php?id=' + courseId, { credentials: 'include' });
+      const rd = await refetch.json();
+      if (rd.success) courseData.thumbnail_path = rd.course.thumbnail_path;
+    }
+
+    fecharModalCurso();
+    renderizarCurso();
+    exibirToast(courseData.status === 'aprovado' ? 'Alterações publicadas imediatamente!' : 'Informações salvas!', 'success');
+  } catch {
+    exibirToast('Erro de conexão', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="save"></i> Salvar';
+    lucide.createIcons();
+  }
+}
+
+// ─── Modal: Aula ──────────────────────────────────────────────────────────
+function abrirModalAula(id) {
+  document.getElementById('mLessonId').value   = id || '';
+  document.getElementById('mTitulo').value     = '';
+  document.getElementById('mDescricao').value  = '';
+  document.getElementById('mVideoLink').value  = '';
+  document.getElementById('mContent').value    = '';
+  document.getElementById('mDuracao').value    = '';
+  document.getElementById('mAttachment').value = '';
+  document.getElementById('mAttachmentHint').style.display = 'none';
+  document.getElementById('modalAulaTitulo').textContent = id ? 'Editar Aula' : 'Nova Aula';
+
+  if (id) {
+    const l = lessons.find(x => x.id === id);
+    if (l) {
+      document.getElementById('mTitulo').value    = l.titulo || '';
+      document.getElementById('mDescricao').value = l.descricao || '';
+      document.getElementById('mVideoLink').value = l.video_link || '';
+      document.getElementById('mContent').value   = l.content || '';
+      document.getElementById('mDuracao').value   = l.duracao || '';
+      if (l.attachment_path) {
+        const hint = document.getElementById('mAttachmentHint');
+        hint.style.display = 'block';
+        hint.innerHTML = `Arquivo atual: <a href="../${escHtml(l.attachment_path)}" target="_blank">${escHtml(l.attachment_name || 'Download')}</a> — envie outro para substituir`;
+      }
+    }
+  }
+  document.getElementById('modalAula').classList.add('open');
+  lucide.createIcons();
+}
+
+function fecharModalAula() {
+  document.getElementById('modalAula').classList.remove('open');
+}
+
+async function salvarAula() {
+  const titulo = document.getElementById('mTitulo').value.trim();
+  if (!titulo) { exibirToast('Informe o título da aula', 'error'); return; }
+
+  const lessonId = parseInt(document.getElementById('mLessonId').value, 10) || null;
+  const isEdicao = !!lessonId;
+  const endpoint = isEdicao
+    ? '../php/professor_course_lessons_atualizar.php'
+    : '../php/professor_course_lessons_inserir.php';
+
+  const fd = new FormData();
+  if (isEdicao) fd.append('id',        lessonId);
+  else          fd.append('course_id', courseId);
+  fd.append('titulo',     titulo);
+  fd.append('descricao',  document.getElementById('mDescricao').value.trim());
+  fd.append('video_link', document.getElementById('mVideoLink').value.trim());
+  fd.append('content',    document.getElementById('mContent').value.trim());
+  fd.append('duracao',    document.getElementById('mDuracao').value || '');
+  const file = document.getElementById('mAttachment').files[0];
+  if (file) fd.append('attachment', file);
+
+  try {
+    const resp = await fetch(endpoint, { method: 'POST', credentials: 'include', body: fd });
+    const text = await resp.text();
+    let data;
+    try { data = JSON.parse(text); } catch { exibirToast('Erro interno do servidor', 'error'); return; }
+    if (!data.success) { exibirToast(data.error || 'Erro ao salvar aula', 'error'); return; }
+
+    if (isEdicao) {
+      const idx = lessons.findIndex(l => l.id === lessonId);
+      if (idx >= 0) {
+        lessons[idx] = {
+          ...lessons[idx],
+          titulo,
+          descricao:  document.getElementById('mDescricao').value.trim(),
+          video_link: document.getElementById('mVideoLink').value.trim(),
+          content:    document.getElementById('mContent').value.trim(),
+          duracao:    parseInt(document.getElementById('mDuracao').value, 10) || null,
+          ...(data.attachment_path !== undefined && { attachment_path: data.attachment_path, attachment_name: data.attachment_name }),
+        };
+      }
+    } else {
+      lessons.push({
+        id:              data.lesson_id,
+        titulo,
+        descricao:       document.getElementById('mDescricao').value.trim(),
+        video_link:      document.getElementById('mVideoLink').value.trim(),
+        content:         document.getElementById('mContent').value.trim(),
+        duracao:         parseInt(document.getElementById('mDuracao').value, 10) || null,
+        attachment_path: data.attachment_path  || null,
+        attachment_name: data.attachment_name  || null,
+        order_index:     data.order_index,
+      });
+    }
+
+    fecharModalAula();
+    renderizarAulas();
+    const published = courseData?.status === 'aprovado';
+    exibirToast(
+      isEdicao
+        ? (published ? 'Aula atualizada e publicada!' : 'Aula atualizada!')
+        : (published ? 'Aula adicionada e publicada!' : 'Aula adicionada!'),
+      'success'
+    );
+  } catch {
+    exibirToast('Erro de conexão', 'error');
+  }
+}
+
+async function excluirAula(id) {
+  if (!confirm('Excluir esta aula? Esta ação não pode ser desfeita.')) return;
+  const fd = new FormData();
+  fd.append('id', id);
+  const resp = await fetch('../php/professor_course_lessons_excluir.php', { method: 'POST', credentials: 'include', body: fd });
+  const data = await resp.json();
+  if (!data.success) { exibirToast(data.error || 'Erro ao excluir aula', 'error'); return; }
+  lessons = lessons.filter(l => l.id !== id);
+  renderizarAulas();
+  exibirToast('Aula excluída.', 'success');
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+function escHtml(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.getElementById('modalCurso').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalCurso')) fecharModalCurso();
+});
+document.getElementById('modalAula').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalAula')) fecharModalAula();
+});
+</script>
+</body>
+</html>

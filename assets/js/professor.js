@@ -77,15 +77,19 @@ function construirCardCurso(c) {
         : '';
 
     const canEdit   = status === 'draft' || status === 'rejeitado';
-    const canDelete = status === 'draft' || status === 'rejeitado';
-    const canSubmit = status === 'draft' || status === 'rejeitado';
+    const canDelete = status === 'draft' || status === 'rejeitado' || status === 'aprovado';
 
-    const editBtn = canEdit
-        ? `<a href="professor_builder.html?id=${c.id}" class="btn-sm btn-sm-primary"><i data-lucide="edit-2"></i> Editar</a>`
-        : `<a href="professor_builder.html?id=${c.id}" class="btn-sm"><i data-lucide="eye"></i> Ver</a>`;
+    let editBtn = '';
+    if (canEdit) {
+        // draft / rejeitado → builder (wizard completo)
+        editBtn = `<a href="professor_builder.html?id=${c.id}" class="btn-sm btn-sm-primary"><i data-lucide="edit-2"></i> Editar</a>`;
+    } else {
+        // pendente / aprovado → página de visualização/edição inline
+        editBtn = `<a href="professor_curso.html?id=${c.id}" class="btn-sm btn-sm-success"><i data-lucide="eye"></i> Ver</a>`;
+    }
 
     const deleteBtn = canDelete
-        ? `<button class="btn-sm btn-sm-danger" onclick="excluirCurso(${c.id}, '${escJs(c.nome)}')"><i data-lucide="trash-2"></i></button>`
+        ? `<button class="btn-sm btn-sm-danger" onclick="excluirCurso(${c.id}, '${escJs(c.nome)}', '${status}')"><i data-lucide="trash-2"></i></button>`
         : '';
 
     const totalAulas = c.total_lessons || 0;
@@ -118,8 +122,11 @@ function construirCardCurso(c) {
     </div>`;
 }
 
-async function excluirCurso(id, nome) {
-    if (!confirm(`Excluir o curso "${nome}"? Todas as aulas serão removidas. Esta ação não pode ser desfeita.`)) return;
+async function excluirCurso(id, nome, status) {
+    const msg = status === 'aprovado'
+        ? `Excluir o curso publicado "${nome}"?\n\nO curso e todas as suas aulas serão removidos para os alunos, junto com as matrículas e o progresso deles neste curso. Esta ação não pode ser desfeita.`
+        : `Excluir o curso "${nome}"? Todas as aulas serão removidas. Esta ação não pode ser desfeita.`;
+    if (!confirm(msg)) return;
     try {
         const fd = new FormData();
         fd.append('id', id);
